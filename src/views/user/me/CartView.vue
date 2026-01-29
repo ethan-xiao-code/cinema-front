@@ -4,12 +4,12 @@
       <h2 class="cart-title">购物车</h2>
 
       <!-- 购物车列表 -->
-      <div v-if="cartArr.length !== 0" class="cart-list">
+      <div v-if="cartList.length !== 0" class="cart-list">
         <el-checkbox-group
-          v-model="checkedCartes"
+          v-model="checkedCartList"
           @change="handleCheckedCitiesChange"
         >
-          <div class="cart-item" v-for="cart in cartArr" :key="cart.id">
+          <div class="cart-item" v-for="cart in cartList" :key="cart.id">
             <!-- 复选框 -->
             <div class="checkbox-col">
               <el-checkbox :label="cart" :key="cart.id" size="large">
@@ -32,10 +32,9 @@
               <p class="film-title">{{ cart.title }}</p>
               <div class="info-row">
                 <span class="info-item">放映厅：{{ cart.screenName }}</span>
-                <span class="info-item">座位：{{ cart.seatNumber }}号</span>
               </div>
               <div class="info-row">
-                <span class="info-item">手机号码：{{ cart.phone }}</span>
+                <span class="info-item">座位：{{ cart.seatNumbers }}号</span>
               </div>
               <div class="info-row">
                 <span class="info-item">开场时间：</span>
@@ -48,10 +47,10 @@
               <span class="price">￥ {{ cart.price }}</span>
               <el-button
                 type="danger"
-                icon="el-icon-delete"
+                :icon="Delete"
                 @click="deleteCartById(cart.id)"
+                link
                 size="small"
-                circle
                 class="delete-btn"
               ></el-button>
             </div>
@@ -69,23 +68,21 @@
             >全选</el-checkbox
           >
 
+          <div class="tip">
+            tips: ⏰ 请在 15 分钟内完成支付，超时订单将自动取消
+          </div>
+
           <div class="price-info">
             <span class="total-price"
               >总价：
-              <span class="price-value">￥{{ countPrice }}</span>
-            </span>
-            <span class="discount-price"
-              >优惠价：
-              <span class="price-value highlight-price"
-                >￥{{ discountPrice }}</span
-              >
+              <span class="price-value">￥{{ totalPrice }}</span>
             </span>
           </div>
 
           <el-button
             type="success"
             class="checkout-btn"
-            @click="open"
+            @click="openCheckoutModal"
             size="large"
           >
             结算
@@ -102,21 +99,73 @@
         <el-button
           type="primary"
           class="go-shopping-btn"
-          @click="$router.push('/film')"
+          @click="$router.push('/user/home')"
         >
           去购票
         </el-button>
       </div>
     </div>
+
+    <!-- 结算确认 Modal -->
+    <el-dialog
+      v-model="payModalVisible"
+      title="订单确认"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      @close="handleModalClose"
+    >
+      <div class="checkout-modal-content">
+        <div class="modal-info">
+          <p class="info-title">请确认以下订单信息：</p>
+          <!-- 选中的商品列表 -->
+          <div class="selected-items">
+            <div
+              class="item-row"
+              v-for="item in checkedCartList"
+              :key="item.id"
+            >
+              <span class="item-name">{{ item.title }}</span>
+              <span class="item-detail">
+                {{ item.screenName }} | {{ item.seatNumbers }}号 |
+                {{ item.startTime }}
+              </span>
+              <span class="item-price">￥{{ item.price }}</span>
+            </div>
+          </div>
+          <!-- 价格汇总 -->
+          <div class="price-summary">
+            <div class="summary-row">
+              <span class="label">订单总价：</span>
+              <span class="value">￥{{ totalPrice }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="label">优惠折扣：</span>
+              <span class="value">{{ discount * 10 }}折</span>
+            </div>
+            <div class="summary-row total-row">
+              <span class="label">实付金额：</span>
+              <span class="value highlight">￥{{ discountPrice }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="payModalVisible = false">取消支付</el-button>
+          <el-button type="primary" @click="confirmPay">确认支付</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
-import { getCartes, deleteCartById } from "@/api/cart";
+import { getCartes, deleteCartByIdApi } from "@/api/cart";
 import { saveOrders } from "@/api/orders";
+import { Delete } from "@element-plus/icons-vue";
 
 // ========== 类型定义 ==========
 interface CartItem {
@@ -124,11 +173,12 @@ interface CartItem {
   title: string;
   poster: string;
   screenName: string;
-  seatNumber: number;
+  seatNumbers: number;
   phone: string;
   startTime: string;
   price: number;
   scheduleId: number;
+  expireTime: string;
 }
 
 interface OrderItem {
@@ -143,58 +193,111 @@ interface OrderItem {
 
 // ========== 响应式变量 ==========
 const checkAll = ref(false);
-const checkedCartes = ref<CartItem[]>([]);
+const checkedCartList = ref<CartItem[]>([]);
 const isIndeterminate = ref(false);
-const cartArr = ref<CartItem[]>([]);
-const countPrice = ref(0); // 总价格
+const cartList = ref<CartItem[]>([]);
 const discount = ref(1); // 折扣
-const discountPrice = ref(0); // 折扣后价格
+// 新增：结算Modal的显示状态
+const payModalVisible = ref(false);
+
+const timer = ref<any>(null);
 
 // 获取用户仓库
 const userStore = useUserStore();
 
+const totalPrice = computed(() =>
+  checkedCartList.value.reduce((sum, item) => {
+    const priceStr = (sum + item.price).toFixed(2);
+    return Number(priceStr);
+  }, 0),
+);
+
+const discountPrice = computed(() => {
+  const discountPriceStr = (totalPrice.value * discount.value).toFixed(2);
+  return Number(discountPriceStr);
+});
+
 // ========== 生命周期 ==========
 onMounted(async () => {
   await getCartesByUserId();
+  startInteval();
   // 获取用户折扣
   discount.value = userStore.userInfo?.discount || 1;
 });
 
+onUnmounted(() => {
+  stopInteval();
+});
+
+const startInteval = () => {
+  // 防重复启动：如果定时器已存在（timer.value有值），则直接返回
+  // 边界判断：如果购物车本身无数据，无需启动定时器，直接返回
+  if (timer.value || cartList.value.length === 0) return; 
+
+  // 启动定时器，每隔60秒执行一次购物车检查逻辑
+  // 注：60 * 1000 = 60秒，避免短时间频繁请求接口
+  timer.value = setInterval(async () => {
+    try {
+      // 1. 记录刷新前的购物车商品数量（用于后续对比）
+      const oldCount = cartList.value.length;
+
+      // 2. 若当前购物车已无数据，停止定时器并终止本次执行
+      if (oldCount === 0) {
+        stopInteval();
+        return;
+      }
+
+      // 3. 调用接口重新获取最新的购物车数据（检查座位是否过期）
+      await getCartesByUserId();
+
+      // 4. 记录刷新后的购物车商品数量
+      const newCount = cartList.value.length;
+
+      // 5. 对比数量：新数量 < 旧数量 → 说明有座位过期被移除
+      if (newCount < oldCount) {
+        // 提示用户座位过期
+        ElMessage.warning("部分座位已过期，已自动移除");
+        // 关闭支付弹窗（如果打开）
+        payModalVisible.value = false;
+        // 清空选中的商品列表
+        checkedCartList.value = [];
+        // 取消全选状态
+        checkAll.value = false;
+      }
+    } catch (error) {
+      // 异常处理：接口请求失败时打印错误，避免定时器因报错终止
+      console.error("购物车定时刷新失败：", error);
+      // 可选：失败后停止定时器，防止无限报错
+      // stopInteval();
+    }
+  }, 60 * 1000); // 定时器间隔：60秒（1分钟）
+};
+const stopInteval = () => {
+  if (timer.value) {
+    clearInterval(timer.value);
+    timer.value = null;
+  }
+};
+
 // ========== 方法定义 ==========
 /** 获取用户购物车列表 */
 const getCartesByUserId = async () => {
-  try {
-    const res = await getCartes();
-    cartArr.value = res || [];
-  } catch (err) {
-    ElMessage.error("获取购物车失败");
-    console.error(err);
-  }
+  const res = await getCartes();
+  cartList.value = res || [];
 };
 
 /** 全选/取消全选 */
 const handleCheckAllChange = (val: boolean) => {
-  checkedCartes.value = val ? [...cartArr.value] : [];
+  checkedCartList.value = val ? [...cartList.value] : [];
   isIndeterminate.value = false;
-
-  if (val) {
-    countPrice.value = computeCartCountPrice(cartArr.value);
-  } else {
-    countPrice.value = 0;
-  }
-  // 计算折扣价
-  discountPrice.value = Number((countPrice.value * discount.value).toFixed(2));
 };
 
 /** 单个复选框变更 */
 const handleCheckedCitiesChange = (value: CartItem[]) => {
-  countPrice.value = computeCartCountPrice(value);
-  discountPrice.value = Number((countPrice.value * discount.value).toFixed(2));
-
   const checkedCount = value.length;
-  checkAll.value = checkedCount === cartArr.value.length;
+  checkAll.value = checkedCount === cartList.value.length;
   isIndeterminate.value =
-    checkedCount > 0 && checkedCount < cartArr.value.length;
+    checkedCount > 0 && checkedCount < cartList.value.length;
 };
 
 /** 计算选中商品总价 */
@@ -204,66 +307,53 @@ const computeCartCountPrice = (arr: CartItem[]) => {
 
 /** 删除购物车项 */
 const deleteCartById = async (id: number) => {
-  try {
-    await deleteCartById(id);
-    ElMessage.success("删除成功");
-    await getCartesByUserId(); // 重新获取购物车列表
-  } catch (err) {
-    ElMessage.error("删除失败");
-    console.error(err);
-  }
+  await deleteCartByIdApi(id);
+  ElMessage.success("删除成功");
+  await getCartesByUserId(); // 重新获取购物车列表
 };
 
-/** 结算确认 */
-const open = async () => {
-  if (countPrice.value === 0) {
+/** 打开结算确认Modal */
+const openCheckoutModal = () => {
+  if (totalPrice.value === 0) {
     ElMessage.error("结算的金额不能是0");
     return;
   }
+  // 打开Modal
+  payModalVisible.value = true;
+};
 
-  try {
-    await ElMessageBox.confirm(
-      `请您确认订单的金额为${discountPrice.value}元, 是否支付?`,
-      "提示",
-      {
-        confirmButtonText: "确认支付",
-        cancelButtonText: "取消支付",
-        type: "warning",
-      },
-    );
-    await saveOrdersHandler();
-  } catch {
-    ElMessage.info("取消支付");
-  }
+/** 关闭Modal时的处理 */
+const handleModalClose = () => {
+  ElMessage.info("取消支付");
+};
+
+/** 确认支付 */
+const confirmPay = async () => {
+  await saveOrdersHandler();
+  // 关闭Modal
+  payModalVisible.value = false;
 };
 
 /** 保存订单 */
 const saveOrdersHandler = async () => {
-  try {
-    const ordersArr = getHandleOrdersArr.value;
-    await saveOrders(ordersArr);
-    ElMessage.success("支付成功");
-    await getCartesByUserId(); // 重新获取购物车列表
-    // 清空选中状态
-    checkAll.value = false;
-    checkedCartes.value = [];
-    countPrice.value = 0;
-    discountPrice.value = 0;
-  } catch (err) {
-    ElMessage.error("支付失败");
-    console.error(err);
-  }
+  const ordersArr = getHandleOrdersArr.value;
+  await saveOrders(ordersArr);
+  ElMessage.success("支付成功");
+  await getCartesByUserId(); // 重新获取购物车列表
+  // 清空选中状态
+  checkAll.value = false;
+  checkedCartList.value = [];
 };
 
 // ========== 计算属性 ==========
 /** 转换购物车数据为订单数据 */
 const getHandleOrdersArr = computed<OrderItem[]>(() => {
-  return checkedCartes.value.map((item) => ({
+  return checkedCartList.value.map((item) => ({
     cartId: item.id,
     name: item.title,
     poster: item.poster,
     scheduleId: item.scheduleId,
-    seatNumber: item.seatNumber,
+    seatNumber: item.seatNumbers,
     amount: item.price.toFixed(2),
     startTime: item.startTime,
   }));
@@ -274,7 +364,6 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
 // 全局基础样式
 #cart {
   text-align: left;
-  min-height: 100vh;
   background-color: #f8f9fa;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
 
@@ -317,6 +406,7 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
         margin-bottom: 16px;
         display: flex;
         align-items: center;
+        justify-content: flex-start; // 明确主轴对齐方式
         box-sizing: border-box;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         transition:
@@ -332,17 +422,17 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
           }
         }
 
-        // 复选框列
+        // 复选框列 - Flex 优化
         .checkbox-col {
-          width: 6%;
           text-align: center;
           height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
+          width: 40px; // 最小宽度，防止过窄
         }
 
-        // 海报列
+        // 海报列 - Flex 优化
         .poster-col {
           height: 100%;
           margin-right: 24px;
@@ -358,34 +448,34 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
           }
         }
 
-        // 信息列
+        // 信息列 - Flex 核心优化
         .info-col {
-          width: 60%;
+          flex: 1 1 auto; // 自动填充剩余空间，允许缩放
           height: 100%;
           margin: 0 24px;
           display: flex;
           flex-direction: column;
           justify-content: center;
+          align-items: flex-start; // 交叉轴左对齐
+          min-width: 280px; // 最小宽度，防止挤压变形
 
           .film-title {
             font-weight: 600;
-            margin-bottom: 12px;
             font-size: 18px;
             color: #212529;
-            // white-space: nowrap;
-            // overflow: hidden;
-            // text-overflow: ellipsis;
+            margin-bottom: 16px;
           }
 
           .info-row {
             display: flex;
             flex-wrap: wrap;
-            margin-bottom: 6px;
+            align-items: center; // 垂直居中对齐
 
             .info-item {
+              flex: 0 0 auto; // 自适应内容宽度
               font-size: 14px;
               color: #495057;
-              margin-right: 24px;
+              // margin-right: 24px;
               line-height: 1.8;
 
               &.highlight {
@@ -396,36 +486,28 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
           }
         }
 
-        // 操作列
+        // 操作列 - Flex 优化
         .action-col {
+          flex: 0 0 220px; // 固定宽度，不缩放
           height: 100%;
           display: flex;
           align-items: center;
+          justify-content: flex-end; // 内容右对齐
           gap: 20px;
-          margin-left: auto;
           padding-right: 8px;
+          min-width: 200px; // 最小宽度保障
 
           .price {
+            flex: 0 0 120px; // 固定宽度
             font-size: 18px;
             color: #e74c3c;
             font-weight: 700;
-            width: 120px;
             display: inline-block;
             text-align: right;
           }
 
           .delete-btn {
-            width: 36px;
-            height: 36px;
-            opacity: 0.7;
-            transition:
-              opacity 0.2s ease,
-              background-color 0.2s ease;
-
-            &:hover {
-              opacity: 1;
-              background-color: #dc3545;
-            }
+            font-size: 20px;
           }
         }
       }
@@ -450,6 +532,12 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
           font-weight: 500;
         }
 
+        .tip {
+          color: grey;
+          font-size: 14px;
+          margin-left: 32px;
+        }
+
         .price-info {
           margin-left: auto;
           display: flex;
@@ -465,7 +553,7 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
               width: 120px;
               display: inline-block;
               text-align: right;
-              color: #212529; // 深灰价格（替代原白色）
+              color: red; // 深灰价格（替代原白色）
 
               &.highlight-price {
                 color: #409eff; // 蓝色突出优惠价（替代原金色）
@@ -517,6 +605,91 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
 
         &:hover {
           background-color: #3393ff;
+        }
+      }
+    }
+  }
+}
+
+// 结算Modal样式
+.checkout-modal-content {
+  padding: 10px 0;
+
+  .modal-info {
+    .info-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .selected-items {
+      margin-bottom: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+
+      .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+
+        .item-name {
+          flex: 1;
+          font-weight: 500;
+          color: #333;
+        }
+
+        .item-detail {
+          flex: 2;
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+        }
+
+        .item-price {
+          flex: 1;
+          text-align: right;
+          color: #e74c3c;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .price-summary {
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 14px;
+
+        &.total-row {
+          margin-top: 10px;
+          border-top: 1px solid #f0f0f0;
+          padding-top: 10px;
+
+          .label {
+            font-size: 16px;
+            font-weight: 600;
+          }
+
+          .value {
+            font-size: 18px;
+          }
+        }
+
+        .label {
+          color: #666;
+        }
+
+        .value {
+          color: #333;
+
+          &.highlight {
+            color: #e74c3c;
+            font-weight: 700;
+          }
         }
       }
     }

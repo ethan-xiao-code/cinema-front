@@ -39,7 +39,7 @@ export function useWebSocket(path: string, onMessage: WSMessageHandler,params?: 
       connected.value = false;
       console.log("❌ WebSocket 已断开");
       // 可选：自动重连
-      setTimeout(initWebSocket, 3000);
+      // setTimeout(initWebSocket, 3000);
     };
 
     ws.value.onerror = (err) => {

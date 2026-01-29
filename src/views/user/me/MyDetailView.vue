@@ -251,7 +251,6 @@ const resetPasswordForm = () => {
 
 <style lang="scss" scoped>
 #set {
-  min-height: 100vh;
   background-color: #f5f7fa;
   padding: 30px 50px;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;

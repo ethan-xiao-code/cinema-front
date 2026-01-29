@@ -4,12 +4,13 @@
       <el-header class="navBar">
         <div class="head">
           <div class="title">
-            <el-avatar
+            <img :src="url" width="40px" alt="">
+            <!-- <el-avatar
               shape="square"
               :size="50"
               fit="fill"
               :src="url"
-            ></el-avatar>
+            ></el-avatar> -->
             <span> 影院购票界面</span>
           </div>
           <el-menu

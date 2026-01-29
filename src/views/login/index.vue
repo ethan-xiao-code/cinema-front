@@ -2,7 +2,7 @@
   <div class="login-wrapper">
     <div class="login-card">
       <div class="logo">
-        🎬
+        <img :src="logoUrl" width="50" alt="">
       </div>
       <h2 class="title">影院购票系统登录界面</h2>
 
@@ -28,6 +28,7 @@
 import { ref } from "vue";
 import LoginForm from "./components/LoginForm.vue";
 import RegisterForm from "./components/RegisterForm.vue";
+import logoUrl from '@/assets/images/logo.png';
 
 const tabList = ["登录", "注册"];
 const activeIndex = ref(0);
@@ -53,7 +54,7 @@ const activeIndex = ref(0);
 }
 
 .logo {
-  font-size: 42px;
+  // font-size: 42px;
   margin-bottom: 8px;
 }
 

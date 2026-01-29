@@ -44,7 +44,7 @@
           </div>
           <div class="info-item">
             <span class="label">单座票价：</span>
-            <span class="value">￥{{ filmSchedule.price }}/张</span>
+            <span class="value">￥{{ filmSchedule.price.toFixed(2) }}/张</span>
           </div>
         </div>
 
@@ -133,7 +133,7 @@
                 v-for="(seat, seatIndex) in row"
                 :key="seat.number"
                 :class="getSeatClass(seat)"
-                @click="handleSeatClick(rowIndex, seatIndex, seat)"
+                @click="handleSeatClick(seat)"
                 class="seat-item"
               >
                 {{ seat.number }}
@@ -203,6 +203,18 @@ const filmSchedule = reactive<FilmSchedule>({
   seatCount: 0,
 });
 
+enum SeatStatus {
+  None = 0, // 未选
+  Selected = 1, // 已选
+  Cart = 2, // 已加入购物车
+  Selled = 3, // 已售
+}
+
+enum UserFlag {
+  Other = 0,
+  Current = 1,
+}
+
 const seatDatas = ref<SeatType[][]>([]);
 const seatList = ref<SeatType[]>([]);
 const seatNumbers = ref<number[]>([]);
@@ -217,11 +229,19 @@ const handleWsMessage = (msg: any) => {
   initSeats();
   updateSeatStatus();
 };
-
 const { initWebSocket, send, close } = useWebSocket(
-  `/ws/seat/${scheduleId.value}`,
+  `/ws/seat`,
   handleWsMessage,
+  {
+    scheduleId: scheduleId.value,
+  },
 );
+initWebSocket();
+
+onMounted(() => {
+  getFilmSchedule();
+  initWebSocket();
+});
 
 // ========== 方法 ==========
 /** 初始化座位表 */
@@ -266,20 +286,15 @@ const calculateSeats = () => {
     .filter((seat) => seat.status === 1 && seat.isCurrentUser === 1)
     .map((s) => s.number);
   seatNumbers.value = selected;
-  countPrice.value = selected.length * filmSchedule.price;
+  countPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
 };
 
 /** 获取排片信息 */
 const getFilmSchedule = async () => {
-  try {
-    const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
-    Object.assign(filmSchedule, res);
-    initSeats();
-    await updateSeatArr();
-  } catch (err) {
-    ElMessage.error("获取电影排片失败");
-    console.error(err);
-  }
+  const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
+  Object.assign(filmSchedule, res);
+  initSeats();
+  await updateSeatArr();
 };
 
 /** 获取座位信息 */
@@ -289,11 +304,7 @@ const updateSeatArr = async () => {
 };
 
 /** 选择/取消座位 */
-const handleSeatClick = async (
-  rowIndex: number,
-  seatIndex: number,
-  seat: SeatType,
-) => {
+const handleSeatClick = async (seat: SeatType) => {
   if (seat.status === 3) return ElMessage.error("不能选择已售座位");
   if (seat.status === 2 && seat.isCurrentUser === 1)
     return ElMessage.error("不能选择已加入购物车的座位");
@@ -322,44 +333,48 @@ const saveCart = async () => {
   if (!phone.value || phone.value.length !== 11)
     return ElMessage.error("请输入11位手机号");
 
-  try {
-    await addCart({
-      scheduleId: scheduleId.value,
-      title: filmSchedule.title,
-      poster: filmSchedule.poster,
-      price: filmSchedule.price,
-      seatNumbers: seatNumbers.value,
-      phone: phone.value,
-      startTime: filmSchedule.startTime,
-    });
-    ElMessage.success("加入购物车成功，请在15分钟内完成付款");
-    await updateSeatArr();
-  } catch (err) {
-    ElMessage.error("加入购物车失败");
-    console.error(err);
-  }
+  await addCart({
+    scheduleId: scheduleId.value,
+    title: filmSchedule.title,
+    poster: filmSchedule.poster,
+    price: filmSchedule.price,
+    seatNumbers: seatNumbers.value,
+    phone: phone.value,
+    startTime: filmSchedule.startTime,
+  });
+  ElMessage.success("加入购物车成功，请在15分钟内完成付款");
+  await updateSeatArr();
 };
 
 /** 获取座位样式 */
 const getSeatClass = (seat: SeatType) => {
-  if (seat.status === 3) return "selledSeat"; // 已售
-  if (seat.status === 2 && seat.isCurrentUser === 1) return "cartSeat"; // 当前用户已加购物车
-  if (seat.status === 1 && seat.isCurrentUser === 1) return "isSelected"; // 当前用户已选
-  if ((seat.status === 1 || seat.status === 2) && seat.isCurrentUser === 0)
-    return "isOtherUserSelected"; // 其他用户已选
+  if (seat.status === SeatStatus.Selled) {
+    return "selledSeat"; // 已售
+  }
+
+  if (
+    seat.status === SeatStatus.Cart &&
+    seat.isCurrentUser === UserFlag.Current
+  ) {
+    return "cartSeat"; // 当前用户已加购物车
+  }
+
+  if (
+    seat.status === SeatStatus.Selected &&
+    seat.isCurrentUser === UserFlag.Current
+  ) {
+    return "isSelected"; // 当前用户已选
+  }
+
+  if (
+    (seat.status === SeatStatus.Selected || seat.status === SeatStatus.Cart) &&
+    seat.isCurrentUser === UserFlag.Other
+  ) {
+    return "isOtherUserSelected"; // 他人已选 / 他人购物车
+  }
+
   return "noSelected"; // 可选
 };
-
-// ========== 生命周期 ==========
-onMounted(() => {
-  if (!scheduleId.value) {
-    ElMessage.warning("未获取到排片ID");
-    router.push("/user/home");
-    return;
-  }
-  getFilmSchedule();
-  initWebSocket();
-});
 
 onUnmounted(() => {
   close?.();
@@ -402,7 +417,7 @@ onUnmounted(() => {
   // 主容器
   .seat-container {
     display: flex;
-    gap: 24px;
+    // gap: 24px;
     max-width: 1200px;
     margin: 0 auto;
     align-items: flex-start;
@@ -410,13 +425,12 @@ onUnmounted(() => {
     // 左侧信息面板
     .left-panel {
       width: 300px;
-
       background: white;
       border-radius: 12px;
       padding: 24px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       box-sizing: border-box;
-
+      margin-left: 32px;
       // 电影信息卡片
       .film-card {
         display: flex;
@@ -703,7 +717,7 @@ onUnmounted(() => {
 /* 1. 可选座位：清爽的灰色微凹感 */
 .noSelected {
   background: #ffffff;
-  border: 1px solid #dcdfe6;    
+  border: 1px solid #dcdfe6;
   color: #909399;
 }
 
@@ -721,13 +735,12 @@ onUnmounted(() => {
 
 /* 4. 已加入购物车：商务深蓝 (待处理感) */
 .cartSeat {
-  background: skyblue !important; 
+  background: skyblue !important;
   color: white;
 }
 
 .selledSeat {
-  background: red !important; 
+  background: red !important;
   color: white;
 }
-
 </style>

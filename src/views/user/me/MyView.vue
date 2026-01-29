@@ -69,7 +69,6 @@ watch(
 
 <style lang="scss" scoped>
 #me {
-  height: 100vh;
   width: 100%; // 改为全屏宽度，更适配不同屏幕
   max-width: 1920px; // 限制最大宽度，避免大屏拉伸
   margin: 0 auto;

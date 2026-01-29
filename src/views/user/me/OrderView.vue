@@ -162,7 +162,6 @@ const cancelOrders = async (order: OrderItem) => {
 
 <style lang="scss" scoped>
 #order {
-  min-height: 100vh;
   background-color: #f5f7fa;
   padding: 30px 0;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;

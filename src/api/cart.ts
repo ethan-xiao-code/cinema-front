@@ -15,7 +15,7 @@ export function getCartes(): Promise<any> {
   })
 }
 
-export function deleteCartById(id: number): Promise<any> {
+export function deleteCartByIdApi(id: number): Promise<any> {
   return request({
     url: `/cart/${id}`,
     method: 'delete'
