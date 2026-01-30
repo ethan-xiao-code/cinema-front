@@ -52,7 +52,7 @@
           <span class="title">已选座位：</span>
           <div class="tag-group">
             <div
-              v-for="seat in seatNumbers"
+              v-for="seat in selectSeatNumbers"
               :key="seat"
               type="success"
               class="seat-tag"
@@ -60,7 +60,7 @@
             >
               {{ seat }}号
             </div>
-            <span v-if="!seatNumbers.length" class="empty-tip"
+            <span v-if="!selectSeatNumbers.length" class="empty-tip"
               >暂未选择座位</span
             >
           </div>
@@ -68,7 +68,7 @@
 
         <div class="total-price">
           <span class="label">总计金额：</span>
-          <span class="price">￥{{ countPrice }}</span>
+          <span class="price">￥{{ totalPrice }}</span>
         </div>
 
         <el-input
@@ -133,7 +133,7 @@
                 v-for="(seat, seatIndex) in row"
                 :key="seat.number"
                 :class="getSeatClass(seat)"
-                @click="handleSeatClick(seat)"
+                @click="handleChooseSeat(seat)"
                 class="seat-item"
               >
                 {{ seat.number }}
@@ -141,13 +141,16 @@
             </div>
           </div>
         </div>
+        <el-button type="primary" @click="simulateConcurrentClicks"
+          >模拟多用户抢座</el-button
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from "vue";
+import { ref, reactive, onMounted, onUnmounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
@@ -155,7 +158,6 @@ import { useUserStore } from "@/stores";
 import { getFilmAndScheduleById } from "@/api/schedule";
 import { getSeatsByScheduleId, deleteSeatById } from "@/api/seat";
 import { addCart } from "@/api/cart";
-import screenImg from "@/assets/images/screen.png";
 import { useWebSocket } from "@/utils/useWebSocket";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
 
@@ -165,7 +167,7 @@ interface SeatType {
   userId: number;
   number: number;
   status: number; // 0:未选 1:已选 2:已加入购物车 3:已售
-  isCurrentUser: number; // 1:当前用户选 0:其他用户
+  isCurrentUser: boolean; // true:当前用户选 false:其他用户
 }
 
 interface FilmSchedule {
@@ -183,11 +185,9 @@ interface FilmSchedule {
 
 // ========== 路由与用户 ==========
 const route = useRoute();
-const router = useRouter();
 const userStore = useUserStore();
 
-const scheduleId = ref(route.query.id as string);
-const userId = userStore.userId;
+const scheduleId = computed(() => route.query.id);
 
 // ========== 响应式 ==========
 const filmSchedule = reactive<FilmSchedule>({
@@ -215,33 +215,10 @@ enum UserFlag {
   Current = 1,
 }
 
-const seatDatas = ref<SeatType[][]>([]);
-const seatList = ref<SeatType[]>([]);
-const seatNumbers = ref<number[]>([]);
-const countPrice = ref(0);
+const seatDatas = ref<SeatType[][]>([]); // 渲染的座位数据
+const selectSeatNumbers = ref<number[]>([]); // 选择的座位号
+const totalPrice = ref(0); // 选择座位的总价格
 const phone = ref("");
-
-// ========== WebSocket ==========
-const handleWsMessage = (msg: any) => {
-  console.log(msg, "msg");
-  // 服务器推送座位信息
-  seatList.value = msg;
-  initSeats();
-  updateSeatStatus();
-};
-const { initWebSocket, send, close } = useWebSocket(
-  `/ws/seat`,
-  handleWsMessage,
-  {
-    scheduleId: scheduleId.value,
-  },
-);
-initWebSocket();
-
-onMounted(() => {
-  getFilmSchedule();
-  initWebSocket();
-});
 
 // ========== 方法 ==========
 /** 初始化座位表 */
@@ -252,9 +229,9 @@ const initSeats = () => {
     row.push({
       number: i,
       status: 0,
-      isCurrentUser: 0,
+      isCurrentUser: false,
       scheduleId: Number(scheduleId.value),
-      userId: userId,
+      userId: userStore.userId,
     });
     if (i % 12 === 0) {
       rows.push(row);
@@ -265,17 +242,27 @@ const initSeats = () => {
   seatDatas.value = rows;
 };
 
+const seatMap = computed(() => {
+  const flatSeats = seatDatas.value.flat();
+  return new Map(flatSeats.map((item) => [item.number, item]));
+});
+
 /** 更新座位状态 */
-const updateSeatStatus = () => {
-  seatDatas.value.forEach((row) =>
-    row.forEach((seat) => {
-      const serverSeat = seatList.value.find((s) => s.number === seat.number);
-      if (serverSeat) {
-        seat.status = serverSeat.status;
-        seat.isCurrentUser = serverSeat.userId === userId ? 1 : 0;
-      }
-    }),
-  );
+const handleSeat = (list: SeatType[]) => {
+  list.forEach((item) => {
+    const seat = seatMap.value.get(item.number);
+    if (!seat) return;
+
+    const isCurUser = item.userId === userStore.userId;
+
+    // 保证当前座位只有当前用户可以操作，其他用户不能操作
+    if (seat.isCurrentUser && seat.status === 1 && !isCurUser) {
+      return;
+    }
+
+    seat.status = item.status;
+    seat.isCurrentUser = isCurUser;
+  });
   calculateSeats();
 };
 
@@ -283,53 +270,96 @@ const updateSeatStatus = () => {
 const calculateSeats = () => {
   const selected = seatDatas.value
     .flat()
-    .filter((seat) => seat.status === 1 && seat.isCurrentUser === 1)
+    .filter((seat) => seat.status === 1 && seat.isCurrentUser)
     .map((s) => s.number);
-  seatNumbers.value = selected;
-  countPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
+  selectSeatNumbers.value = selected;
+  totalPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
 };
 
+const handleWsMessage = (msg: SeatType[] | SeatType) => {
+  console.log(msg, "msg");
+  // 服务器推送座位信息
+  let data = [msg];
+
+  handleSeat(data.flat());
+};
+const { initWebSocket, send, close } = useWebSocket(
+  `/ws/seat`,
+  handleWsMessage,
+  {
+    scheduleId: scheduleId.value,
+  },
+);
+
+// 模拟并发用户点击
+const simulateConcurrentClicks = async () => {
+  const testSeats = [1, 2, 3]; // 要测试的座位号
+  const users = [3, 8, 4]; // 模拟三个不同用户ID
+
+  for (let i = 0; i < testSeats.length; i++) {
+    const seatNumber = testSeats[i];
+
+    const seat = seatMap.value.get(seatNumber);
+
+    if (!seat) continue;
+    users.forEach((userId) => {
+      console.log(`用户 ${userId} 点击座位 ${seat.number}`);
+      handleChooseSeat({
+        ...seat,
+        userId,
+      });
+    });
+  }
+};
+
+onMounted(() => {
+  getFilmSchedule();
+  initWebSocket();
+});
 /** 获取排片信息 */
 const getFilmSchedule = async () => {
   const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
   Object.assign(filmSchedule, res);
   initSeats();
-  await updateSeatArr();
+  getSeatList();
 };
 
 /** 获取座位信息 */
-const updateSeatArr = async () => {
-  seatList.value = await getSeatsByScheduleId({ scheduleId: scheduleId.value });
-  updateSeatStatus();
+const getSeatList = async () => {
+  const data = await getSeatsByScheduleId({ scheduleId: scheduleId.value });
+  handleSeat(data);
 };
 
 /** 选择/取消座位 */
-const handleSeatClick = async (seat: SeatType) => {
+const handleChooseSeat = async (seat: SeatType) => {
   if (seat.status === 3) return ElMessage.error("不能选择已售座位");
-  if (seat.status === 2 && seat.isCurrentUser === 1)
+  if (seat.status === 2 && seat.isCurrentUser)
     return ElMessage.error("不能选择已加入购物车的座位");
-  if ((seat.status === 1 || seat.status === 2) && seat.isCurrentUser === 0)
+  if ((seat.status === 1 || seat.status === 2) && !seat.isCurrentUser)
     return ElMessage.error("不能选择其他用户已选择的座位");
 
   if (seat.status === 0) {
-    seat.status = 1;
     send({
       number: seat.number,
       status: 1,
-      userId,
+      userId: seat.userId,
       scheduleId: scheduleId.value,
     });
-  } else if (seat.status === 1 && seat.isCurrentUser === 1) {
-    seat.status = 0;
-    await deleteSeatById({ scheduleId: scheduleId.value, number: seat.number });
+  } else if (seat.status === 1 && seat.isCurrentUser) {
+    send({
+      number: seat.number,
+      status: 0,
+      userId: seat.userId,
+      scheduleId: scheduleId.value,
+    });
   }
 
-  calculateSeats();
+  // calculateSeats();
 };
 
 /** 加入购物车 */
 const saveCart = async () => {
-  if (!seatNumbers.value.length) return ElMessage.error("请选择座位");
+  if (!selectSeatNumbers.value.length) return ElMessage.error("请选择座位");
   if (!phone.value || phone.value.length !== 11)
     return ElMessage.error("请输入11位手机号");
 
@@ -338,12 +368,12 @@ const saveCart = async () => {
     title: filmSchedule.title,
     poster: filmSchedule.poster,
     price: filmSchedule.price,
-    seatNumbers: seatNumbers.value,
+    selectSeatNumbers: selectSeatNumbers.value,
     phone: phone.value,
     startTime: filmSchedule.startTime,
   });
   ElMessage.success("加入购物车成功，请在15分钟内完成付款");
-  await updateSeatArr();
+  await getSeatList();
 };
 
 /** 获取座位样式 */
@@ -352,23 +382,17 @@ const getSeatClass = (seat: SeatType) => {
     return "selledSeat"; // 已售
   }
 
-  if (
-    seat.status === SeatStatus.Cart &&
-    seat.isCurrentUser === UserFlag.Current
-  ) {
+  if (seat.status === SeatStatus.Cart && seat.isCurrentUser) {
     return "cartSeat"; // 当前用户已加购物车
   }
 
-  if (
-    seat.status === SeatStatus.Selected &&
-    seat.isCurrentUser === UserFlag.Current
-  ) {
+  if (seat.status === SeatStatus.Selected && seat.isCurrentUser) {
     return "isSelected"; // 当前用户已选
   }
 
   if (
     (seat.status === SeatStatus.Selected || seat.status === SeatStatus.Cart) &&
-    seat.isCurrentUser === UserFlag.Other
+    !seat.isCurrentUser
   ) {
     return "isOtherUserSelected"; // 他人已选 / 他人购物车
   }
@@ -611,10 +635,9 @@ onUnmounted(() => {
     .right-panel {
       flex: 1;
       box-sizing: border-box;
-
       .seat-selector {
         width: 100%;
-
+        margin-bottom: 60px;
         // 图例
         .legend {
           display: flex;
