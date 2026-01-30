@@ -276,8 +276,12 @@ const calculateSeats = () => {
   totalPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
 };
 
-const handleWsMessage = (msg: SeatType[] | SeatType) => {
+const handleWsMessage = (msg: any) => {
   console.log(msg, "msg");
+  if(msg?.errorMsg && msg?.userId === userStore.userId){
+    ElMessage.error(msg?.errorMsg)
+    return
+  }
   // 服务器推送座位信息
   let data = [msg];
 
@@ -293,7 +297,7 @@ const { initWebSocket, send, close } = useWebSocket(
 
 // 模拟并发用户点击
 const simulateConcurrentClicks = async () => {
-  const testSeats = [1, 2, 3]; // 要测试的座位号
+  const testSeats = [3]; // 要测试的座位号
   const users = [3, 8, 4]; // 模拟三个不同用户ID
 
   for (let i = 0; i < testSeats.length; i++) {
