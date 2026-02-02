@@ -143,7 +143,7 @@
           :data="scheduleList"
           class="schedule-table"
         >
-          <el-table-column prop="startTime" label="放映时间" width="180">
+          <el-table-column prop="startTime" label="放映时间" >
             <template #default="scope">
               <div class="time-wrapper">
                 <div class="start-time">
@@ -158,7 +158,6 @@
           <el-table-column
             prop="language"
             label="语言版本"
-            width="180"
           ></el-table-column>
           <el-table-column prop="type" label="放映类型">
             <template #default="scope"> {{ getLabelByValue(screenTypeOptions,scope.row.screeningType) }} </template>
@@ -610,8 +609,7 @@ onMounted(async () => {
 
 // 中部区域
 .middle {
-  width: 1200px;
-  margin: 2% auto;
+  margin: 30px auto;
   display: flex;
   flex-direction: column;
   gap: 20px; // 替代margin-bottom

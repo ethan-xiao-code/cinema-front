@@ -1,12 +1,13 @@
 <template>
-  <div id="app">
+  <div id="cinema-page">
     <router-view />
   </div>
 </template>
 
 <style lang="scss">
 @use '@/assets/styles/baseCommon.scss';
-#app {
+#cinema-page {
   min-width: 1000px;
+  background-color: pink;
 }
 </style>

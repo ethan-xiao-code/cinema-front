@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="backBox">
     <el-button type="primary" style="height: 50px" @click="toHome">
       回到首页
     </el-button>
@@ -19,7 +19,7 @@ export default{
 
 
 <style scoped>
-    #app {
+    .backBox {
         display: flex;
         width: 100%;
         height: 100%;

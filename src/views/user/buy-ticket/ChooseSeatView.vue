@@ -82,7 +82,7 @@
         <el-button
           type="danger"
           class="add-cart-btn"
-          @click="saveCart"
+          @click="handleSaveCart(userStore.userId)"
           size="large"
         >
           加入购物车
@@ -99,17 +99,18 @@
               <span class="legend-text">可选</span>
             </div>
             <div class="legend-item">
-              <span class="legend-color isOtherUserSelected"></span>
-              <span class="legend-text">他人已选</span>
-            </div>
-            <div class="legend-item">
               <span class="legend-color isSelected"></span>
               <span class="legend-text">您已选</span>
             </div>
             <div class="legend-item">
               <span class="legend-color cartSeat"></span>
-              <span class="legend-text">已加购物车</span>
+              <span class="legend-text">您已加购物车</span>
             </div>
+            <div class="legend-item">
+              <span class="legend-color isOtherUserSelected"></span>
+              <span class="legend-text">他人已加入购物车</span>
+            </div>
+
             <div class="legend-item">
               <span class="legend-color selledSeat"></span>
               <span class="legend-text">已售出</span>
@@ -141,7 +142,10 @@
             </div>
           </div>
         </div>
-        <el-button type="primary" @click="simulateConcurrentClicks"
+        <el-button
+          class="demoBtn"
+          type="primary"
+          @click="simulateConcurrentClicks"
           >模拟多用户抢座</el-button
         >
       </div>
@@ -167,7 +171,7 @@ interface SeatType {
   userId: number;
   number: number;
   status: number; // 0:未选 1:已选 2:已加入购物车 3:已售
-  isCurrentUser: boolean; // true:当前用户选 false:其他用户
+  currentUser: boolean; // true:当前用户选 false:其他用户
 }
 
 interface FilmSchedule {
@@ -204,21 +208,16 @@ const filmSchedule = reactive<FilmSchedule>({
 });
 
 enum SeatStatus {
-  None = 0, // 未选
-  Selected = 1, // 已选
-  Cart = 2, // 已加入购物车
-  Selled = 3, // 已售
-}
-
-enum UserFlag {
-  Other = 0,
-  Current = 1,
+  None = 0, // 可选
+  Selected = 1, // 当前用户本地已选
+  Locked = 2, // 座位已锁定（加入购物车）
+  Selled = 3, // 已售出
 }
 
 const seatDatas = ref<SeatType[][]>([]); // 渲染的座位数据
 const selectSeatNumbers = ref<number[]>([]); // 选择的座位号
 const totalPrice = ref(0); // 选择座位的总价格
-const phone = ref("");
+const phone = ref(userStore?.userInfo?.phone);
 
 // ========== 方法 ==========
 /** 初始化座位表 */
@@ -229,7 +228,7 @@ const initSeats = () => {
     row.push({
       number: i,
       status: 0,
-      isCurrentUser: false,
+      currentUser: false,
       scheduleId: Number(scheduleId.value),
       userId: userStore.userId,
     });
@@ -256,12 +255,12 @@ const handleSeat = (list: SeatType[]) => {
     const isCurUser = item.userId === userStore.userId;
 
     // 保证当前座位只有当前用户可以操作，其他用户不能操作
-    if (seat.isCurrentUser && seat.status === 1 && !isCurUser) {
+    if (seat.currentUser && seat.status === 1 && !isCurUser) {
       return;
     }
 
     seat.status = item.status;
-    seat.isCurrentUser = isCurUser;
+    seat.currentUser = isCurUser;
   });
   calculateSeats();
 };
@@ -270,23 +269,26 @@ const handleSeat = (list: SeatType[]) => {
 const calculateSeats = () => {
   const selected = seatDatas.value
     .flat()
-    .filter((seat) => seat.status === 1 && seat.isCurrentUser)
+    .filter((seat) => seat.status === SeatStatus.Selected)
     .map((s) => s.number);
+
   selectSeatNumbers.value = selected;
   totalPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
 };
 
 const handleWsMessage = (msg: any) => {
   console.log(msg, "msg");
-  if(msg?.errorMsg && msg?.userId === userStore.userId){
-    ElMessage.error(msg?.errorMsg)
-    return
+  if (Array.isArray(msg)) {
+    msg.forEach((item) => {
+      const seat = seatMap.value.get(item.number);
+      if (!seat) return;
+      // 后端状态直刷
+      seat.status = item.status;
+    });
   }
-  // 服务器推送座位信息
-  let data = [msg];
-
-  handleSeat(data.flat());
+  // 后端推送座位状态变化
 };
+
 const { initWebSocket, send, close } = useWebSocket(
   `/ws/seat`,
   handleWsMessage,
@@ -298,21 +300,29 @@ const { initWebSocket, send, close } = useWebSocket(
 // 模拟并发用户点击
 const simulateConcurrentClicks = async () => {
   const testSeats = [3]; // 要测试的座位号
-  const users = [3, 8, 4]; // 模拟三个不同用户ID
+  const users = [
+    { userId: 3, phone: "19142065142" },
+    { userId: 4, phone: "19142065144" },
+    { userId: 8, phone: "19142094466" },
+  ]; // 模拟多用户（含userId/phone）
 
   for (let i = 0; i < testSeats.length; i++) {
     const seatNumber = testSeats[i];
-
     const seat = seatMap.value.get(seatNumber);
 
     if (!seat) continue;
-    users.forEach((userId) => {
-      console.log(`用户 ${userId} 点击座位 ${seat.number}`);
-      handleChooseSeat({
-        ...seat,
-        userId,
-      });
-    });
+
+    // 核心：Promise.all 实现多用户并发请求（同时触发）
+    await Promise.all(
+      // 映射为Promise数组，每个用户对应一个异步操作
+      users.map(async (user) => {
+        // console.log(
+        //   `用户 ${user.userId}（手机号：${user.phone}）点击座位 ${seat.number}`,
+        // );
+        // 执行购物车保存逻辑，透传当前用户的userId和phone
+        await handleSaveCart(user.userId, user.phone);
+      }),
+    );
   }
 };
 
@@ -335,73 +345,67 @@ const getSeatList = async () => {
 };
 
 /** 选择/取消座位 */
-const handleChooseSeat = async (seat: SeatType) => {
-  if (seat.status === 3) return ElMessage.error("不能选择已售座位");
-  if (seat.status === 2 && seat.isCurrentUser)
-    return ElMessage.error("不能选择已加入购物车的座位");
-  if ((seat.status === 1 || seat.status === 2) && !seat.isCurrentUser)
-    return ElMessage.error("不能选择其他用户已选择的座位");
+const handleChooseSeat = (seat: SeatType) => {
+  if (seat.status === SeatStatus.Selled)
+    return ElMessage.error("不能选择已售座位");
+  if (seat.status === SeatStatus.Locked) return ElMessage.error("座位已被锁定");
 
-  if (seat.status === 0) {
-    send({
-      number: seat.number,
-      status: 1,
-      userId: seat.userId,
-      scheduleId: scheduleId.value,
-    });
-  } else if (seat.status === 1 && seat.isCurrentUser) {
-    send({
-      number: seat.number,
-      status: 0,
-      userId: seat.userId,
-      scheduleId: scheduleId.value,
-    });
+  // 点击可选座位切换本地已选状态
+  if (seat.status === SeatStatus.None) {
+    seat.status = SeatStatus.Selected;
+  } else if (seat.status === SeatStatus.Selected) {
+    seat.status = SeatStatus.None;
   }
 
-  // calculateSeats();
+  calculateSeats();
 };
 
 /** 加入购物车 */
-const saveCart = async () => {
+const handleSaveCart = async (userId: number, phoneStr?: string) => {
+  console.log(phoneStr, "phoneStr");
   if (!selectSeatNumbers.value.length) return ElMessage.error("请选择座位");
   if (!phone.value || phone.value.length !== 11)
     return ElMessage.error("请输入11位手机号");
 
-  await addCart({
-    scheduleId: scheduleId.value,
-    title: filmSchedule.title,
-    poster: filmSchedule.poster,
-    price: filmSchedule.price,
-    selectSeatNumbers: selectSeatNumbers.value,
-    phone: phone.value,
-    startTime: filmSchedule.startTime,
-  });
-  ElMessage.success("加入购物车成功，请在15分钟内完成付款");
-  await getSeatList();
+  try {
+    await addCart({
+      userId,
+      scheduleId: scheduleId.value,
+      title: filmSchedule.title,
+      poster: filmSchedule.poster,
+      price: filmSchedule.price,
+      seatNumbers: selectSeatNumbers.value,
+      phone: phoneStr || phone.value,
+      startTime: filmSchedule.startTime,
+    });
+
+    ElMessage.success("加入购物车成功，请在15分钟内完成付款");
+
+    selectSeatNumbers.value = [];
+    totalPrice.value = 0;
+  } catch (err: any) {
+    ElMessage.error(err?.message || "加入购物车失败");
+  }
 };
 
 /** 获取座位样式 */
+/** 获取座位样式 */
 const getSeatClass = (seat: SeatType) => {
-  if (seat.status === SeatStatus.Selled) {
-    return "selledSeat"; // 已售
+  const isCurUser = userStore.userId === seat.userId;
+  if(seat.number === 3) console.log(userStore.userId ,seat.userId,'isCurUser')
+  if (seat.status === SeatStatus.None) {
+    return "noSelected"; // 可选
+  } else if (seat.status === SeatStatus.Selected) {
+    return "isSelected"; // 当前用户本地选中
+  } else if (seat.status === SeatStatus.Locked && isCurUser) {
+    return "cartSeat"; // 当前用户已锁定
+  } else if (seat.status === SeatStatus.Locked && !isCurUser) {
+    return "isOtherUserSelected"; // 其他用户已锁定
+  } else if (seat.status === SeatStatus.Selled) {
+    return "selledSeat"; // 已售出
+  } else {
+    return "noSelected";
   }
-
-  if (seat.status === SeatStatus.Cart && seat.isCurrentUser) {
-    return "cartSeat"; // 当前用户已加购物车
-  }
-
-  if (seat.status === SeatStatus.Selected && seat.isCurrentUser) {
-    return "isSelected"; // 当前用户已选
-  }
-
-  if (
-    (seat.status === SeatStatus.Selected || seat.status === SeatStatus.Cart) &&
-    !seat.isCurrentUser
-  ) {
-    return "isOtherUserSelected"; // 他人已选 / 他人购物车
-  }
-
-  return "noSelected"; // 可选
 };
 
 onUnmounted(() => {
@@ -411,7 +415,6 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 #seat {
-  min-width: 1000px;
   min-height: 100vh;
   background-color: #f7fafc;
   padding: 24px 16px;
@@ -737,35 +740,32 @@ onUnmounted(() => {
           }
         }
       }
+
+      .demoBtn {
+        display: block;
+        margin: auto;
+      }
     }
   }
 }
 
-/* 1. 可选座位：清爽的灰色微凹感 */
 .noSelected {
   background: #ffffff;
   border: 1px solid #dcdfe6;
   color: #909399;
 }
-
-/* 2. 当前用户选中：高亮森林绿 (成功感) */
 .isSelected {
-  background: #27ae60 !important; /* 加深绿色 */
+  background: #27ae60 !important;
   color: white;
 }
-
-/* 3. 其他用户选中：深沉的琥珀橙 (警示不可选) */
-.isOtherUserSelected {
-  background: #f39c12 !important; /* 提高饱和度 */
-  color: white;
-}
-
-/* 4. 已加入购物车：商务深蓝 (待处理感) */
 .cartSeat {
-  background: skyblue !important;
+  background: #3498db !important;
   color: white;
-}
-
+} /* 当前用户锁定 */
+.isOtherUserSelected {
+  background: #f39c12 !important;
+  color: white;
+} /* 他人锁定 */
 .selledSeat {
   background: red !important;
   color: white;

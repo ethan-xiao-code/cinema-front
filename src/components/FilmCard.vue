@@ -72,6 +72,7 @@ const toShowFilmDetail = (filmId: string | number) => {
   .buyBtn {
     width: 100%;
     height: 40px;
+    font-size: 16px;
     color: red;
     background-color: #fff;
     border: 1px solid #e7e7e7;

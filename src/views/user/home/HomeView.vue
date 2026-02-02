@@ -6,7 +6,6 @@
       :autoplay="false"
       class="carouselBox"
       type="card"
-      height="35rem"
       ref="carouselRef"
     >
       <el-carousel-item
@@ -124,14 +123,12 @@ onMounted(() => {
 .main {
   box-sizing: border-box;
   max-width: 1200px;
-  min-width: 1000px;
   display: flex;
   flex-direction: column;
   // gap: 20px;
   margin: auto;
 
   .carouselBox {
-    // max-height: 360px;
     :deep(.el-carousel__arrow) {
       color: #000;
       background-color: #fff;
@@ -140,14 +137,13 @@ onMounted(() => {
     }
 
     :deep(.el-carousel__container) {
-      height: 250px !important;
+      height: 25rem !important;
     }
 
     /* 控制中间卡片的宽度 */
     .carouselItem {
       .carouselImg {
         width: 100%;
-        max-height: 360px;
 
         object-fit: cover;
       }
@@ -167,7 +163,7 @@ onMounted(() => {
 
     .rightBox {
       flex: 1;
-      min-width: 300px;
+      min-width: 360px;
       text-align: left;
       display: flex;
       flex-direction: column;
