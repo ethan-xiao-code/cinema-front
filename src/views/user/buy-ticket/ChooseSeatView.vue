@@ -121,7 +121,7 @@ import { ElLoading, ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
 
 import { getFilmAndScheduleById } from "@/api/schedule";
-import { getSeatsByScheduleId, deleteSeatById } from "@/api/seat";
+import { getSeatsByScheduleId } from "@/api/seat";
 import { addCart } from "@/api/cart";
 import { useWebSocket } from "@/utils/useWebSocket";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
@@ -316,6 +316,7 @@ const handleSaveCart = async (userId: number, phoneStr?: string) => {
       seatNumbers: selectedSeatList.value.map(seat => seat.number),
       phone: phoneStr || phone.value,
       startTime: filmSchedule.startTime,
+      filmDuration: filmSchedule.duration
     });
     ElMessage.success("加入购物车成功，请在15分钟内完成付款");
     selectedSeatList.value = [];

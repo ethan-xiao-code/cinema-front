@@ -8,7 +8,7 @@ export function pageQueryOrders(params: any): Promise<any> {
   })
 }
 
-export function saveOrders(data: any): Promise<any> {
+export function saveOrdersApi(data: any): Promise<any> {
   return request({
     url: '/orders/save',
     method: 'post',
@@ -23,7 +23,7 @@ export function getOrdersList(): Promise<any> {
   })
 }
 
-export function cancelOrders(id: number): Promise<any> {
+export function cancelOrdersApi(id: number): Promise<any> {
   return request({
     url: `/orders/cancel/${id}`,
     method: 'put'

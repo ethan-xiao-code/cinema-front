@@ -22,16 +22,19 @@
             <!-- 主要信息 -->
             <div class="info-col">
               <p class="film-title">{{ cart.filmName }}</p>
-              <div class="info-row">
-                <span class="info-item">放映厅：{{ cart.screenName }}</span>
+
+              <div class="info-box">
+                <div class="info-item">放映厅：{{ cart.screenName }}</div>
+                <div class="info-item">座位：{{ cart.seatNumbers }}号</div>
+
+                <div>
+                  <span class="info-item">开场时间：</span>
+                  <span class="info-item highlight">{{ cart.startTime }}</span>
+                </div>
+                <div class="info-item">播放时长：{{ cart.filmDuration }} 分钟</div>
+                <div class="info-item">创建时间：{{ cart.createTime }}</div>
               </div>
-              <div class="info-row">
-                <span class="info-item">座位：{{ cart.seatNumbers }}号</span>
-              </div>
-              <div class="info-row">
-                <span class="info-item">开场时间：</span>
-                <span class="info-item highlight">{{ cart.startTime }}</span>
-              </div>
+
             </div>
 
             <!-- 价格和删除按钮 -->
@@ -48,7 +51,8 @@
           <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange"
             class="check-all" size="large">全选</el-checkbox>
 
-          <el-button class="batch-delete" type="danger" @click="batchDeleteCart(checkedCartList.map(item => item.id))">批量删除购物车</el-button>
+          <el-button class="batch-delete" type="danger"
+            @click="batchDeleteCart(checkedCartList.map(item => item.id))">批量删除购物车</el-button>
 
           <div class="price-info">
             <span class="total-price">总价：
@@ -116,7 +120,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
 import { getCartes, deleteCartByIdApi } from "@/api/cart";
-import { saveOrders } from "@/api/orders";
+import { saveOrdersApi } from "@/api/orders";
 import { Delete } from "@element-plus/icons-vue";
 
 // ========== 类型定义 ==========
@@ -131,6 +135,8 @@ interface CartItem {
   price: number;
   scheduleId: number;
   expireTime: string;
+  createTime: string;
+  filmDuration: number;
 }
 
 interface OrderItem {
@@ -275,7 +281,7 @@ const confirmPay = async () => {
 
 /** 保存订单 */
 const addOrders = async () => {
-  await saveOrders(ordersParams.value);
+  await saveOrdersApi(ordersParams.value);
   ElMessage.success("支付成功");
   await getCartesByUserId(); // 重新获取购物车列表
   // 清空选中状态
@@ -382,27 +388,27 @@ const ordersParams = computed<OrderItem[]>(() => {
             font-weight: 600;
             font-size: 18px;
             color: #212529;
-            margin-bottom: 16px;
           }
 
-          .info-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center; // 垂直居中对齐
-
+          .info-box {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            column-gap: 20px;
+            margin-top: 16px;
             .info-item {
-              flex: 0 0 auto; // 自适应内容宽度
               font-size: 14px;
               color: #495057;
               // margin-right: 24px;
-              line-height: 1.8;
-
+              line-height: 25px;
               &.highlight {
                 color: #e74c3c;
                 font-weight: 500;
               }
             }
+
           }
+
+
         }
 
         // 操作列 - Flex 优化

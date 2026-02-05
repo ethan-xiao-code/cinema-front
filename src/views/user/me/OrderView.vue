@@ -2,10 +2,12 @@
   <div id="order">
     <div class="order-container">
       <h2 class="page-title">我的订单</h2>
-
+      <p class="order-tip">
+        温馨提示：开场前 30 分钟内的订单不可取消
+      </p>
       <!-- 订单列表 -->
-      <div v-if="orderArr.length > 0" class="order-list">
-        <div class="order-item" v-for="order in orderArr" :key="order.id">
+      <div v-if="ordersList.length > 0" class="order-list">
+        <div class="order-item" v-for="order in ordersList" :key="order.id">
           <!-- 订单海报 -->
           <div class="order-poster">
             <img :src="order.poster" alt="电影海报" class="poster-img" loading="lazy">
@@ -14,25 +16,27 @@
           <!-- 订单主要信息 -->
           <div class="order-main">
             <h3 class="film-name">{{ order.filmName }}</h3>
-            <div class="order-info">
+            <div class="info-box">
               <span class="info-item">放映厅：{{ order.screenRoomName }}</span>
               <span class="info-item">座位：{{ order.seatNumberStr }} 号</span>
+              <div>
+                <span class="info-item">开场时间：</span>
+                <span class="info-item highlight">{{ order.startTime }}</span>
+              </div>
+              <span class="info-item">时长：{{ order.filmDuration }} 分钟</span>
+              <div>
+                <span class="info-item">支付时间：</span>
+                <span class="info-item">{{ order.payTime }}</span>
+              </div>
             </div>
-            <div class="order-time">
-              <span class="time-label">开场时间：</span>
-              <span class="start-time">{{ order.startTime }}</span>
-            </div>
-            <div class="order-time">
-              <span class="time-label">支付时间：</span>
-              <span class="pay-time">{{ order.payTime }}</span>
-            </div>
+
           </div>
 
           <!-- 订单操作区域 -->
           <div class="order-actions">
             <div class="order-amount">¥{{ order.amount.toFixed(2) }}</div>
-            <el-tag :type="typeArr[order.status]" class="status-tag">
-              {{ payStatus[order.status] }}
+            <el-tag :type="getTypeByValue(payStatusOptions, order.status)" class="status-tag">
+              {{ getLabelByValue(payStatusOptions, order.status) }}
             </el-tag>
             <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger" size="default"
               class="cancel-btn" @click="cancelOrders(order)">
@@ -56,9 +60,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, ElEmpty } from 'element-plus'
-import { getOrdersList, cancelOrders } from "@/api/orders";
+import { getOrdersList, cancelOrdersApi } from "@/api/orders";
+import { getLabelByValue, getTypeByValue, payStatusOptions } from '@/utils/constant';
 
-// ========== 类型定义 ==========
 interface OrderItem {
   id: number;
   filmName: string;
@@ -70,33 +74,21 @@ interface OrderItem {
   amount: number;
   status: number;
   scheduleId?: number;
+  filmDuration: number;
 }
 
-// ========== 常量定义 ==========
-// 支付状态映射（替代原 $constant.payStatus）
-const payStatus = {
-  0: '已取消',
-  1: '待观影',
-  2: '已完成'
-}
 
-// 标签类型映射
-const typeArr = ['danger', 'warning', 'success']
+const ordersList = ref<OrderItem[]>([])
 
-// ========== 响应式变量 ==========
-const orderArr = ref<OrderItem[]>([])
-
-// ========== 生命周期 ==========
 onMounted(async () => {
   await getOrdersByUserId()
 })
 
-// ========== 方法定义 ==========
 /** 获取用户订单列表 */
 const getOrdersByUserId = async () => {
   try {
     const res = await getOrdersList()
-    orderArr.value = res || []
+    ordersList.value = res || []
   } catch (error) {
     ElMessage.error('获取订单列表失败')
     console.error(error)
@@ -116,41 +108,43 @@ const cancelOrders = async (order: OrderItem) => {
     return
   }
 
-  try {
-    await ElMessageBox.confirm(
-      "此操作将取消该订单, 是否继续?",
-      "提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }
-    )
+  await ElMessageBox.confirm(
+    "此操作将取消该订单, 是否继续?",
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  )
 
-    await cancelOrders(order.id)
-    await getOrdersByUserId() // 刷新订单列表
-    ElMessage.success("取消成功!")
-  } catch (error) {
-    // 取消操作不提示信息
-  }
+  await cancelOrdersApi(order.id)
+  await getOrdersByUserId() // 刷新订单列表
+  ElMessage.success("取消成功")
+
 }
 </script>
 
 <style lang="scss" scoped>
 #order {
-  background-color: #FFF;
-
-  // font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   .order-container {
+    background-color: #FFF;
 
     // 页面标题
     .page-title {
       font-size: 24px;
       font-weight: 600;
       color: #212529;
-      padding-bottom: 24px;
+      padding-bottom: 12px;
 
     }
+
+    .order-tip {
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #e74c3c;
+    }
+
 
     // 订单列表
     .order-list {
@@ -173,6 +167,7 @@ const cancelOrders = async (order: OrderItem) => {
       box-sizing: border-box;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: box-shadow 0.2s ease;
+      padding: 20px;
 
       &:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -180,8 +175,7 @@ const cancelOrders = async (order: OrderItem) => {
 
       // 订单海报
       .order-poster {
-        width: 100px;
-        height: 100px;
+        height: 100%;
         border-radius: 8px;
         flex-shrink: 0;
 
@@ -206,46 +200,33 @@ const cancelOrders = async (order: OrderItem) => {
           font-size: 18px;
           font-weight: 600;
           color: #212529;
-          margin: 0 0 12px 0;
         }
 
-        .order-info {
-          display: flex;
-          gap: 24px;
-          margin-bottom: 8px;
+        .info-box {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          margin-top: 6px;
 
           .info-item {
             font-size: 14px;
             color: #495057;
+            // margin-right: 24px;
+            line-height: 25px;
+
+            &.highlight {
+              color: #e74c3c;
+              font-weight: 500;
+            }
           }
+
         }
 
-        .order-time {
-          display: flex;
-          align-items: center;
-          font-size: 14px;
-          color: #868e96;
-          margin-bottom: 4px;
 
-          .time-label {
-            color: #6c757d;
-            margin-right: 8px;
-          }
-
-          .start-time {
-            color: #e74c3c;
-            font-weight: 500;
-          }
-
-          .pay-time {
-            color: #495057;
-          }
-        }
       }
 
       // 订单操作区域
       .order-actions {
-        width: 350px;
+        width: 300px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -275,6 +256,7 @@ const cancelOrders = async (order: OrderItem) => {
             color: #c0c4cc;
             cursor: not-allowed;
           }
+
         }
       }
     }

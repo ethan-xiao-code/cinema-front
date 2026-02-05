@@ -7,11 +7,3 @@ export function getSeatsByScheduleId(params: any): Promise<any> {
     params
   })
 }
-
-export function deleteSeatById(params: any): Promise<any> {
-  return request({
-    url: '/seat',
-    method: 'delete',
-    params
-  })
-}

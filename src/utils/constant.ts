@@ -19,10 +19,10 @@ export const filmStatusOptions = [
 ]
 
 export const shceduleStatusOptions = [
-  {label: '已取消',value: ScheduleStatus.Canceled,type:'warning'},
-  {label: '未发布',value: ScheduleStatus.Unpubilshed,},
-  {label: '已发布',value: ScheduleStatus.Published,type: 'success'},
-  {label: '已结束',value: ScheduleStatus.Expired,type: 'danger'}
+  { label: '已取消', value: ScheduleStatus.Canceled, type: 'warning' },
+  { label: '未发布', value: ScheduleStatus.Unpubilshed, },
+  { label: '已发布', value: ScheduleStatus.Published, type: 'success' },
+  { label: '已结束', value: ScheduleStatus.Expired, type: 'danger' }
 ]
 
 export const host = 'localhost'
@@ -34,25 +34,31 @@ export enum RoleEnum {
 }
 
 export const userRoleOptions = [
-  {label: '普通用户',value: RoleEnum.User},
-  {label: '管理员',value: RoleEnum.Admin}
+  { label: '普通用户', value: RoleEnum.User },
+  { label: '管理员', value: RoleEnum.Admin }
 ]
 export const accountStatusOptions = [
-      {
-        label: "启用",
-        value: 1,
-      },
-      {
-        label: "禁用",
-        value: 0,
-      },
-    ]
-export const rolePathList = ['/user', '/admin']
-export const payStatus = ['已取消', '已支付', '已完成']
+  { label: "启用", value: 1, },
+  { label: "禁用", value: 0, },
+]
 
-export const getLabelByValue = (options: {label: string,value: any}[],value: any) => {
+export const payStatusOptions = [
+  { label: '已取消', value: 0, type: 'danger' },
+  { label: '待观影', value: 1, type: 'warning' },
+  { label: '已完成', value: 2, type: 'success' },
+]
+
+export const rolePathList = ['/user', '/admin']
+
+export const getLabelByValue = (options: { label: string, value: any }[], value: any) => {
   const item = options.find(item => item.value === value)
   return item?.label
+}
+
+
+export const getTypeByValue = (options: { label: string; value: any; type?: string }[], value: any) => {
+  const item = options.find(item => item.value === value)
+  return item?.type
 }
 
 
