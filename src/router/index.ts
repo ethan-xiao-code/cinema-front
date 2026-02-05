@@ -30,6 +30,7 @@ router.beforeEach((to, from, next) => {
   const role = userStore.userInfo?.roleId
   // 需要登录
   if (to.matched.some(r => r.meta.requiresAuth)) {
+    // debugger
     if (!token) {
       return next({
         path: "/login",

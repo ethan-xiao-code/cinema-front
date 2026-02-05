@@ -41,15 +41,18 @@ export const userRoutes = {
       children: [
         {
           path: 'cart',
-          component: () => import('@/views/user/me/CartView.vue')
+          component: () => import('@/views/user/me/CartView.vue'),
+          meta: { requiresAuth: true }
         },
         {
           path: 'order',
-          component: () => import('@/views/user/me/OrderView.vue')
+          component: () => import('@/views/user/me/OrderView.vue'),
+          meta: { requiresAuth: true }
         },
         {
           path: 'detail',
-          component: () => import('@/views/user/me/MyDetailView.vue')
+          component: () => import('@/views/user/me/MyDetailView.vue'),
+          meta: { requiresAuth: true }
         }
       ]
     }

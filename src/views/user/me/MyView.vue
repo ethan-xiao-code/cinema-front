@@ -1,34 +1,33 @@
 <template>
-  <div id="me">
+  <div class="my-module">
     <el-container class="layout-container">
       <!-- 侧边栏 -->
       <el-aside class="sidebar">
         <div class="sidebar-header">
           <h2 class="sidebar-title">个人中心</h2>
         </div>
-        <el-menu
-          :default-active="indexPath"
-          class="sidebar-menu"
-          router
-          unique-opened
-          active-text-color="#409eff"
-          text-color="#333"
-          background-color="#fff"
-        >
+        <el-menu :default-active="indexPath" class="sidebar-menu" router unique-opened active-text-color="#409eff"
+          text-color="#333" background-color="#fff">
           <el-menu-item index="/user/me/cart">
-            <el-icon class="menu-icon"><ShoppingCart /> </el-icon>
-            <template #title>购物车</template>
+            <el-icon class="menu-icon">
+              <ShoppingCart />
+            </el-icon>
+            <template #title>我的购物车</template>
           </el-menu-item>
           <el-menu-item index="/user/me/order">
-            <el-icon class="menu-icon"><Tickets /> </el-icon>
+            <el-icon class="menu-icon">
+              <Tickets />
+            </el-icon>
             <template #title>我的订单</template>
           </el-menu-item>
           <el-menu-item index="/user/me/detail">
-            <el-icon class="menu-icon"><Setting /> </el-icon>
-            <template #title>基本设置</template>
+            <el-icon class="menu-icon">
+              <Setting />
+            </el-icon>
+            <template #title>我的信息</template>
           </el-menu-item>
         </el-menu>
-        
+
         <!-- 侧边栏底部占位（视觉平衡） -->
         <div class="sidebar-footer"></div>
       </el-aside>
@@ -68,12 +67,11 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-#me {
-  width: 100%; // 改为全屏宽度，更适配不同屏幕
-  max-width: 1920px; // 限制最大宽度，避免大屏拉伸
+.my-module {
+  width: 1200px;
   margin: 0 auto;
   text-align: left;
-  background-color: #f5f7fa; // 页面背景色，提升整体质感
+  // background-color: #f5f5f5; // 页面背景色，提升整体质感
 
   .layout-container {
     height: 100%;
@@ -138,7 +136,7 @@ watch(
         // 激活态样式
         &.is-active {
           background-color: #ecf5ff !important; // 激活背景色
-          
+
           .menu-icon {
             color: #409eff; // 激活图标色
           }
@@ -159,14 +157,16 @@ watch(
 
   // 主内容区样式
   .main-content {
-    background-color: transparent; // 透明背景，继承页面底色
     color: #333;
-    margin-left: 220px; // 适配加宽后的侧边栏
-    min-height: 100vh;
+    margin-left: 260px; // 适配加宽后的侧边栏
     box-sizing: border-box;
-    padding: 30px; // 加大内边距，提升内容展示舒适度
-    width: calc(100% - 220px); // 自适应宽度，避免内容溢出
+    padding: 20px 30px; // 加大内边距，提升内容展示舒适度
+    background-color: #fff;
   }
+}
+
+.el-main {
+  --el-main-padding: 0;
 }
 
 // 重置Element默认样式（优化细节）

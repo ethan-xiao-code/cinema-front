@@ -34,7 +34,7 @@ export enum RoleEnum {
 }
 
 export const userRoleOptions = [
-  {label: '用户',value: RoleEnum.User},
+  {label: '普通用户',value: RoleEnum.User},
   {label: '管理员',value: RoleEnum.Admin}
 ]
 export const accountStatusOptions = [

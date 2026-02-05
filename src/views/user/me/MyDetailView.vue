@@ -1,110 +1,87 @@
 <template>
   <div id="set">
     <div class="setting-container">
-      <h2 class="page-title">基本设置</h2>
-      
-      <el-form
-        :model="userForm"
-        :rules="rules"
-        ref="userFormRef"
-        label-width="100px"
-        class="user-form"
-      >
+      <h2 class="page-title">我的信息</h2>
+
+      <el-form :model="userForm" :rules="rules" ref="userFormRef" label-width="100px" class="user-form">
         <div class="form-main">
-          <!-- 基础信息表单区域 -->
+          <!-- 左侧 -->
           <div class="form-left">
-            <el-form-item label="用户名" prop="username">
-              <el-input v-model="userForm.username" class="form-input"></el-input>
-            </el-form-item>
 
-            <el-form-item label="真实姓名" prop="name">
-              <el-input v-model="userForm.name" class="form-input"></el-input>
-            </el-form-item>
+            <!-- 可编辑信息 -->
+            <div class="form-section">
+              <!-- <h3 class="section-title">个人信息</h3> -->
 
-            <el-form-item label="性别" prop="sex">
-              <el-radio-group v-model="userForm.sex" class="radio-group">
-                <el-radio :label="1" class="radio-item">男</el-radio>
-                <el-radio :label="0" class="radio-item">女</el-radio>
-              </el-radio-group>
-            </el-form-item>
+              <el-form-item label="用户名" prop="username">
+                <el-input v-model="userForm.username" />
+              </el-form-item>
 
-            <el-form-item label="手机号码" prop="phone">
-              <el-input v-model="userForm.phone" class="form-input"></el-input>
-            </el-form-item>
+              <el-form-item label="手机号码" prop="phone">
+                <el-input v-model="userForm.phone" />
+              </el-form-item>
+            </div>
 
-            <el-form-item label="余额" class="info-item">
-              <span class="info-value">{{ userForm.balance }} 元</span>
-            </el-form-item>
+            <!-- 只读信息 -->
+            <div class="form-section readonly">
+              <h3 class="section-title">账号信息</h3>
 
-            <el-form-item label="优惠" class="info-item">
-              <span v-if="userForm.discount !== 1" class="info-value discount-value">
-                {{ userForm.discount * 10 }}折
-              </span>
-              <span v-else class="info-value no-discount">暂无优惠</span>
-            </el-form-item>
+              <el-form-item label="用户角色" class="info-item">
+                <span class="info-value">
+                  {{ getLabelByValue(userRoleOptions, userForm.roleId) }}
+                </span>
+              </el-form-item>
+
+              <el-form-item label="账号状态" class="info-item">
+                <span class="info-value">
+                  {{ getLabelByValue(accountStatusOptions, userForm.status) }}
+                </span>
+              </el-form-item>
+
+              <el-form-item label="账号创建时间" class="info-item">
+                <span class="info-value">{{ userForm.createTime }}</span>
+              </el-form-item>
+            </div>
 
             <!-- 操作按钮 -->
-            <el-form-item class="form-actions">
-              <el-button type="primary" @click="submitForm()" class="btn-primary">
+            <div class="form-actions">
+              <el-button type="primary" @click="submitForm">
                 更新基本信息
               </el-button>
-              <el-button type="warning" @click="passwordDialog()" class="btn-warning">
+              <el-button type="warning" @click="passwordDialog">
                 修改密码
               </el-button>
-            </el-form-item>
+            </div>
           </div>
 
-          <!-- 头像上传区域 -->
+          <!-- 右侧头像 -->
           <div class="form-right">
-            <el-form-item label="头像" prop="avatar">
-              <upload-image
-                show-type="user"
-                v-model="userForm.avatar"
-                class="avatar-upload"
-              ></upload-image>
-            </el-form-item>
+            <div class="avatar-card">
+              <div class="avatar-title">头像</div>
+              <upload-image :width="180" :height="180" v-model="userForm.avatar" />
+              <p class="avatar-tip">支持 JPG / PNG，建议 1:1</p>
+            </div>
           </div>
         </div>
       </el-form>
     </div>
 
     <!-- 修改密码弹窗 -->
-    <el-dialog
-      title="修改密码"
-      v-model="dialogPasswordVisible"
-      width="500px"
-      @close="resetPasswordForm"
-      class="password-dialog"
-    >
-      <el-form
-        :model="pwdForm"
-        :rules="pwdRules"
-        ref="pwdFormRef"
-        class="password-form"
-      >
+    <el-dialog title="修改密码" v-model="dialogPasswordVisible" width="500px" @close="resetPasswordForm"
+      class="password-dialog">
+      <el-form :model="pwdForm" :rules="pwdRules" ref="pwdFormRef" class="password-form">
         <el-form-item label="原密码" prop="oldPassword">
-          <el-input
-            v-model="pwdForm.oldPassword"
-            placeholder="请输入原密码"
-            autocomplete="off"
-            class="pwd-input"
-          ></el-input>
+          <el-input v-model="pwdForm.oldPassword" />
         </el-form-item>
 
         <el-form-item label="新密码" prop="newPassword">
-          <el-input
-            v-model="pwdForm.newPassword"
-            autocomplete="off"
-            placeholder="请输入新密码"
-            class="pwd-input"
-          ></el-input>
+          <el-input v-model="pwdForm.newPassword" />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="dialogPasswordVisible = false" class="btn-cancel">取 消</el-button>
-          <el-button type="primary" @click="updateEmployeePassword()" class="btn-confirm">
+          <el-button @click="dialogPasswordVisible = false">取消</el-button>
+          <el-button type="primary" @click="updateEmployeePassword">
             修改
           </el-button>
         </div>
@@ -113,6 +90,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElForm } from 'element-plus'
@@ -120,17 +98,10 @@ import UploadImage from "@/components/UploadImage.vue";
 import { useUserStore } from '@/stores'
 import { updateUserApi } from "@/api/user";
 import { updatePassword } from "@/api/common";
+import { accountStatusOptions, getLabelByValue, userRoleOptions } from '@/utils/constant';
+import { UserType } from '@/api/user/type';
 
 // ========== 类型定义 ==========
-interface UserForm {
-  username: string;
-  avatar: string;
-  name: string;
-  sex: number | string;
-  phone: string;
-  balance: string | number;
-  discount: number;
-}
 
 interface PwdForm {
   oldPassword: string;
@@ -147,14 +118,10 @@ const userFormRef = ref<InstanceType<typeof ElForm>>()
 const pwdFormRef = ref<InstanceType<typeof ElForm>>()
 
 // 用户表单数据
-const userForm = ref<UserForm>({
+const userForm = ref<UserType>({
   username: "",
-  avatar: "",
-  name: "",
-  sex: "",
   phone: "",
-  balance: "",
-  discount: 1,
+  avatar: ""
 })
 
 // 密码表单数据
@@ -202,20 +169,19 @@ onMounted(() => {
 /** 提交用户信息修改 */
 const submitForm = async () => {
   if (!userFormRef.value) return
-  
-  try {
-    const valid = await userFormRef.value.validate()
-    if (valid) {
-      const id = userStore.userId
-      await updateUserApi(id, userForm.value)
-      ElMessage.success("修改成功")
-      // 刷新用户信息
-      window.location.reload()
-    }
-  } catch (error) {
-    ElMessage.error("表单验证失败，请检查输入内容")
-    console.error(error)
+
+  const valid = await userFormRef.value.validate()
+  if (valid) {
+    const id = userStore.userId
+    await updateUserApi({
+      ...userForm.value,
+      id
+    })
+    ElMessage.success("修改成功")
+    // 刷新用户信息
+    window.location.reload()
   }
+
 }
 
 /** 打开修改密码弹窗 */
@@ -226,7 +192,7 @@ const passwordDialog = () => {
 /** 修改密码 */
 const updateEmployeePassword = async () => {
   if (!pwdFormRef.value) return
-  
+
   try {
     const valid = await pwdFormRef.value.validate()
     if (valid) {
@@ -249,201 +215,80 @@ const resetPasswordForm = () => {
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 #set {
-  background-color: #f5f7fa;
-  padding: 30px 50px;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
 
   .setting-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    background-color: #fff;
-    border-radius: 12px;
-    padding: 40px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    // max-width: 1000px;
+    // margin: auto;
+    // background: #fff;
+    // border-radius: 14px;
+    // padding: 40px;
+    // box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
   }
 
   .page-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 600;
-    color: #212529;
+    padding-bottom: 24px;
+  }
+
+  .form-main {
+    display: flex;
+    gap: 60px;
+  }
+
+  .form-left {
+    flex: 1;
+  }
+
+  .form-section {
     margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e9ecef;
-  }
 
-  .user-form {
-    width: 100%;
-
-    .form-main {
-      display: flex;
-      align-items: flex-start;
-      gap: 80px;
-    }
-
-    .form-left {
-      flex: 1;
-      width: 100%;
-
-      .form-input {
-        width: 400px;
-        height: 40px;
-        border-radius: 6px;
-      }
-
-      .radio-group {
-        display: flex;
-        gap: 20px;
-
-        .radio-item {
-          font-size: 14px;
-          color: #495057;
-        }
-      }
-
-      .info-item {
-        margin-bottom: 15px;
-
-        .info-value {
-          font-size: 16px;
-          color: #495057;
-
-          &.discount-value {
-            color: #e67700;
-            font-size: 18px;
-            font-weight: 500;
-          }
-
-          &.no-discount {
-            color: #868e96;
-          }
-        }
-      }
-
-      .form-actions {
-        margin-top: 30px;
-
-        .btn-primary {
-          padding: 10px 24px;
-          font-size: 14px;
-          border-radius: 6px;
-          margin-right: 15px;
-        }
-
-        .btn-warning {
-          padding: 10px 24px;
-          font-size: 14px;
-          border-radius: 6px;
-        }
-      }
-    }
-
-    .form-right {
-      flex-shrink: 0;
-      margin-top: 5px;
-
-      .avatar-upload {
-        width: 180px;
-
-        :deep(.avatar-uploader) {
-          .el-upload {
-            border: 1px dashed #dee2e6;
-            border-radius: 8px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            width: 180px;
-            height: 180px;
-            transition: all 0.2s ease;
-
-            &:hover {
-              border-color: #409eff;
-            }
-          }
-
-          .avatar-uploader-icon {
-            font-size: 32px;
-            color: #8c939d;
-            width: 180px;
-            height: 180px;
-            line-height: 180px;
-            text-align: center;
-          }
-
-          .avatar {
-            width: 180px;
-            height: 180px;
-            display: block;
-            object-fit: cover;
-            border-radius: 8px;
-          }
-        }
-      }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #333;
     }
   }
 
-  // 密码弹窗样式
-  .password-dialog {
-    :deep(.el-dialog__header) {
-      border-bottom: 1px solid #e9ecef;
-      padding-bottom: 10px;
+  .readonly {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px dashed #e5e7eb;
+  }
 
-      .el-dialog__title {
-        font-size: 18px;
+  .form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+  }
+
+  .form-right {
+    
+    .avatar-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid #e9ecef;
+
+      .avatar-title {
         font-weight: 600;
-        color: #212529;
-      }
-    }
-
-    :deep(.el-dialog__body) {
-      padding: 20px 20px 10px;
-    }
-
-    .password-form {
-      .pwd-input {
-        width: 350px;
-        height: 40px;
-        border-radius: 6px;
-      }
-    }
-
-    .dialog-footer {
-      text-align: right;
-      padding: 15px 20px;
-      border-top: 1px solid #e9ecef;
-      margin: 0 -20px -15px;
-
-      .btn-cancel {
-        margin-right: 10px;
-        padding: 8px 16px;
-        border-radius: 6px;
+        margin-bottom: 16px;
       }
 
-      .btn-confirm {
-        padding: 8px 16px;
-        border-radius: 6px;
+      .avatar-tip {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #999;
       }
     }
   }
-}
 
-// 重置Element默认样式
-:deep(.el-form-item) {
-  margin-bottom: 20px;
 
-  .el-form-item__label {
-    font-size: 14px;
-    color: #495057;
-    font-weight: 500;
-  }
-
-  .el-form-item__error {
-    font-size: 12px;
-  }
-}
-
-:deep(.el-radio) {
-  font-size: 14px;
 }
 </style>

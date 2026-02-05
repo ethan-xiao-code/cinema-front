@@ -1,10 +1,10 @@
 <template>
-  <div id="seat">
+  <div v-loading="loading" element-loading-text="正在加入购物车..." id="seat">
     <!-- 步骤条 -->
     <el-steps :active="2" align-center class="steps">
       <el-step title="选择场次" description="选择电影和放映时间" />
       <el-step title="选择座位" description="挑选心仪的座位" />
-      <el-step title="确认订单" description="加入购物车并在15分钟内付款" />
+      <el-step title="加入购物车" description="请在15分钟内完成付款" />
       <el-step title="完成支付" description="支付成功，购票完成" />
     </el-steps>
 
@@ -17,18 +17,12 @@
             <h2 class="film-title">{{ filmSchedule.title }}</h2>
             <div class="film-meta">
               <span class="meta-item">类型：{{ filmSchedule.filmTypes }}</span>
-              <span class="meta-item"
-                >地区：{{ filmSchedule.filmRegions }}</span
-              >
-              <span class="meta-item"
-                >时长：{{ filmSchedule.duration }} 分钟</span
-              >
-              <span class="meta-item"
-                >{{
-                  getLabelByValue(screenTypeOptions, filmSchedule.scheduleType)
-                }}
-                放映</span
-              >
+              <span class="meta-item">地区：{{ filmSchedule.filmRegions }}</span>
+              <span class="meta-item">时长：{{ filmSchedule.duration }} 分钟</span>
+              <span class="meta-item">{{
+                getLabelByValue(screenTypeOptions, filmSchedule.scheduleType)
+              }}
+                放映</span>
             </div>
           </div>
         </div>
@@ -51,18 +45,10 @@
         <div class="selected-seats">
           <span class="title">已选座位：</span>
           <div class="tag-group">
-            <div
-              v-for="seat in selectSeatNumbers"
-              :key="seat"
-              type="success"
-              class="seat-tag"
-              size="small"
-            >
-              {{ seat }}号
+            <div v-for="seat in selectedSeatList" :key="seat.id" type="success" class="seat-tag" size="small">
+              {{ seat.number }}号
             </div>
-            <span v-if="!selectSeatNumbers.length" class="empty-tip"
-              >暂未选择座位</span
-            >
+            <span v-if="!selectedSeatList.length" class="empty-tip">暂未选择座位</span>
           </div>
         </div>
 
@@ -71,20 +57,10 @@
           <span class="price">￥{{ totalPrice }}</span>
         </div>
 
-        <el-input
-          v-model="phone"
-          placeholder="请输入11位手机号"
-          class="phone-input"
-          clearable
-          maxlength="11"
-          show-word-limit
-        />
-        <el-button
-          type="danger"
-          class="add-cart-btn"
-          @click="handleSaveCart(userStore.userId)"
-          size="large"
-        >
+        <el-input v-model="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
+          show-word-limit />
+        <el-button type="danger" class="add-cart-btn" @click="handleSaveCart(userStore.userId)" size="large"
+          :loading="loading">
           加入购物车
         </el-button>
       </div>
@@ -125,29 +101,14 @@
 
           <!-- 座位表 -->
           <div class="seats-wrapper">
-            <div
-              v-for="(row, rowIndex) in seatDatas"
-              :key="row[0].number"
-              class="seat-row"
-            >
-              <span
-                v-for="(seat, seatIndex) in row"
-                :key="seat.number"
-                :class="getSeatClass(seat)"
-                @click="handleChooseSeat(seat)"
-                class="seat-item"
-              >
+            <div v-for="(row, rowIndex) in seatDatas" :key="row[0].number" class="seat-row">
+              <span v-for="(seat, seatIndex) in row" :key="seat.number" :class="getSeatClass(seat)"
+                @click="handleChooseSeat(seat)" class="seat-item">
                 {{ seat.number }}
               </span>
             </div>
           </div>
         </div>
-        <el-button
-          class="demoBtn"
-          type="primary"
-          @click="simulateConcurrentClicks"
-          >模拟多用户抢座</el-button
-        >
       </div>
     </div>
   </div>
@@ -156,7 +117,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
+import { ElLoading, ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
 
 import { getFilmAndScheduleById } from "@/api/schedule";
@@ -167,8 +128,9 @@ import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
 
 // ========== 类型 ==========
 interface SeatType {
+  id?: number;
   scheduleId: number;
-  userId: number;
+  userId?: number;
   number: number;
   status: number; // 0:未选 1:已选 2:已加入购物车 3:已售
   currentUser: boolean; // true:当前用户选 false:其他用户
@@ -191,7 +153,7 @@ interface FilmSchedule {
 const route = useRoute();
 const userStore = useUserStore();
 
-const scheduleId = computed(() => route.query.id);
+const scheduleId = computed(() => Number(route.query.id));
 
 // ========== 响应式 ==========
 const filmSchedule = reactive<FilmSchedule>({
@@ -215,10 +177,9 @@ enum SeatStatus {
 }
 
 const seatDatas = ref<SeatType[][]>([]); // 渲染的座位数据
-const selectSeatNumbers = ref<number[]>([]); // 选择的座位号
-const totalPrice = ref(0); // 选择座位的总价格
+const selectedSeatList = ref<SeatType[]>([]); // 选择的座位号
 const phone = ref(userStore?.userInfo?.phone);
-
+const loading = ref(false)
 // ========== 方法 ==========
 /** 初始化座位表 */
 const initSeats = () => {
@@ -227,10 +188,10 @@ const initSeats = () => {
   for (let i = 1; i <= filmSchedule.seatCount; i++) {
     row.push({
       number: i,
-      status: 0,
+      status: SeatStatus.None,
       currentUser: false,
       scheduleId: Number(scheduleId.value),
-      userId: userStore.userId,
+      // userId: userStore.userId,
     });
     if (i % 12 === 0) {
       rows.push(row);
@@ -254,11 +215,6 @@ const handleSeat = (list: SeatType[]) => {
 
     const isCurUser = item.userId === userStore.userId;
 
-    // 保证当前座位只有当前用户可以操作，其他用户不能操作
-    if (seat.currentUser && seat.status === 1 && !isCurUser) {
-      return;
-    }
-
     seat.status = item.status;
     seat.currentUser = isCurUser;
   });
@@ -269,12 +225,15 @@ const handleSeat = (list: SeatType[]) => {
 const calculateSeats = () => {
   const selected = seatDatas.value
     .flat()
-    .filter((seat) => seat.status === SeatStatus.Selected)
-    .map((s) => s.number);
+    .filter((seat) => seat.status === SeatStatus.Selected);
 
-  selectSeatNumbers.value = selected;
-  totalPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
+  selectedSeatList.value = selected;
+  // totalPrice.value = Number((selected.length * filmSchedule.price).toFixed(2));
 };
+
+const totalPrice = computed(() => {
+  return Number((selectedSeatList.value.length * filmSchedule.price).toFixed(2))
+})
 
 const handleWsMessage = (msg: any) => {
   console.log(msg, "msg");
@@ -284,7 +243,13 @@ const handleWsMessage = (msg: any) => {
       if (!seat) return;
       // 后端状态直刷
       seat.status = item.status;
+      seat.currentUser = item.userId === userStore.userId
     });
+    if (selectedSeatList.value.length) {
+      selectedSeatList.value = selectedSeatList.value.filter(seat => {
+        return msg.every(s => s.number !== seat.number)
+      })
+    }
   }
   // 后端推送座位状态变化
 };
@@ -297,34 +262,6 @@ const { initWebSocket, send, close } = useWebSocket(
   },
 );
 
-// 模拟并发用户点击
-const simulateConcurrentClicks = async () => {
-  const testSeats = [3]; // 要测试的座位号
-  const users = [
-    { userId: 3, phone: "19142065142" },
-    { userId: 4, phone: "19142065144" },
-    { userId: 8, phone: "19142094466" },
-  ]; // 模拟多用户（含userId/phone）
-
-  for (let i = 0; i < testSeats.length; i++) {
-    const seatNumber = testSeats[i];
-    const seat = seatMap.value.get(seatNumber);
-
-    if (!seat) continue;
-
-    // 核心：Promise.all 实现多用户并发请求（同时触发）
-    await Promise.all(
-      // 映射为Promise数组，每个用户对应一个异步操作
-      users.map(async (user) => {
-        // console.log(
-        //   `用户 ${user.userId}（手机号：${user.phone}）点击座位 ${seat.number}`,
-        // );
-        // 执行购物车保存逻辑，透传当前用户的userId和phone
-        await handleSaveCart(user.userId, user.phone);
-      }),
-    );
-  }
-};
 
 onMounted(() => {
   getFilmSchedule();
@@ -362,44 +299,46 @@ const handleChooseSeat = (seat: SeatType) => {
 
 /** 加入购物车 */
 const handleSaveCart = async (userId: number, phoneStr?: string) => {
-  console.log(phoneStr, "phoneStr");
-  if (!selectSeatNumbers.value.length) return ElMessage.error("请选择座位");
+  if (!selectedSeatList.value.length) return ElMessage.error("请选择座位");
   if (!phone.value || phone.value.length !== 11)
     return ElMessage.error("请输入11位手机号");
 
   try {
+    loading.value = true
+    // 打开全屏 loading
+
     await addCart({
       userId,
       scheduleId: scheduleId.value,
-      title: filmSchedule.title,
+      filmName: filmSchedule.title,
       poster: filmSchedule.poster,
-      price: filmSchedule.price,
-      seatNumbers: selectSeatNumbers.value,
+      price: totalPrice.value,
+      seatNumbers: selectedSeatList.value.map(seat => seat.number),
       phone: phoneStr || phone.value,
       startTime: filmSchedule.startTime,
     });
-
     ElMessage.success("加入购物车成功，请在15分钟内完成付款");
+    selectedSeatList.value = [];
 
-    selectSeatNumbers.value = [];
-    totalPrice.value = 0;
-  } catch (err: any) {
-    ElMessage.error(err?.message || "加入购物车失败");
+  } catch (e) {
+
+  } finally {
+    loading.value = false
   }
 };
+
+
 
 /** 获取座位样式 */
 /** 获取座位样式 */
 const getSeatClass = (seat: SeatType) => {
-  const isCurUser = userStore.userId === seat.userId;
-  if(seat.number === 3) console.log(userStore.userId ,seat.userId,'isCurUser')
   if (seat.status === SeatStatus.None) {
     return "noSelected"; // 可选
-  } else if (seat.status === SeatStatus.Selected) {
+  } else if (seat.status === SeatStatus.Selected || selectedSeatList.value.some(item => item.number === seat.number)) {
     return "isSelected"; // 当前用户本地选中
-  } else if (seat.status === SeatStatus.Locked && isCurUser) {
+  } else if (seat.status === SeatStatus.Locked && seat.currentUser) {
     return "cartSeat"; // 当前用户已锁定
-  } else if (seat.status === SeatStatus.Locked && !isCurUser) {
+  } else if (seat.status === SeatStatus.Locked && !seat.currentUser) {
     return "isOtherUserSelected"; // 其他用户已锁定
   } else if (seat.status === SeatStatus.Selled) {
     return "selledSeat"; // 已售出
@@ -462,6 +401,7 @@ onUnmounted(() => {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       box-sizing: border-box;
       margin-left: 32px;
+
       // 电影信息卡片
       .film-card {
         display: flex;
@@ -481,6 +421,7 @@ onUnmounted(() => {
         .film-detail {
           flex: 1;
           text-align: left;
+
           .film-title {
             font-size: 18px;
             font-weight: 600;
@@ -537,6 +478,7 @@ onUnmounted(() => {
         background: #f8fafc; // 极浅的底色区分区域
         border-radius: 12px; // 更圆润的现代感
         border: 1px solid #edf2f7;
+        text-align: center;
 
         .title {
           display: block;
@@ -642,9 +584,11 @@ onUnmounted(() => {
     .right-panel {
       flex: 1;
       box-sizing: border-box;
+
       .seat-selector {
         width: 100%;
         margin-bottom: 60px;
+
         // 图例
         .legend {
           display: flex;
@@ -754,18 +698,24 @@ onUnmounted(() => {
   border: 1px solid #dcdfe6;
   color: #909399;
 }
+
 .isSelected {
   background: #27ae60 !important;
   color: white;
 }
+
 .cartSeat {
   background: #3498db !important;
   color: white;
-} /* 当前用户锁定 */
+}
+
+/* 当前用户锁定 */
 .isOtherUserSelected {
   background: #f39c12 !important;
   color: white;
-} /* 他人锁定 */
+}
+
+/* 他人锁定 */
 .selledSeat {
   background: red !important;
   color: white;

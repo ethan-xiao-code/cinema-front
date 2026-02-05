@@ -15,9 +15,11 @@ export function getCartes(): Promise<any> {
   })
 }
 
-export function deleteCartByIdApi(id: number): Promise<any> {
+export function deleteCartByIdApi(ids: number[]): Promise<any> {
   return request({
-    url: `/cart/${id}`,
-    method: 'delete'
+    url: '/cart',
+    method: 'delete',
+    data: ids, // DELETE 传 body 要用 data
   })
 }
+

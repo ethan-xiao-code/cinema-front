@@ -12,48 +12,84 @@
         <div class="rightWrap">
           <!-- 中间菜单 -->
           <div class="menuBox">
-            <div
-              v-for="item in menuList"
-              :key="item.path"
-              class="menuItem"
-              :class="{ active: route.path === item.path }"
-              @click="router.push(item.path)"
-            >
+            <div v-for="item in menuList" :key="item.path" class="menuItem"
+              :class="{ active: route.path === item.path }" @click="router.push(item.path)">
               {{ item.name }}
             </div>
           </div>
 
           <!-- 搜索 -->
-          <el-input
-            v-model="title"
-            placeholder="搜索电影"
-            class="searchInput"
-          />
+          <el-input v-model="title" placeholder="搜索电影" class="searchInput" />
+
+          <el-button type="primary" @click="goAdminPage">后台管理</el-button>
 
           <!-- 用户 -->
           <el-dropdown @command="handleCommand">
             <div class="userBox">
-              <img :src="user.avatar || userDefault" />
+              <img :src="user?.avatar || userDefault" />
               <div>
                 <span class="username">
-                  {{ user.username || "未登录" }}
+                  {{ user?.username || '未登录' }}
                 </span>
-                <el-icon class="el-icon--right"><arrow-down-bold /></el-icon>
+                <el-icon class="el-icon--right">
+                  <ArrowDownBold />
+                </el-icon>
               </div>
             </div>
 
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="/user/me/cart"
-                  >购物车</el-dropdown-item
-                >
-                <el-dropdown-item command="/user/me/order"
-                  >订单</el-dropdown-item
-                >
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                <!-- 已登录 -->
+                <template v-if="user?.username">
+                  <el-dropdown-item command="/user/me/cart">
+                    <el-icon>
+                      <shopping-cart-full />
+                    </el-icon>
+                    <span>我的购物车</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item command="/user/me/order">
+                    <el-icon>
+                      <Document />
+                    </el-icon>
+                    <span>我的订单</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item command="/user/me/detail">
+                    <el-icon>
+                      <User />
+                    </el-icon>
+                    <span>我的信息</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item command="switchAccount">
+                    <el-icon>
+                      <switch-button />
+                    </el-icon>
+                    <span>切换账号</span>
+                  </el-dropdown-item>
+
+                  <el-dropdown-item command="logout">
+                    <el-icon>
+                      <remove />
+                    </el-icon>
+                    <span>退出登录</span>
+                  </el-dropdown-item>
+                </template>
+
+                <!-- 未登录 -->
+                <template v-else>
+                  <el-dropdown-item command="login">
+                    <el-icon>
+                      <Help />
+                    </el-icon>
+                    <span>登录</span>
+                  </el-dropdown-item>
+                </template>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+
         </div>
       </div>
     </div>
@@ -72,15 +108,18 @@ import { useUserStore } from "@/stores";
 import logo from "@/assets/images/logo.png";
 import { ElMessage } from "element-plus";
 import userDefault from "@/assets/images/user-default.png";
+
 import {
   ShoppingCart,
   Document,
-  User,
   Help,
-  ArrowDown,
   SwitchButton,
-  Switch,
   ArrowDownBold,
+  ShoppingCartFull,
+  CloseBold,
+  Aim,
+  User,
+  Remove,
 } from "@element-plus/icons-vue";
 import { userSystemTitle } from "@/utils/constant";
 
@@ -172,8 +211,13 @@ const toShowMovies = () => {
 
 // 打开后台页面
 const goAdminPage = () => {
-  const routeUrl = router.resolve({ path: "/admin" });
-  window.open(routeUrl.href, "_blank");
+  // const routeUrl = router.resolve({ path: "/admin" });
+  // window.open(routeUrl.href, "_blank");
+  if (userStore.userId && userStore.userInfo?.roleId === 1) {
+    router.push("/admin")
+  } else {
+    ElMessage.warning("只有管理员才可以进入哦~")
+  }
 };
 </script>
 
@@ -263,7 +307,7 @@ const goAdminPage = () => {
           gap: 8px;
           cursor: pointer;
 
-          & > img {
+          &>img {
             width: 40px;
             height: 40px;
             border-radius: 50%;

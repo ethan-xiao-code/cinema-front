@@ -5,24 +5,15 @@
 
       <!-- 订单列表 -->
       <div v-if="orderArr.length > 0" class="order-list">
-        <div
-          class="order-item"
-          v-for="order in orderArr"
-          :key="order.id"
-        >
+        <div class="order-item" v-for="order in orderArr" :key="order.id">
           <!-- 订单海报 -->
           <div class="order-poster">
-            <img
-              :src="order.poster"
-              alt="电影海报"
-              class="poster-img"
-              loading="lazy"
-            >
+            <img :src="order.poster" alt="电影海报" class="poster-img" loading="lazy">
           </div>
 
           <!-- 订单主要信息 -->
           <div class="order-main">
-            <h3 class="film-name">{{ order.name }}</h3>
+            <h3 class="film-name">{{ order.filmName }}</h3>
             <div class="order-info">
               <span class="info-item">放映厅：{{ order.screenRoomName }}</span>
               <span class="info-item">座位：{{ order.seatNumberStr }} 号</span>
@@ -40,19 +31,11 @@
           <!-- 订单操作区域 -->
           <div class="order-actions">
             <div class="order-amount">¥{{ order.amount.toFixed(2) }}</div>
-            <el-tag 
-              :type="typeArr[order.status]" 
-              class="status-tag"
-            >
+            <el-tag :type="typeArr[order.status]" class="status-tag">
               {{ payStatus[order.status] }}
             </el-tag>
-            <el-button
-              :disabled="order.status !== 1 || isOrderExpired(order.startTime)"
-              type="danger"
-              size="default"
-              class="cancel-btn"
-              @click="cancelOrders(order)"
-            >
+            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger" size="default"
+              class="cancel-btn" @click="cancelOrders(order)">
               取消订单
             </el-button>
           </div>
@@ -61,15 +44,8 @@
 
       <!-- 空订单状态 -->
       <div v-else class="empty-order">
-        <el-empty
-          :image-size="200"
-          description="这里空空如也，快去下单吧～"
-        ></el-empty>
-        <el-button 
-          type="primary" 
-          class="go-order-btn"
-          @click="$router.push('/film')"
-        >
+        <el-empty :image-size="200" description="这里空空如也，快去下单吧～"></el-empty>
+        <el-button type="primary" class="go-order-btn" @click="$router.push('/user/home')">
           去购票
         </el-button>
       </div>
@@ -85,7 +61,7 @@ import { getOrdersList, cancelOrders } from "@/api/orders";
 // ========== 类型定义 ==========
 interface OrderItem {
   id: number;
-  name: string;
+  filmName: string;
   poster: string;
   screenRoomName: string;
   seatNumberStr: string | number;
@@ -142,8 +118,8 @@ const cancelOrders = async (order: OrderItem) => {
 
   try {
     await ElMessageBox.confirm(
-      "此操作将取消该订单, 是否继续?", 
-      "提示", 
+      "此操作将取消该订单, 是否继续?",
+      "提示",
       {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -162,23 +138,18 @@ const cancelOrders = async (order: OrderItem) => {
 
 <style lang="scss" scoped>
 #order {
-  background-color: #f5f7fa;
-  padding: 30px 0;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  background-color: #FFF;
 
+  // font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   .order-container {
-    width: 85%;
-    max-width: 1200px;
-    margin: 0 auto;
 
     // 页面标题
     .page-title {
       font-size: 24px;
       font-weight: 600;
       color: #212529;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e9ecef;
+      padding-bottom: 24px;
+
     }
 
     // 订单列表
@@ -212,7 +183,6 @@ const cancelOrders = async (order: OrderItem) => {
         width: 100px;
         height: 100px;
         border-radius: 8px;
-        overflow: hidden;
         flex-shrink: 0;
 
         .poster-img {
@@ -330,7 +300,9 @@ const cancelOrders = async (order: OrderItem) => {
 }
 
 // 重置默认样式
-p, h3, h2 {
+p,
+h3,
+h2 {
   margin: 0;
   padding: 0;
 }

@@ -5,10 +5,7 @@
 
       <!-- 购物车列表 -->
       <div v-if="cartList.length !== 0" class="cart-list">
-        <el-checkbox-group
-          v-model="checkedCartList"
-          @change="handleCheckedCitiesChange"
-        >
+        <el-checkbox-group v-model="checkedCartList" @change="handleCheckedCitiesChange">
           <div class="cart-item" v-for="cart in cartList" :key="cart.id">
             <!-- 复选框 -->
             <div class="checkbox-col">
@@ -19,17 +16,12 @@
 
             <!-- 海报图片 -->
             <div class="poster-col">
-              <img
-                :src="cart.poster"
-                class="film-poster"
-                alt="电影海报"
-                loading="lazy"
-              />
+              <img :src="cart.poster" class="film-poster" alt="电影海报" loading="lazy" />
             </div>
 
             <!-- 主要信息 -->
             <div class="info-col">
-              <p class="film-title">{{ cart.title }}</p>
+              <p class="film-title">{{ cart.filmName }}</p>
               <div class="info-row">
                 <span class="info-item">放映厅：{{ cart.screenName }}</span>
               </div>
@@ -44,47 +36,27 @@
 
             <!-- 价格和删除按钮 -->
             <div class="action-col">
-              <span class="price">￥ {{ cart.price }}</span>
-              <el-button
-                type="danger"
-                :icon="Delete"
-                @click="deleteCartById(cart.id)"
-                link
-                size="small"
-                class="delete-btn"
-              ></el-button>
+              <span class="price">￥ {{ cart.price.toFixed(2) }}</span>
+              <el-button type="danger" :icon="Delete" @click="batchDeleteCart([cart.id])" link size="small"
+                class="delete-btn"></el-button>
             </div>
           </div>
         </el-checkbox-group>
 
         <!-- 结算栏 -->
         <div class="checkout-bar">
-          <el-checkbox
-            :indeterminate="isIndeterminate"
-            v-model="checkAll"
-            @change="handleCheckAllChange"
-            class="check-all"
-            size="large"
-            >全选</el-checkbox
-          >
+          <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange"
+            class="check-all" size="large">全选</el-checkbox>
 
-          <div class="tip">
-            tips: ⏰ 请在 15 分钟内完成支付，超时订单将自动取消
-          </div>
+          <el-button class="batch-delete" type="danger" @click="batchDeleteCart(checkedCartList.map(item => item.id))">批量删除购物车</el-button>
 
           <div class="price-info">
-            <span class="total-price"
-              >总价：
+            <span class="total-price">总价：
               <span class="price-value">￥{{ totalPrice }}</span>
             </span>
           </div>
 
-          <el-button
-            type="success"
-            class="checkout-btn"
-            @click="openCheckoutModal"
-            size="large"
-          >
+          <el-button type="success" class="checkout-btn" @click="openCheckoutModal" size="large">
             结算
           </el-button>
         </div>
@@ -92,39 +64,22 @@
 
       <!-- 空购物车 -->
       <div v-else class="empty-cart">
-        <el-empty
-          :image-size="200"
-          description="这里空空如也，快去选购心仪的电影票吧～"
-        ></el-empty>
-        <el-button
-          type="primary"
-          class="go-shopping-btn"
-          @click="$router.push('/user/home')"
-        >
+        <el-empty :image-size="200" description="这里空空如也，快去选购心仪的电影票吧～"></el-empty>
+        <el-button type="primary" class="go-shopping-btn" @click="$router.push('/user/home')">
           去购票
         </el-button>
       </div>
     </div>
 
     <!-- 结算确认 Modal -->
-    <el-dialog
-      v-model="payModalVisible"
-      title="订单确认"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      @close="handleModalClose"
-    >
+    <el-dialog v-model="payModalVisible" title="订单确认" :close-on-click-modal="false" :close-on-press-escape="false">
       <div class="checkout-modal-content">
         <div class="modal-info">
           <p class="info-title">请确认以下订单信息：</p>
           <!-- 选中的商品列表 -->
           <div class="selected-items">
-            <div
-              class="item-row"
-              v-for="item in checkedCartList"
-              :key="item.id"
-            >
-              <span class="item-name">{{ item.title }}</span>
+            <div class="item-row" v-for="item in checkedCartList" :key="item.id">
+              <span class="item-name">{{ item.filmName }}</span>
               <span class="item-detail">
                 {{ item.screenName }} | {{ item.seatNumbers }}号 |
                 {{ item.startTime }}
@@ -138,13 +93,10 @@
               <span class="label">订单总价：</span>
               <span class="value">￥{{ totalPrice }}</span>
             </div>
-            <div class="summary-row">
-              <span class="label">优惠折扣：</span>
-              <span class="value">{{ discount * 10 }}折</span>
-            </div>
+
             <div class="summary-row total-row">
               <span class="label">实付金额：</span>
-              <span class="value highlight">￥{{ discountPrice }}</span>
+              <span class="value highlight">￥{{ totalPrice }}</span>
             </div>
           </div>
         </div>
@@ -170,10 +122,10 @@ import { Delete } from "@element-plus/icons-vue";
 // ========== 类型定义 ==========
 interface CartItem {
   id: number;
-  title: string;
+  filmName: string;
   poster: string;
   screenName: string;
-  seatNumbers: number;
+  seatNumbers: string;
   phone: string;
   startTime: string;
   price: number;
@@ -183,10 +135,10 @@ interface CartItem {
 
 interface OrderItem {
   cartId: number;
-  name: string;
+  filmName: string;
   poster: string;
   scheduleId: number;
-  seatNumber: number;
+  seatNumbers: string;
   amount: string;
   startTime: string;
 }
@@ -196,7 +148,6 @@ const checkAll = ref(false);
 const checkedCartList = ref<CartItem[]>([]);
 const isIndeterminate = ref(false);
 const cartList = ref<CartItem[]>([]);
-const discount = ref(1); // 折扣
 // 新增：结算Modal的显示状态
 const payModalVisible = ref(false);
 
@@ -212,17 +163,13 @@ const totalPrice = computed(() =>
   }, 0),
 );
 
-const discountPrice = computed(() => {
-  const discountPriceStr = (totalPrice.value * discount.value).toFixed(2);
-  return Number(discountPriceStr);
-});
 
 // ========== 生命周期 ==========
 onMounted(async () => {
   await getCartesByUserId();
   startInteval();
   // 获取用户折扣
-  discount.value = userStore.userInfo?.discount || 1;
+  // discount.value = userStore.userInfo?.discount || 1;
 });
 
 onUnmounted(() => {
@@ -232,7 +179,7 @@ onUnmounted(() => {
 const startInteval = () => {
   // 防重复启动：如果定时器已存在（timer.value有值），则直接返回
   // 边界判断：如果购物车本身无数据，无需启动定时器，直接返回
-  if (timer.value || cartList.value.length === 0) return; 
+  if (timer.value || cartList.value.length === 0) return;
 
   // 启动定时器，每隔60秒执行一次购物车检查逻辑
   // 注：60 * 1000 = 60秒，避免短时间频繁请求接口
@@ -300,16 +247,12 @@ const handleCheckedCitiesChange = (value: CartItem[]) => {
     checkedCount > 0 && checkedCount < cartList.value.length;
 };
 
-/** 计算选中商品总价 */
-const computeCartCountPrice = (arr: CartItem[]) => {
-  return arr.reduce((total, item) => total + item.price, 0);
-};
-
 /** 删除购物车项 */
-const deleteCartById = async (id: number) => {
-  await deleteCartByIdApi(id);
-  ElMessage.success("删除成功");
+const batchDeleteCart = async (ids: number[]) => {
+  await deleteCartByIdApi(ids);
+  ElMessage.success("删除购物车成功");
   await getCartesByUserId(); // 重新获取购物车列表
+  checkedCartList.value = []
 };
 
 /** 打开结算确认Modal */
@@ -322,22 +265,17 @@ const openCheckoutModal = () => {
   payModalVisible.value = true;
 };
 
-/** 关闭Modal时的处理 */
-const handleModalClose = () => {
-  ElMessage.info("取消支付");
-};
 
 /** 确认支付 */
 const confirmPay = async () => {
-  await saveOrdersHandler();
+  await addOrders();
   // 关闭Modal
   payModalVisible.value = false;
 };
 
 /** 保存订单 */
-const saveOrdersHandler = async () => {
-  const ordersArr = getHandleOrdersArr.value;
-  await saveOrders(ordersArr);
+const addOrders = async () => {
+  await saveOrders(ordersParams.value);
   ElMessage.success("支付成功");
   await getCartesByUserId(); // 重新获取购物车列表
   // 清空选中状态
@@ -345,18 +283,15 @@ const saveOrdersHandler = async () => {
   checkedCartList.value = [];
 };
 
-// ========== 计算属性 ==========
 /** 转换购物车数据为订单数据 */
-const getHandleOrdersArr = computed<OrderItem[]>(() => {
-  return checkedCartList.value.map((item) => ({
-    cartId: item.id,
-    name: item.title,
-    poster: item.poster,
-    scheduleId: item.scheduleId,
-    seatNumber: item.seatNumbers,
-    amount: item.price.toFixed(2),
-    startTime: item.startTime,
-  }));
+const ordersParams = computed<OrderItem[]>(() => {
+  return checkedCartList.value.map((item) => {
+    return {
+      ...item,
+      cartId: item.id,
+      amount: item.price.toFixed(2)
+    }
+  });
 });
 </script>
 
@@ -364,37 +299,21 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
 // 全局基础样式
 #cart {
   text-align: left;
-  background-color: #f8f9fa;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
 
   .cart-container {
-    width: 95%;
-    max-width: 1400px;
     margin: 0 auto;
-    padding: 30px 0;
 
     .cart-title {
       font-size: 24px;
       font-weight: 700;
-      margin-bottom: 24px;
       color: #212529;
       position: relative;
-      padding-bottom: 12px;
-
-      &::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 60px;
-        height: 3px;
-        background-color: #409eff;
-        border-radius: 2px;
-      }
+      padding-bottom: 24px;
     }
 
     // 购物车列表
     .cart-list {
+
       // 购物车项
       .cart-item {
         width: 100%;
@@ -530,6 +449,10 @@ const getHandleOrdersArr = computed<OrderItem[]>(() => {
           color: #212529; // 深灰文字（替代原白色）
           font-size: 16px;
           font-weight: 500;
+        }
+
+        .batch-delete {
+          margin-left: 40px;
         }
 
         .tip {
