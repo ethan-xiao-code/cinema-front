@@ -46,7 +46,6 @@ service.interceptors.response.use(
     if (response.data instanceof Blob) {
       return response
     }
-
     const { data, message, code } = response.data as ApiResponse
 
     if (code === 1) {
@@ -54,9 +53,9 @@ service.interceptors.response.use(
       return data
     } else {
       // 业务逻辑错误，提示错误信息
-      ElMessage({
+      message && ElMessage({
         type: 'error',
-        message: message || '请求失败'
+        message: message
       })
       return Promise.reject(new Error(message || '请求失败'))
     }

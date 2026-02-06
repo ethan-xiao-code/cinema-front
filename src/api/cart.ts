@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function addCart(data: any): Promise<any> {
+export function addCartApi(data: any): Promise<any> {
   return request({
     url: `/cart/save`,
     method: 'post',

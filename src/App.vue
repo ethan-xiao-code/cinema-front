@@ -8,6 +8,6 @@
 @use '@/assets/styles/baseCommon.scss';
 #cinema-page {
   min-width: 1000px;
-  background-color: pink;
+ 
 }
 </style>

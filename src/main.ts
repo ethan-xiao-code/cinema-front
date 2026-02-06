@@ -9,6 +9,7 @@ import elementPlus from 'element-plus'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 
+
 const app = createApp(App)
 
 const pinia = createPinia()

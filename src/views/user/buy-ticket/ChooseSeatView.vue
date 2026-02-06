@@ -122,9 +122,10 @@ import { useUserStore } from "@/stores";
 
 import { getFilmAndScheduleById } from "@/api/schedule";
 import { getSeatsByScheduleId } from "@/api/seat";
-import { addCart } from "@/api/cart";
+import { addCartApi } from "@/api/cart";
 import { useWebSocket } from "@/utils/useWebSocket";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
+import { useRequest } from "@/utils/useRequest";
 
 // ========== 类型 ==========
 interface SeatType {
@@ -179,8 +180,84 @@ enum SeatStatus {
 const seatDatas = ref<SeatType[][]>([]); // 渲染的座位数据
 const selectedSeatList = ref<SeatType[]>([]); // 选择的座位号
 const phone = ref(userStore?.userInfo?.phone);
-const loading = ref(false)
-// ========== 方法 ==========
+
+const handleWsMessage = (msg: any) => {
+  console.log(msg, "msg");
+  if (Array.isArray(msg)) {
+    msg.forEach((item) => {
+      const seat = seatMap.value.get(item.number);
+      if (seat) {
+        // 后端状态直刷
+        seat.status = item.status;
+        seat.currentUser = item.userId === userStore.userId
+      }
+    });
+    const numbers: number[] = []
+    selectedSeatList.value.forEach(item => {
+      const seat = msg.find(seat => seat.number === item.number)
+      if (seat) {
+        item.status = seat.status
+        seat.userId !== userStore.userId && numbers.push(item.number) // 不是当前用户时，push
+      } 
+    })
+
+    if (numbers.length) {
+      selectedSeatList.value = selectedSeatList.value.filter(
+        item => !numbers.includes(item.number)
+      )
+      ElMessage.error(`很抱歉，座位号${numbers.join(",")}被其他用户选购，请重新选座`)
+    }
+
+  }
+};
+
+const { initWebSocket, send, close } = useWebSocket({
+  path: '/ws/seat',
+  onMessage: handleWsMessage,
+  params: {
+    scheduleId: scheduleId.value,
+  }
+});
+
+const { loading, runFn } = useRequest(addCartApi, {
+  onSuccess: () => {
+    ElMessage.success("加入购物车成功，请在15分钟内完成付款");
+    selectedSeatList.value = [];
+  },
+  onError: () => {
+    selectedSeatList.value.forEach(item => {
+      const seat = seatMap.value.get(item.number)
+      if (seat && seat.status === SeatStatus.Selected) {
+        seat.status = SeatStatus.None
+      }
+    })
+    selectedSeatList.value = [];
+  }
+})
+
+
+
+/** 加入购物车 */
+const handleSaveCart = async (userId: number, phoneStr?: string) => {
+  if (!selectedSeatList.value.length) return ElMessage.error("请选择座位");
+  if (!phone.value || phone.value.length !== 11) {
+    return ElMessage.error("请输入正常的手机号")
+  }
+
+  await runFn({
+    userId,
+    scheduleId: scheduleId.value,
+    filmName: filmSchedule.title,
+    poster: filmSchedule.poster,
+    price: totalPrice.value,
+    seatNumbers: selectedSeatList.value.map(seat => seat.number),
+    phone: phoneStr || phone.value,
+    startTime: filmSchedule.startTime,
+    filmDuration: filmSchedule.duration
+  });
+
+
+};
 /** 初始化座位表 */
 const initSeats = () => {
   const rows: SeatType[][] = [];
@@ -235,32 +312,6 @@ const totalPrice = computed(() => {
   return Number((selectedSeatList.value.length * filmSchedule.price).toFixed(2))
 })
 
-const handleWsMessage = (msg: any) => {
-  console.log(msg, "msg");
-  if (Array.isArray(msg)) {
-    msg.forEach((item) => {
-      const seat = seatMap.value.get(item.number);
-      if (!seat) return;
-      // 后端状态直刷
-      seat.status = item.status;
-      seat.currentUser = item.userId === userStore.userId
-    });
-    if (selectedSeatList.value.length) {
-      selectedSeatList.value = selectedSeatList.value.filter(seat => {
-        return msg.every(s => s.number !== seat.number)
-      })
-    }
-  }
-  // 后端推送座位状态变化
-};
-
-const { initWebSocket, send, close } = useWebSocket(
-  `/ws/seat`,
-  handleWsMessage,
-  {
-    scheduleId: scheduleId.value,
-  },
-);
 
 
 onMounted(() => {
@@ -297,39 +348,6 @@ const handleChooseSeat = (seat: SeatType) => {
   calculateSeats();
 };
 
-/** 加入购物车 */
-const handleSaveCart = async (userId: number, phoneStr?: string) => {
-  if (!selectedSeatList.value.length) return ElMessage.error("请选择座位");
-  if (!phone.value || phone.value.length !== 11)
-    return ElMessage.error("请输入11位手机号");
-
-  try {
-    loading.value = true
-    // 打开全屏 loading
-
-    await addCart({
-      userId,
-      scheduleId: scheduleId.value,
-      filmName: filmSchedule.title,
-      poster: filmSchedule.poster,
-      price: totalPrice.value,
-      seatNumbers: selectedSeatList.value.map(seat => seat.number),
-      phone: phoneStr || phone.value,
-      startTime: filmSchedule.startTime,
-      filmDuration: filmSchedule.duration
-    });
-    ElMessage.success("加入购物车成功，请在15分钟内完成付款");
-    selectedSeatList.value = [];
-
-  } catch (e) {
-
-  } finally {
-    loading.value = false
-  }
-};
-
-
-
 /** 获取座位样式 */
 /** 获取座位样式 */
 const getSeatClass = (seat: SeatType) => {
@@ -352,6 +370,8 @@ onUnmounted(() => {
   close?.();
 });
 </script>
+
+
 
 <style lang="scss" scoped>
 #seat {

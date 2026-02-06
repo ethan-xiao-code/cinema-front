@@ -4,21 +4,26 @@ import { useUserStore } from "@/stores";
 
 type WSMessageHandler = (msg: any) => void;
 const baseWsUrl = 'ws://localhost:8080'
-export function useWebSocket(path: string, onMessage: WSMessageHandler,params?: Record<string,any>) {
+type WebScoketType = {
+  path: string;
+  onMessage?: (msg: any) => void;
+  params?: Record<string,any>;
+}
+export function useWebSocket(props: WebScoketType) {
+  const {path,onMessage,params} = props
   const userStore = useUserStore();
   const ws = ref<WebSocket | null>(null);
   const connected = ref(false);
-
   const initWebSocket = () => {
     if (!userStore.token) {
       console.warn("WebSocket: token 未找到");
       return;
     }
     let newUrl = `${baseWsUrl}${path}`
+    
     if(params){
       newUrl+=`?${new URLSearchParams(params).toString()}`
     }
-    console.log(newUrl,'newUrl')
     ws.value = new WebSocket(`${newUrl}`);
 
     ws.value.onopen = () => {
@@ -29,7 +34,7 @@ export function useWebSocket(path: string, onMessage: WSMessageHandler,params?: 
     ws.value.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        onMessage(msg);
+        onMessage?.(msg);
       } catch (err) {
         console.error("WebSocket 消息解析失败", err);
       }

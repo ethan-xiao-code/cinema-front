@@ -1,19 +1,9 @@
 <template>
-  <div class="main">
-    <el-carousel
-      indicator-position="outside"
-      :interval="3000"
-      :autoplay="false"
-      class="carouselBox"
-      type="card"
-      ref="carouselRef"
-    >
-      <el-carousel-item
-        v-for="(item, index) in carouselList"
-        :key="item.id"
-        class="carouselItem"
-        @click="toShowFilmDetail(item.filmId!)"
-      >
+  <div class="main" >
+    <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card"
+      ref="carouselRef">
+      <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
+        @click="toShowFilmDetail(item.filmId!)">
         <el-image class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
       </el-carousel-item>
     </el-carousel>
@@ -37,12 +27,8 @@
               <img class="top1-icon" :src="top1Icon" alt="Top 1" />
             </div>
           </div>
-          <div
-            v-for="(film, i) in topfilmList.slice(1)"
-            :key="film.id"
-            class="filmTop6"
-            @click="toShowFilmDetail(film.id)"
-          >
+          <div v-for="(film, i) in topfilmList.slice(1)" :key="film.id" class="filmTop6"
+            @click="toShowFilmDetail(film.id)">
             <div>
               <span class="rank">{{ i + 2 }}</span>
               <span class="name">{{ film.title }}</span>
@@ -85,18 +71,18 @@ const num = ref(6);
 const top1Icon = ref(new URL("@/assets/images/top1.png", import.meta.url).href);
 const carouselRef = ref(null);
 
-const getFilmData = async () => {
-  try {
-    // 获取正在上映的电影
-    hotfilmList.value = await getFilmesByStatus(2);
-    // 获取即将上映的影片
-    upcomingList.value = await getFilmesByStatus(1);
-    // 获取排名前几的影片（根据评分排名）
-    topfilmList.value = await getFilmListByScore(num.value);
-  } catch (error) {
-    console.error("获取电影数据失败:", error);
-  }
-};
+// const getFilmData = async () => {
+//   try {
+//     // 获取正在上映的电影
+//     hotfilmList.value = await getFilmesByStatus(2);
+//     // 获取即将上映的影片
+//     upcomingList.value = await getFilmesByStatus(1);
+//     // 获取排名前几的影片（根据评分排名）
+//     topfilmList.value = await getFilmListByScore(num.value);
+//   } catch (error) {
+//     console.error("获取电影数据失败:", error);
+//   }
+// };
 
 const toShowFilmDetail = (filmId: number) => {
   router.push({
@@ -107,16 +93,43 @@ const toShowFilmDetail = (filmId: number) => {
   });
 };
 
-const getCinemaCarouselList = async () => {
-  const res = await getCinemaCarouselListApi();
-  carouselList.value = res;
-  console.log(res, "res");
-};
-// 生命周期
-onMounted(() => {
-  getFilmData();
-  getCinemaCarouselList();
+// const getCinemaCarouselList = async () => {
+//   const res = await getCinemaCarouselListApi();
+//   carouselList.value = res;
+//   console.log(res, "res");
+// };
+// // 生命周期
+// onMounted(() => {
+//   getFilmData();
+//   getCinemaCarouselList();
+// });
+const loading = ref(false)
+onMounted(async () => {
+  try {
+    loading.value = true
+    const [
+      hotRes,
+      upcomingRes,
+      topRes,
+      carouselRes
+    ] = await Promise.all([
+      getFilmesByStatus(2),
+      getFilmesByStatus(1),
+      getFilmListByScore(num.value),
+      getCinemaCarouselListApi()
+    ]);
+
+    hotfilmList.value = hotRes;
+    upcomingList.value = upcomingRes;
+    topfilmList.value = topRes;
+    carouselList.value = carouselRes;
+  } finally {
+    loading.value = false
+  }
+
+
 });
+
 </script>
 
 <style lang="scss" scoped>
@@ -200,7 +213,7 @@ onMounted(() => {
             transform: translateY(-2px);
           }
 
-          & > img {
+          &>img {
             width: 120px;
             height: 160px;
             object-fit: cover;
