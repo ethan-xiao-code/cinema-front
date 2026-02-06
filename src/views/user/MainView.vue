@@ -17,11 +17,14 @@
               {{ item.name }}
             </div>
           </div>
+          <div class="searchBox">
+            <!-- 搜索 -->
+            <el-input v-model="filmTitle" placeholder="搜索电影" class="searchInput" />
+            <el-button class="searchBtn" type="primary" @click="handleFilmQuery">查询</el-button>
+          </div>
 
-          <!-- 搜索 -->
-          <el-input v-model="title" placeholder="搜索电影" class="searchInput" />
 
-          <el-button type="primary" @click="goAdminPage">后台管理</el-button>
+          <el-button type="success" @click="goAdminPage">后台管理</el-button>
 
           <!-- 用户 -->
           <el-dropdown @command="handleCommand">
@@ -133,7 +136,7 @@ const menuList = ref([
   { name: "首页", path: "/user/home" },
   { name: "电影大全", path: "/user/movies" },
 ]);
-const title = ref("");
+const filmTitle = ref("");
 
 // 生命周期钩子
 onMounted(() => {
@@ -149,18 +152,10 @@ watch(
   },
   { immediate: true },
 );
+const handleFilmQuery = () => {
+  toShowMovies(filmTitle.value)
+}
 
-// 监听搜索框
-watch(title, () => {
-  toShowMovies();
-});
-
-// 原生菜单点击事件
-const handleMenuClick = (path: string) => {
-  if (route.path !== path) {
-    router.push(path);
-  }
-};
 
 // 下拉菜单处理
 const handleCommand = (command: string) => {
@@ -203,10 +198,13 @@ const toLogout = async () => {
 };
 
 // 搜索跳转电影页
-const toShowMovies = () => {
-  if (route.path !== "/user/movies") {
-    router.push({ name: "movies" });
-  }
+const toShowMovies = (filmTitle: string) => {
+  router.push({
+    name: "movies",
+    query: {
+      filmTitle
+    }
+  });
 };
 
 // 打开后台页面
@@ -295,10 +293,13 @@ const goAdminPage = () => {
           }
         }
 
-        /* 搜索 */
-        .searchInput {
-          width: 220px;
+        .searchBox {
+          .searchInput {
+            width: 220px;
+            margin-right: 10px;
+          }
         }
+
 
         /* 用户 */
         .userBox {

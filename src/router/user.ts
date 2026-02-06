@@ -12,7 +12,7 @@ export const userRoutes = {
     {
       path: 'movies',
       name: 'movies',
-      component: () => import('@/views/user/all_movie/MoviesView.vue')
+      component: () => import('@/views/user/movies-collection/MoviesView.vue')
     },
     {
       path: 'film-detail/:filmId',

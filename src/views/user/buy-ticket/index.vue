@@ -1,149 +1,24 @@
 <template>
   <div id="show" class="show-container">
-    <div class="top">
-      <div class="box">
-        <div class="film-poster-wrapper">
-          <img :src="film.poster" class="film-poster" alt="电影海报" />
-        </div>
-        <div class="film-info">
-          <div class="film-title-wrapper">
-            <h2 class="film-title-text">{{ film.title }}</h2>
-            <div v-if="film.averageScore" class="film-score">
-              <el-rate
-                v-model="film.averageScore"
-                disabled
-                text-color="#ff9900"
-                score-template="{value}"
-                class="score-rate"
-              ></el-rate>
-              <span class="score-value">{{ film.averageScore * 2 }}</span>
-            </div>
-            <div v-else class="score-empty">暂无评分</div>
-          </div>
-
-          <div class="film-detail-list">
-            <div class="film-detail-item">
-              <span class="detail-label">电影类型：</span>
-              {{ film.types }}
-            </div>
-            <div class="film-detail-item">
-              <span class="detail-label">上映地区：</span>
-              {{ film.regions }}
-            </div>
-            <div class="film-detail-item">
-              <span class="detail-label">时长：</span>
-              {{ film.duration }} 分钟
-            </div>
-            <div class="film-detail-item">
-              <span class="detail-label">上映日期：</span>
-              {{ film.releaseDate }} 上映
-            </div>
-          </div>
-
-          <div class="film-btn-group">
-            <el-button
-              type="info"
-              class="btn detail-btn"
-              :icon="Reading"
-              @click="toFilmDetail"
-            >
-              查看影片详情
-            </el-button>
-            <el-button
-              type="danger"
-              class="btn score-btn"
-              v-if="film.status === 2"
-              @click="dialogVisible = true"
-              :icon="Star"
-            >
-              评分
-            </el-button>
-          </div>
-
-          <el-dialog
-            title="评分"
-            v-model="dialogVisible"
-            width="30%"
-            class="score-dialog"
-            @close="cancel"
-          >
-            <div class="dialog-score-display">
-              <span v-if="value !== 0" class="score-num">
-                {{ value * 2 }} 分
-              </span>
-            </div>
-            <div class="dialog-rate-wrapper">
-              <el-rate
-                v-model="value"
-                show-text
-                @change="showScore"
-                :texts="textArr"
-                allow-half
-                text-color="rgb(238, 188, 74)"
-              ></el-rate>
-            </div>
-            <el-form :model="commentForm" class="comment-form">
-              <el-form-item label="" class="form-item">
-                <el-input
-                  type="textarea"
-                  :rows="2"
-                  placeholder="说说你的看法"
-                  v-model="commentForm.content"
-                  class="comment-input"
-                ></el-input>
-              </el-form-item>
-            </el-form>
-
-            <template #footer>
-              <div class="dialog-footer">
-                <el-button @click="cancel" class="footer-btn cancel-btn"
-                  >取 消</el-button
-                >
-                <el-button
-                  type="primary"
-                  @click="saveComment"
-                  class="footer-btn submit-btn"
-                  >提 交</el-button
-                >
-              </div>
-            </template>
-          </el-dialog>
-        </div>
-      </div>
-    </div>
-
-    <div class="middle">
+    
+    <film-header :shopType="ShopEnum.Buy" :film="film" @Detail="toFilmDetail" />
+    <div class="mainBox">
       <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
-        <el-breadcrumb-item :to="{ path: '/user/home' }"
-          >首页</el-breadcrumb-item
-        >
+        <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item>选座购票</el-breadcrumb-item>
       </el-breadcrumb>
 
       <div class="schedule-date-wrapper" v-if="screeningDateList.length">
         <span class="schedule-label">排片列表</span>
-        <el-menu
-          :default-active="activeIndex"
-          class="date-menu"
-          mode="horizontal"
-          @select="handleSelect"
-        >
-          <el-menu-item
-            :index="dateStr"
-            v-for="dateStr in screeningDateList"
-            :key="dateStr"
-            class="date-menu-item"
-          >
+        <el-menu :default-active="activeIndex" class="date-menu" mode="horizontal" @select="handleSelect">
+          <el-menu-item :index="dateStr" v-for="dateStr in screeningDateList" :key="dateStr" class="date-menu-item">
             <!-- {{ getHandleDate(item) }} -->
             {{ dateStr }}
           </el-menu-item>
         </el-menu>
 
-        <el-table
-          :data="scheduleList"
-          class="schedule-table"
-        >
-          <el-table-column prop="startTime" label="放映时间" >
+        <el-table :data="scheduleList" class="schedule-table">
+          <el-table-column prop="startTime" label="放映时间">
             <template #default="scope">
               <div class="time-wrapper">
                 <div class="start-time">
@@ -155,17 +30,11 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column
-            prop="language"
-            label="语言版本"
-          ></el-table-column>
+          <el-table-column prop="language" label="语言版本"></el-table-column>
           <el-table-column prop="type" label="放映类型">
-            <template #default="scope"> {{ getLabelByValue(screenTypeOptions,scope.row.screeningType) }} </template>
+            <template #default="scope"> {{ getLabelByValue(screenTypeOptions, scope.row.screeningType) }} </template>
           </el-table-column>
-          <el-table-column
-            prop="screenRoomName"
-            label="放映厅"
-          ></el-table-column>
+          <el-table-column prop="screenRoomName" label="放映厅"></el-table-column>
           <el-table-column label="售价（元）">
             <template #default="scope">
               <span class="price">{{ scope.row.price }}</span>
@@ -173,12 +42,8 @@
           </el-table-column>
           <el-table-column label="选座购票">
             <template #default="scope">
-              <el-button
-                type="danger"
-                @click="toShowChooseSeat(scope.row)"
-                :disabled="scope.row.status === 1"
-                class="buy-btn"
-              >
+              <el-button type="danger" @click="toShowChooseSeat(scope.row)" :disabled="scope.row.status === 1"
+                class="buy-btn">
                 选座购票
               </el-button>
             </template>
@@ -203,6 +68,8 @@ import { getFilmById } from "@/api/film";
 import { addCommentApi } from "@/api/comment";
 import { Postcard, Reading, Star } from "@element-plus/icons-vue";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
+import { ShopEnum } from "@/api/film/type";
+import FilmHeader from "@/components/FilmHeader.vue";
 
 // ========== 类型定义 ==========
 // 电影信息类型
@@ -558,8 +425,7 @@ onMounted(async () => {
       gap: 10px; // 按钮间距
       margin-top: 20px;
 
-      .btn {
-      }
+      .btn {}
     }
   }
 }
@@ -608,8 +474,10 @@ onMounted(async () => {
 }
 
 // 中部区域
-.middle {
+.mainBox {
+  width: 900px;
   margin: 30px auto;
+  padding-bottom: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px; // 替代margin-bottom
@@ -624,7 +492,6 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-top: 30px;
 
     .schedule-label {
       color: rgb(156, 155, 154);

@@ -3,7 +3,7 @@
     <div class="setting-container">
       <h2 class="page-title">我的信息</h2>
 
-      <el-form :model="userForm" :rules="rules" ref="userFormRef" label-width="100px" class="user-form">
+      <el-form :model="userForm" :rules="rules" ref="userFormRef" label-width="120px" class="user-form">
         <div class="form-main">
           <!-- 左侧 -->
           <div class="form-left">
@@ -25,19 +25,19 @@
             <div class="form-section readonly">
               <h3 class="section-title">账号信息</h3>
 
-              <el-form-item label="用户角色" class="info-item">
+              <el-form-item label="用户角色">
                 <span class="info-value">
                   {{ getLabelByValue(userRoleOptions, userForm.roleId) }}
                 </span>
               </el-form-item>
 
-              <el-form-item label="账号状态" class="info-item">
+              <el-form-item label="账号状态" >
                 <span class="info-value">
                   {{ getLabelByValue(accountStatusOptions, userForm.status) }}
                 </span>
               </el-form-item>
 
-              <el-form-item label="账号创建时间" class="info-item">
+              <el-form-item label="账号创建时间" >
                 <span class="info-value">{{ userForm.createTime }}</span>
               </el-form-item>
             </div>
@@ -251,6 +251,7 @@ const resetPasswordForm = () => {
       font-weight: 600;
       margin-bottom: 16px;
       color: #333;
+    
     }
   }
 

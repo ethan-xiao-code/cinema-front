@@ -44,3 +44,8 @@ export interface FilmCardType {
   id: number;
   poster: string;
 }
+
+export enum ShopEnum {
+  Buy = 0, // 购票页
+  Detail = 1 // 详情页
+}

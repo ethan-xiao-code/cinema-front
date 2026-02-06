@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import type { PropType } from "vue";
+import { FilmCardType } from "@/api/film/type";
 
 type PropsType = {
   film: FilmCardType

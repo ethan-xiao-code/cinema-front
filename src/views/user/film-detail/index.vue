@@ -1,61 +1,11 @@
 <template>
   <div class="filmDetailModule">
-    <div class="topBox">
-      <div class="headerBox">
-        <img :src="film.poster" alt="电影海报" />
-        <div class="filmInfoBox">
-          <div class="title">
-            <span class="name">{{ film.title }}</span>
-            <div class="averageScore">
-              <template v-if="film.averageScore">
-                <el-rate
-                  v-model="film.averageScore"
-                  disabled
-                  text-color="#ff9900"
-                  score-template="{value}"
-                ></el-rate>
-                <span class="score">{{ film.averageScore * 2 }}</span>
-              </template>
-              <template v-else>
-                <span class="emptyText">暂无评分</span>
-              </template>
-            </div>
-          </div>
-          <div>导演：{{ film.director }}</div>
-          <div>主演：{{ film.actors }}</div>
-          <div>电影类型：{{ film.types.split(",").join("，") }}</div>
-          <div>上映地区：{{ film.regions.split(",").join("，") }}</div>
-          <div>时长：{{ film.duration }} 分钟</div>
-          <div>上映日期：{{ film.releaseDate }} 上映</div>
-          <div class="btnBox">
-            <el-button
-              type="danger"
-              class="btn"
-              :icon="ShoppingCart"
-              @click="toBuyFilm"
-            >
-              特惠购票
-            </el-button>
-            <!-- 正在热映的电影才可以评论 -->
-            <el-button
-              type="danger"
-              class="btn"
-              v-if="film.status === 2"
-              @click="toRate"
-              :icon="Star"
-            >
-              评分
-            </el-button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 头部 -->
+    <FilmHeader :shopType="ShopEnum.Detail" :film="film" @buy="toBuyFilm" @rate="toRate" />
 
     <div class="mainBox">
       <el-breadcrumb class="breadcrumb" separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/user/home' }"
-          >首页</el-breadcrumb-item
-        >
+        <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item>电影详情</el-breadcrumb-item>
       </el-breadcrumb>
       <div class="desc">
@@ -65,21 +15,13 @@
       <div>
         <h3>电影评论</h3>
 
-        <UserCommentModule v-if="isLogin"  />
-        <el-empty
-          v-else
-          :image-size="200"
-          description="登录后查看用户评论"
-        ></el-empty>
+        <UserCommentModule v-if="isLogin" />
+        <el-empty v-else :image-size="200" description="登录后查看用户评论"></el-empty>
       </div>
     </div>
 
-    <AddCommentDialog
-      v-if="dialogVisible"
-      v-model:dialogVisible="dialogVisible"
-      :commentValue="commentForm"
-      @submit="saveComment"
-    />
+    <AddCommentDialog v-if="dialogVisible" v-model:dialogVisible="dialogVisible" :commentValue="commentForm"
+      @submit="saveComment" />
   </div>
 </template>
 
@@ -98,8 +40,9 @@ import { ShoppingCart, Star } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores";
 import AddCommentDialog from "./components/AddCommentDialog.vue";
 import { CommentFormType } from "@/api/comment/type";
-import { FilmType } from "@/api/film/type";
+import { FilmType, ShopEnum } from "@/api/film/type";
 import UserCommentModule from "./components/UserCommentModule.vue";
+import FilmHeader from "@/components/FilmHeader.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -182,11 +125,6 @@ const toBuyFilm = () => {
   });
 };
 
-// 评分变化回调（原show方法，避免关键字冲突）
-const showScore = (val: number) => {
-  console.log("当前评分：", val);
-  // 可添加评分变化后的逻辑
-};
 
 // ========== 生命周期 ==========
 // 组件挂载时加载数据（替代created）
@@ -197,75 +135,9 @@ onMounted(() => {
 
 <style scoped lang="scss">
 $width: 900px;
+
 .filmDetailModule {
   padding: 0 30px;
-  .topBox {
-    height: 280px;
-    background: rgb(99, 134, 247);
-    padding: 0 20px;
-    & > .headerBox {
-      width: $width;
-      height: 100%;
-      margin: auto;
-      display: flex;
-      padding-top: 30px;
-
-      & > img {
-        width: 180px;
-        height: 260px;
-        object-fit: cover; // 防止图片变形
-        margin: 0 16px 0 0;
-      }
-      .filmInfoBox {
-        height: 200px;
-        text-align: left;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-
-        .title {
-          display: flex;
-          height: 40px;
-          align-items: center;
-          gap: 20px;
-
-          .name {
-            font-size: 24px;
-            font-weight: 600;
-          }
-
-          .averageScore {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 20px;
-
-            :deep(.el-rate__icon) {
-              // 样式穿透
-              font-size: 26px;
-            }
-
-            .score {
-              color: rgb(238, 188, 74);
-            }
-          }
-
-          .emptyText {
-            margin-left: 40px;
-            color: rgb(201, 199, 199);
-            font-weight: 400;
-            font-size: 20px;
-          }
-        }
-
-        .btnBox {
-          display: flex;
-          margin-top: 10px;
-        }
-      }
-    }
-  }
 
   .mainBox {
     text-align: left;
@@ -275,6 +147,7 @@ $width: 900px;
     flex-direction: column;
     gap: 20px;
     font-size: 16px;
+
     .breadcrumb {
       font-size: 20px;
     }
@@ -294,6 +167,7 @@ $width: 900px;
 
       .left {
         flex: 1;
+
         .avater {
           float: left;
           width: 60px;
