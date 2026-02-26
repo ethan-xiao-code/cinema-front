@@ -143,13 +143,21 @@ const handleWsMessage = (msg: any) => {
   if (type === CommentWsEnum.CommentLike) handleLikeMsg(data);
 };
 
-const { initWebSocket, send, close } = useWebSocket(
-  "/ws/comment",
-  handleWsMessage,
-  {
+// const { initWebSocket, send, close } = useWebSocket(
+//   "/ws/comment",
+//   handleWsMessage,
+//   {
+//     token: userStore.token
+//   }
+// );
+
+const { initWebSocket, send, close } = useWebSocket({
+  path: "/ws/comment",
+  onMessage: handleWsMessage,
+  params: {
     token: userStore.token
   }
-);
+});
 
 onMounted(async () => {
   await getCommentList(curFilmId.value);

@@ -6,8 +6,8 @@
 
 <style lang="scss">
 @use '@/assets/styles/baseCommon.scss';
-#cinema-page {
-  min-width: 1000px;
+// #cinema-page {
+//   min-width: 1000px;
  
-}
+// }
 </style>

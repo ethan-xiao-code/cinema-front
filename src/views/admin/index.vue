@@ -38,20 +38,19 @@
             <!-- 系统信息 -->
             <div class="system-info">
               <el-avatar shape="square" :size="40" fit="fill" :src="logoUrl" />
-              <span class="system-name">影院管理系统</span>
+              <span class="system-name">汪汪影院</span>
             </div>
 
             <!-- 当前页面标题 -->
             <div class="page-title">{{ metaName }}</div>
 
             <!-- 用户操作区 -->
-            <div class="user-actions">
+            <!-- <div class="user-actions">
               <el-dropdown @command="handleCommand">
                 <span class="user-info">
                   <el-avatar :size="36" :src="userAvatar" class="user-avatar" />
                   <div class="user-details">
                     <div class="user-name">{{ username }}</div>
-                    <div class="user-role">{{ userRole }}</div>
                   </div>
                   <el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
                 </span>
@@ -76,7 +75,9 @@
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
-            </div>
+            </div> -->
+
+            <el-button type="primary" @click="toHomePage">去首页</el-button>
           </div>
         </header>
 
@@ -151,14 +152,11 @@ const username = computed((): string => {
   return userStore.userInfo?.username || "管理员";
 });
 
-const userRole = computed((): string => {
-  return userStore.userInfo?.role === "SUPER_ADMIN" ? "超级管理员" : "管理员";
-});
 
 const userAvatar = computed((): string => {
   return (
     userStore.userInfo?.avatar ||
-    new URL("@/assets/images/avatar-default.png", import.meta.url).href
+    new URL("@/assets/images/user-default.png", import.meta.url).href
   );
 });
 
@@ -188,6 +186,11 @@ const logout = async (): Promise<void> => {
   ElMessage.success("退出成功");
   router.push("/user");
 };
+
+const toHomePage = () => {
+  router.push("/user");
+
+}
 
 const handleCommand = async (command: string): Promise<void> => {
   switch (command) {
@@ -346,6 +349,7 @@ $primary-color: #409eff;
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0 20px;
+  
   }
 
   // 用户操作区
@@ -355,21 +359,7 @@ $primary-color: #409eff;
       align-items: center;
       gap: 12px;
       padding: 8px 12px;
-      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s;
-
-      &:hover {
-        background: #f5f7fa;
-
-        .user-name {
-          color: $primary-color;
-        }
-
-        .dropdown-arrow {
-          transform: rotate(180deg);
-        }
-      }
 
       .user-avatar {
         border: 2px solid #e6e6e6;
