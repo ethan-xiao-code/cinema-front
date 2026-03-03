@@ -126,6 +126,7 @@ import { addCartApi } from "@/api/cart";
 import { useWebSocket } from "@/utils/useWebSocket";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
 import { useRequest } from "@/utils/useRequest";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 
 // ========== 类型 ==========
 interface SeatType {
@@ -211,13 +212,81 @@ const handleWsMessage = (msg: any) => {
   }
 };
 
-const { initWebSocket, send, close } = useWebSocket({
-  path: '/ws/seat',
-  onMessage: handleWsMessage,
-  params: {
-    scheduleId: scheduleId.value,
-  }
-});
+// const eventSource = new EventSource(
+//   `/api/seat/subscribe?scheduleId=${scheduleId.value}`
+// );
+
+// eventSource.addEventListener("init", (event) => {
+//   console.log("初始化sse成功",event.data)
+//   const data = JSON.parse(event.data);
+//   handleWsMessage(data);
+// });
+
+// eventSource.addEventListener("seatUpdate", (event) => {
+//   const data = JSON.parse(event.data);
+//   handleWsMessage(data);
+// });
+onMounted(() => {
+  startSubscribe()
+})
+const startSubscribe = async () => {
+  await fetchEventSource(`/api/seat/subscribe?scheduleId=${scheduleId.value}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': userStore.token || '', // 现在可以携带请求头了
+    },
+    
+    // 建立连接时的回调
+    async onopen(response) {
+      if (response.ok) {
+        console.log("SSE 连接建立成功");
+      } else {
+        console.error("服务器错误:", response.status);
+      }
+    },
+
+    // 核心逻辑：处理消息
+    onmessage(msg) {
+      // msg.event 对应原生 addEventListener 的事件名 (init, seatUpdate)
+      // msg.data 对应 event.data
+      
+      try {
+        const data = JSON.parse(msg.data);
+
+        if (msg.event === 'init') {
+          console.log("初始化 sse 成功", data);
+          handleWsMessage(data);
+        } 
+        else if (msg.event === 'seatUpdate') {
+          console.log("收到座位更新", data);
+          handleWsMessage(data);
+        }
+      } catch (err) {
+        console.error("解析数据失败:", err);
+      }
+    },
+
+    onclose() {
+      console.log("连接已关闭");
+    },
+
+    onerror(err) {
+      console.error("SSE 连接出现异常:", err);
+      // 可以在这里抛出错误来阻止自动重连
+      throw err; 
+    }
+  });
+};
+
+
+// const { initWebSocket, send, close } = useWebSocket({
+//   path: '/ws/seat',
+//   onMessage: handleWsMessage,
+//   params: {
+//     scheduleId: scheduleId.value,
+//   }
+// });
 
 const { loading, runFn } = useRequest(addCartApi, {
   onSuccess: () => {
@@ -316,7 +385,7 @@ const totalPrice = computed(() => {
 
 onMounted(() => {
   getFilmSchedule();
-  initWebSocket();
+  // initWebSocket();
 });
 /** 获取排片信息 */
 const getFilmSchedule = async () => {

@@ -52,7 +52,6 @@ import UserHome from "./components/UserHome.vue";
 import { getCinemaCarouselListApi } from "@/api/cinema-carousel";
 import { CinemaCarouselItemType } from "@/api/cinema-carousel/type";
 import { FilmResultType, FilmTopType } from "@/api/film/type";
-import UserComment from "@/components/UserComment.vue";
 
 const router = useRouter();
 
