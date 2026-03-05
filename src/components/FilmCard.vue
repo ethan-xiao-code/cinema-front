@@ -1,11 +1,10 @@
 <template>
   <div class="filmItem">
-    <img 
-      :src="film.poster" 
-      class="poster" 
-      @click="toShowFilmDetail(film.id)"
-      alt="电影海报"
-    >
+    <el-image  :src="film.poster" class="poster" lazy @click="toShowFilmDetail(film.id)">
+      <template #placeholder>
+        <div class="image-slot">加载中...</div>
+      </template>
+    </el-image>
     <div class="buyBtn" @click="toBuyFilm(film.id)">购票</div>
   </div>
 </template>
@@ -53,18 +52,18 @@ const toShowFilmDetail = (filmId: string | number) => {
   flex-direction: column;
   transition: all 0.3s ease; // 添加强制动画过渡
 
+
   &:hover {
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
     cursor: pointer;
     transform: scale(1.1);
-    .poster {
-      height: 100%;
-    }
+
   }
 
   .poster {
     width: 100%;
     height: auto;
+    height: 250px;
     display: block;
     object-fit: cover; // 防止图片变形
   }
@@ -81,6 +80,7 @@ const toShowFilmDetail = (filmId: string | number) => {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease; // 按钮hover动画
+
     &:hover {
       background-color: red;
       color: white;

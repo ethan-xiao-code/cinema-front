@@ -7,7 +7,9 @@
       </span>
       <el-link type="primary" @click="toShowAllFilm()">
         查看全部
-        <el-icon><ArrowRight /></el-icon>
+        <el-icon>
+          <ArrowRight />
+        </el-icon>
       </el-link>
     </div>
 
@@ -32,7 +34,7 @@ const props = defineProps<{
 
 // 计算属性 - 只显示前8条数据
 const handlefilmList = computed(() => {
-  return props.filmList.slice(0, 8);
+  return props.filmList.slice(0,8);
 });
 
 // 路由跳转
@@ -42,7 +44,7 @@ const toShowAllFilm = () => {
     name: "movies",
   });
 };
-</script> 
+</script>
 
 <style scoped lang="scss">
 .filmContainer {
@@ -52,6 +54,7 @@ const toShowAllFilm = () => {
     align-items: flex-end;
     justify-content: space-between;
     margin-bottom: 20px;
+
     .title {
       color: rgb(231, 209, 121);
       font-size: 24px;

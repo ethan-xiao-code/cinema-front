@@ -32,10 +32,7 @@
         <FilmCard v-for="film in filmList" :key="film.id" :film="film" class="movie-card-item" />
       </div>
 
-      <div class="pagination-wrapper">
-        <Pager :pageNo="pageNo" :pageSize="pageSize" :total="total" :pageSizes="[18]"
-          @changePageNo="handleCurrentChange" />
-      </div>
+   
     </div>
 
     <!-- 空状态 -->
@@ -49,7 +46,6 @@
 import { ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { pageQueryFilm } from "@/api/film";
-import { throttle } from "lodash-es";
 import FilmCard from "@/components/FilmCard.vue";
 import Pager from "@/components/Pager.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";
@@ -73,8 +69,8 @@ const filmList = ref<any[]>([]);
 // 核心查询方法
 const pageQueryFilmList = async (title?: string) => {
   const res = await pageQueryFilm({
-    pageNo: pageNo.value,
-    pageSize: pageSize.value,
+    pageNo: 1,
+    pageSize: 9999,
     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
     title,
@@ -219,13 +215,6 @@ watch(
   box-sizing: border-box;
 }
 
-// 分页容器：居中对齐
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px 0;
-}
 
 // 空状态容器：居中，适配页面高度
 .empty-container {

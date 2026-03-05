@@ -3,12 +3,27 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import pxtorem from 'postcss-pxtorem'
 import { codeInspectorPlugin } from 'code-inspector-plugin';
-// master03-vite配置
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import AutoImport from 'unplugin-auto-import/vite'
+import viteImagemin from 'vite-plugin-imagemin'
+
 export default defineConfig({
   plugins: [
     vue(),
     codeInspectorPlugin({
       bundler: 'vite',
+    }),
+    AutoImport({
+      resolvers: [ElementPlusResolver()], // 按需导入elementplus组件
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+    }),
+    viteImagemin({ 
+      webp: { // 将打包后的图片统一转化成webp，减少图片体积
+        quality: 75, // 压缩质量 0-100
+      },
     }),
   ],
   resolve: {

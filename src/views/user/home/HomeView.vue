@@ -55,13 +55,6 @@ import { FilmResultType, FilmTopType } from "@/api/film/type";
 
 const router = useRouter();
 
-// 响应式数据
-const urlArr = ref([
-  new URL("@/assets/images/lun04.webp", import.meta.url).href,
-  new URL("@/assets/images/lun05.webp", import.meta.url).href,
-  new URL("@/assets/images/lun06.webp", import.meta.url).href,
-  new URL("@/assets/images/lun07.webp", import.meta.url).href,
-]);
 const carouselList = ref<Required<CinemaCarouselItemType>[]>([]);
 const hotfilmList = ref<FilmResultType[]>([]);
 const upcomingList = ref<FilmResultType[]>([]);
@@ -69,19 +62,6 @@ const topfilmList = ref<FilmTopType[]>([]);
 const num = ref(6);
 const top1Icon = ref(new URL("@/assets/images/top1.png", import.meta.url).href);
 const carouselRef = ref(null);
-
-// const getFilmData = async () => {
-//   try {
-//     // 获取正在上映的电影
-//     hotfilmList.value = await getFilmesByStatus(2);
-//     // 获取即将上映的影片
-//     upcomingList.value = await getFilmesByStatus(1);
-//     // 获取排名前几的影片（根据评分排名）
-//     topfilmList.value = await getFilmListByScore(num.value);
-//   } catch (error) {
-//     console.error("获取电影数据失败:", error);
-//   }
-// };
 
 const toShowFilmDetail = (filmId: number) => {
   router.push({
@@ -92,17 +72,8 @@ const toShowFilmDetail = (filmId: number) => {
   });
 };
 
-// const getCinemaCarouselList = async () => {
-//   const res = await getCinemaCarouselListApi();
-//   carouselList.value = res;
-//   console.log(res, "res");
-// };
-// // 生命周期
-// onMounted(() => {
-//   getFilmData();
-//   getCinemaCarouselList();
-// });
 const loading = ref(false)
+
 onMounted(async () => {
   try {
     loading.value = true
