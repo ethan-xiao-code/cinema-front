@@ -22,7 +22,7 @@ export const routes = [
   {
     path: '/demo',
     hidden: true,
-    component: () => import('@/views/test/demo.vue'),
+    component: () => import('@/test/VirtualScrollerDemo.vue'),
   },
   {
     path: '/404',
