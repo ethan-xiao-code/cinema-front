@@ -73,7 +73,9 @@ import {
 import { getFilmListApi } from "@/api/film/index";
 import { ElTag } from "element-plus";
 import { ElMessage } from "element-plus";
-
+defineOptions({
+  name: 'adminSchedule'
+})
 export type ScheduleActionType = "add" | "update";
 // 响应式数据
 const dialogFormVisible = ref(false);

@@ -37,7 +37,9 @@ import EditForm from "./components/EditForm.vue";
 import { getFilmListApi } from "@/api/film/index";
 import { OptionsType } from "@/api/schedule/type";
 import { deleteCinemaCarouselApi, pageCinemaCarouselApi } from "@/api/cinema-carousel";
-
+defineOptions({
+  name: 'adminCarousel'
+})
 // 响应式数据
 const showEditDialog = ref(false);
 const searchTableTemplateRef = ref<typeof SearchTableTemplate>();

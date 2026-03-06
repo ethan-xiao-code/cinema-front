@@ -126,6 +126,9 @@
 
 <script>
 import { pageQueryOrders } from "@/api/orders";
+defineOptions({
+  name: 'adminOrders'
+})
 export default {
   data() {
     return {

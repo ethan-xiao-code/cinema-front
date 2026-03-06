@@ -72,6 +72,10 @@ interface ChartItem {
   value: number;
 }
 
+defineOptions({
+  name: 'adminHome'
+})
+
 // ================ 2. 常量定义（核心优化：硬编码抽离） ================
 /** 票房/销量放大倍数（统一维护） */
 const DATA_SCALE_MULTIPLE = 100;

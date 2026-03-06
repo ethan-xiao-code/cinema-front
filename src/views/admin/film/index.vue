@@ -1,13 +1,7 @@
 <template>
   <div id="film">
-    <SearchTableTemplate
-      ref="searchTableTemplateRef"
-      :extra-params="extraParams"
-      :table-params-list="tableParamsList"
-      :search-params-list="searchParamsList"
-      :show-search-form="true"
-      :getTableData="getTableData"
-    >
+    <SearchTableTemplate ref="searchTableTemplateRef" :extra-params="extraParams" :table-params-list="tableParamsList"
+      :search-params-list="searchParamsList" :show-search-form="true" :getTableData="getTableData">
       <template #handle>
         <el-button type="primary" @click="showEditDialog()">新增影片</el-button>
       </template>
@@ -19,18 +13,15 @@
       ref="addScheduleRef"
       @cancel="cancel"
     /> -->
-    <EditFilmDialog
-      v-if="visible"
-      :filmItem="filmItem"
-      v-model:visible="visible"
-      @handle-success="handleSuccess"
-    />
+    <EditFilmDialog v-if="visible" :filmItem="filmItem" v-model:visible="visible" @handle-success="handleSuccess" />
   </div>
 </template>
 
+
+
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick, h } from "vue";
-import { ElMessage, ElMessageBox,ElButton } from "element-plus";
+import { ElMessage, ElMessageBox, ElButton } from "element-plus";
 import { pageQueryFilm, deleteFilmById } from "@/api/film";
 // import AddScheduleDialog from "../schedule/components/AddScheduleDialog.vue";
 import EditFilmDialog from "./components/EditFilmDialog.vue";
@@ -41,6 +32,9 @@ import SearchTableTemplate, {
 } from "@/components/SearchTableTemplate.vue";
 import { filmStatusOptions, filmTypeList, filmRegionList } from "@/utils/constant";
 import { ElTag } from "element-plus";
+defineOptions({
+  name: 'adminFilm'
+})
 // 响应式数据
 const visible = ref(false);
 const filmItem = ref({});
@@ -70,7 +64,7 @@ const tableParamsList = ref<TableParamType[]>([
     prop: "releaseDate",
     width: 150,
   },
-   {
+  {
     label: "下线日期",
     prop: "endDate",
     width: 150,
@@ -91,13 +85,13 @@ const tableParamsList = ref<TableParamType[]>([
     prop: "duration",
     width: 120,
   },
-   {
+  {
     label: "上映状态",
     prop: "status",
     width: 150,
     render: (value: number) => {
-      const {label,type} = filmStatusOptions.find(item => item.value === value) || {}
-      return h(ElTag,{type},() => label)
+      const { label, type } = filmStatusOptions.find(item => item.value === value) || {}
+      return h(ElTag, { type }, () => label)
     }
   },
   {
@@ -170,7 +164,7 @@ const searchParamsList = ref<SearchParamType[]>([
   },
 ]);
 
-const getTableData = async (pageParams: PagerType, searchParams: Record<string,any>) => {
+const getTableData = async (pageParams: PagerType, searchParams: Record<string, any>) => {
 
   const res = await pageQueryFilm({
     ...pageParams,
@@ -229,6 +223,8 @@ const cancel = () => {
   dialogFormVisible.value = false;
 };
 </script>
+
+
 
 <style>
 .image {

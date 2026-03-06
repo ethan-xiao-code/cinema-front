@@ -1,13 +1,7 @@
 <template>
   <div id="employee">
-    <SearchTableTemplate
-      ref="searchTableTemplateRef"
-      :extra-params="extraParams"
-      :table-params-list="tableParamsList"
-      :search-params-list="searchParamsList"
-      :show-search-form="showSearchForm"
-      :getTableData="getTableData"
-    >
+    <SearchTableTemplate ref="searchTableTemplateRef" :extra-params="extraParams" :table-params-list="tableParamsList"
+      :search-params-list="searchParamsList" :show-search-form="showSearchForm" :getTableData="getTableData">
       <template #handle>
         <el-button type="primary" @click="openAddAdminDialog">新增管理员</el-button>
         <!-- <el-button type="" @click="exportExcel">导出文件</el-button>
@@ -15,12 +9,8 @@
       </template>
     </SearchTableTemplate>
 
-    <ImportEmployee
-      @handleSuccess="handleSuccess"
-      v-model:visible="dialogVisible"
-      :import-excel-api="importExcelApi"
-      v-if="dialogVisible"
-    ></ImportEmployee>
+    <ImportEmployee @handleSuccess="handleSuccess" v-model:visible="dialogVisible" :import-excel-api="importExcelApi"
+      v-if="dialogVisible"></ImportEmployee>
 
     <el-dialog title="新增管理员" :visible.sync="addDialogVisible" width="480px">
       <el-form label-width="100px">
@@ -45,7 +35,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
 import { ElButton, ElMessage, ElMessageBox } from "element-plus";
-import FileSaver from "file-saver";
 import ImportEmployee from "./components/ImportEmployee.vue";
 import * as emp from "@/api/employee";
 import { accountStatusOptions, userRoleOptions } from "@/utils/constant";
@@ -55,7 +44,9 @@ import { pageQueryUserApi, updateUserApi } from "@/api/user";
 const dialogVisible = ref(false);
 const addDialogVisible = ref(false);
 const searchTableTemplateRef = ref<typeof SearchTableTemplate>();
-
+defineOptions({
+  name: 'adminUsers'
+})
 const tableParamsList = ref<TableParamType[]>([
   {
     label: "ID",
@@ -195,7 +186,7 @@ const openDialog = (row: any) => {
     type: "warning",
   })
     .then(() => {
-      handleUpdate(row,newStatus);
+      handleUpdate(row, newStatus);
     })
     .catch(() => {
       ElMessage({
@@ -228,16 +219,6 @@ const handleSuccess = () => {
   ElMessage.success("上传成功");
 };
 
-// const exportExcel = async () => {
-//   try {
-//     const res = await emp.exportExcel();
-//     console.log(res, "export");
-//     FileSaver.saveAs(res.data, "员工信息表.xlsx");
-//   } catch (error) {
-//     console.error("导出失败:", error);
-//     ElMessage.error("导出失败");
-//   }
-// };
 
 const handleUpdate = async (row: any, status: number) => {
   await updateUserApi({ ...row, status });

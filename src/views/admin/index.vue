@@ -13,20 +13,9 @@
         </div>
 
         <!-- 侧边栏菜单 -->
-        <el-menu
-          :default-active="currentPath"
-          class="sidebar-menu"
-          background-color="#545c64"
-          text-color="#fff"
-          active-text-color="#ffd04b"
-          :router="true"
-          :collapse="isCollapse"
-        >
-          <SideBarItem
-            v-for="route in routes"
-            :key="route.path"
-            :route="route"
-          />
+        <el-menu :default-active="currentPath" class="sidebar-menu" background-color="#545c64" text-color="#fff"
+          active-text-color="#ffd04b" :router="true" :collapse="isCollapse">
+          <SideBarItem v-for="route in routes" :key="route.path" :route="route" />
         </el-menu>
       </aside>
 
@@ -48,9 +37,15 @@
           </div>
         </header>
 
+        <TagsView />
         <!-- 页面内容区 -->
         <main class="page-content">
-          <router-view />
+          <!-- <router-view /> -->
+          <router-view v-slot="{ Component, route }">
+            <keep-alive :include="cachedNames">
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
         </main>
       </div>
     </div>
@@ -66,32 +61,42 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
+import { useTagsViewStore } from "@/stores/tagsView";
 import {
   Fold,
   Expand,
-  ArrowDown,
-  User,
-  Setting,
-  Key,
-  SwitchButton,
 } from "@element-plus/icons-vue";
 import MyCenterDialog from "./components/MyCenterDialog.vue";
 // import ChangePasswordDialog from "./components/ChangePasswordDialog.vue";
 import SideBarItem from "./components/SideBarItem.vue";
 import { useUserStore } from "@/stores";
 import { adminSystemTitle } from "@/utils/constant";
+import TagsView from "./components/TagsView.vue";
 
 // 组合式 API
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-
+const tagsStore = useTagsViewStore()
 // 响应式数据
 const currentPath = ref<string>(route.path);
 const showCenterDialog = ref<boolean>(false);
 const showPasswordDialog = ref<boolean>(false);
 const isCollapse = ref<boolean>(false);
+
+// const cachedNames = ref<string[]>([]);
+const cachedNames = computed(() => tagsStore.cachedNames);
+
+// // 监听路由，加入缓存
+// watch(
+//   () => route,
+//   (newRoute) => {
+//     tagsStore.addCachedView(newRoute);
+//     currentPath.value = newRoute.path;
+//   },
+//   { immediate: true, deep: true }
+// );
 
 // 计算属性：过滤掉 hidden 路由
 const routes = computed(() => {
@@ -209,11 +214,9 @@ $primary-color: #409eff;
 .sidebar {
   width: $sidebar-width;
   height: 100%;
-  background: linear-gradient(
-    180deg,
-    $sidebar-bg 0%,
-    darken($sidebar-bg, 5%) 100%
-  );
+  background: linear-gradient(180deg,
+      $sidebar-bg 0%,
+      darken($sidebar-bg, 5%) 100%);
   transition: all 0.3s ease;
   flex-shrink: 0;
   position: relative;
@@ -316,7 +319,7 @@ $primary-color: #409eff;
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0 20px;
-  
+
   }
 
   // 用户操作区

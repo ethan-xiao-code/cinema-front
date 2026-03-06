@@ -46,7 +46,9 @@ const searchTableTemplateRef = ref(null);
 const currentFormData = ref<ScreenFormType>();
 const actionType = ref<ActionType>("add");
 const title = ref("");
-
+defineOptions({
+  name: 'adminScreen'
+})
 export type CinemaOptions = {
   label: string;
   value: any;
