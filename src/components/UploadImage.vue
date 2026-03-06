@@ -1,104 +1,147 @@
 <template>
   <el-upload class="avatar-uploader" action="" :show-file-list="false" :before-upload="beforeAvatarUpload"
-     v-loading="isUploading">
-    <img v-if="modelValue" :style="imageStyle" :src="modelValue" alt="上传预览" class="upload-image">
+    v-loading="isUploading">
+    <img v-if="modelValue" :style="imageStyle" :src="modelValue" alt="上传预览" class="upload-image" />
     <el-icon v-else :style="imageStyle" class="avatar-uploader-icon">
       <Plus />
     </el-icon>
-
   </el-upload>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'  // 显式导入图标
-import { upload } from "@/api/common"
+import { ElMessage } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
+import { upload } from "@/api/common";
+import { useRequest } from "@/utils/useRequest";
 
-// 定义 props 类型
+// ========== Props ==========
 interface Props {
   modelValue: string; // 图片src的值
-  width?: number; // 图片的宽
-  height?: number; // 图片的高
+  width?: number; // 图片宽
+  height?: number; // 图片高
 }
 
-// 配置默认值
+// 默认值
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
+  modelValue: "",
   width: 160,
-  height: 220
+  height: 220,
+});
+
+const imageStyle = {
+  width: `${props.width / 10}rem`,
+  height: `${props.height / 10}rem`,
+};
+
+// ========== Emits ==========
+const emit = defineEmits<{
+  "update:modelValue": [value: string];
+  "upload-error": [error: unknown];
+}>();
+
+// // ========== 上传状态 ==========
+// const isUploading = ref(false);
+
+const { loading: isUploading, runFn: handleUpload } = useRequest(upload, {
+  onSuccess: (res) => {
+    emit("update:modelValue", res);
+    ElMessage.success("上传成功");
+  }
 })
 
-const imageStyle = { width: `${props.width / 10}rem`, height: `${props.height / 10}rem` }
-
-// 定义 emits 类型
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'upload-error': [error: unknown]  // 新增错误回调，方便父组件处理
-}>()
-
-// 上传状态管理（防止重复上传）
-const isUploading = ref(false)
-
-/**
- * 上传前校验
- * @param file 上传的文件对象
- * @returns 是否允许上传
- */
+// ========== 上传前校验 ==========
 const beforeAvatarUpload = (file: File): boolean => {
-  // 校验文件类型
-  const isImage = file.type.startsWith('image/')
+  const isImage = file.type.startsWith("image/");
   if (!isImage) {
-    ElMessage.error('请上传图片格式文件（JPG、PNG等）')
-    return false
+    ElMessage.error("请上传图片格式文件（JPG、PNG等）");
+    return false;
   }
 
-  // 校验文件大小
-  const maxSize = 1 * 1024 * 1024  // 1MB
-  const isLt2M = file.size <= maxSize
-  if (!isLt2M) {
-    ElMessage.error(`上传图片大小不能超过 ${maxSize / 1024 / 1024}MB!`)
-    return false
-  }
-
-  // 防止重复上传
   if (isUploading.value) {
-    ElMessage.warning('正在上传中，请稍候...')
-    return false
+    ElMessage.warning("正在上传中，请稍候...");
+    return false;
   }
 
-  // 执行上传
-  const formData = new FormData()  // 使用FormData标准格式
-  formData.append('file', file)
-  handleUpload(formData)
+  const maxSize = 1 * 1024 * 1024; // 1MB
+  const formData = new FormData();
 
-  return false  // 阻止默认上传行为
-}
+  if (file.size > maxSize) {
+    // 超过1MB，转 WebP
+    convertToWebP(file).then((webpFile) => {
+      formData.append("file", webpFile);
+      handleUpload(formData);
+    });
+
+  } else {
+    // 小于阈值，直接上传
+    formData.append("file", file);
+    handleUpload(formData);
+  }
+
+  return false; // 阻止默认上传行为
+};
 
 /**
- * 处理文件上传逻辑
- * @param formData 包含文件的表单数据
+ * 将上传的图片文件转换为 WebP 格式（带压缩）
+ * @param {File} file - 原始图片文件（支持 jpg/png 等常见格式）
+ * @returns {Promise<File>} 转换后的 WebP 格式 File 对象
+ * @throws {string} 转换过程中出现的错误信息（如 Canvas 上下文获取失败、Blob 生成失败等）
  */
-const handleUpload = async (formData: FormData) => {
-  try {
-    isUploading.value = true
-    const res = await upload(formData)
+const convertToWebP = (file: File): Promise<File> => {
+  // 返回 Promise 封装异步转换过程，成功 resolve 转换后的文件，失败 reject 错误信息
+  return new Promise((resolve, reject) => {
+    // 创建 Image 对象用于加载原始图片
+    const img = new Image();
+    // 创建 FileReader 对象用于读取文件内容为 DataURL
+    const reader = new FileReader();
 
-    // 假设upload接口返回的是图片URL字符串，若返回格式不同需调整
-    if (typeof res === 'string') {
-      emit('update:modelValue', res)
-      ElMessage.success('上传成功')
-    } else {
-      throw new Error('上传接口返回格式不正确')
-    }
-  } catch (error) {
-    console.error('上传失败:', error)
-    ElMessage.error('上传失败，请重试')
-    emit('upload-error', error)  // 向外抛出错误
-  } finally {
-    isUploading.value = false  // 无论成功失败都重置状态
-  }
-}
+    // FileReader 读取文件成功的回调
+    reader.onload = (e) => {
+      // 将读取到的 DataURL 赋值给 Image 对象的 src，触发图片加载
+      img.src = e.target?.result as string;
+    };
+
+    // 图片加载完成后的处理逻辑（核心转换步骤）
+    img.onload = () => {
+      // 创建 Canvas 元素，用于绘制图片并转换格式
+      const canvas = document.createElement("canvas");
+      // 设置 Canvas 宽高与原始图片一致，保证尺寸不变
+      canvas.width = img.width;
+      canvas.height = img.height;
+      // 获取 Canvas 2D 绘图上下文（转换图片的核心对象）
+      const ctx = canvas.getContext("2d");
+      // 校验上下文是否获取成功，失败则终止并返回错误
+      if (!ctx) return reject("Canvas 2D Context not available");
+
+      // 将原始图片绘制到 Canvas 画布上（0,0 为起始坐标，宽高与画布一致）
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      // 将 Canvas 内容转换为 WebP 格式的 Blob 对象
+      canvas.toBlob(
+        (blob) => {
+          // 校验 Blob 是否生成成功，失败则终止并返回错误
+          if (!blob) return reject("转换失败：未生成有效 Blob 对象");
+          // 将 Blob 转换为 File 对象，并重命名文件后缀为 .webp
+          const webpFile = new File(
+            [blob], // Blob 数据作为文件内容
+            file.name.replace(/\.\w+$/, ".webp"), // 替换原始文件名后缀为 .webp
+            { type: "image/webp" } // 指定文件 MIME 类型为 WebP
+          );
+          // 转换成功，返回新的 WebP 文件对象
+          resolve(webpFile);
+        },
+        "image/webp", // 目标转换格式
+        1 // 压缩质量（0-1，1 为无损，0.8 兼顾质量和体积）
+      );
+    };
+
+    // FileReader 读取文件失败的回调（如文件损坏、权限问题）
+    reader.onerror = () => reject(`文件读取失败：${reader.error?.message || '未知错误'}`);
+    // 开始读取文件为 DataURL 格式（触发 onload 回调）
+    reader.readAsDataURL(file);
+  });
+};
+
+
 </script>
 
 <style>

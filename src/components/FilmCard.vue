@@ -1,6 +1,6 @@
 <template>
   <div class="filmItem">
-    <el-image  :src="film.poster" class="poster" lazy @click="toShowFilmDetail(film.id)">
+    <el-image  :src="film.poster" class="poster" lazy @click="toShowFilmDetail(film.id)" fit="cover">
       <template #placeholder>
         <div class="image-slot">加载中...</div>
       </template>

@@ -51,7 +51,7 @@
           <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange"
             class="check-all" size="large">全选</el-checkbox>
 
-          <el-button class="batch-delete" type="danger"
+          <el-button :disabled="checkedCartList.length === 0" class="batch-delete" type="danger"
             @click="batchDeleteCart(checkedCartList.map(item => item.id))">批量删除购物车</el-button>
 
           <div class="price-info">
@@ -155,6 +155,7 @@ const checkAll = ref(false);
 const checkedCartList = ref<CartItem[]>([]);
 const isIndeterminate = ref(false);
 const cartList = ref<CartItem[]>([]);
+const oldCartCount = ref<number>(-1)
 // 新增：结算Modal的显示状态
 const payModalVisible = ref(false);
 
@@ -170,18 +171,53 @@ const totalPrice = computed(() =>
   }, 0),
 );
 
+/** 获取用户购物车列表 */
+const getCartesByUserId = async () => {
+  const res = await getCartes();
+  cartList.value = res || [];
+  return res || [];
+};
 
+const { startPolling, stopPolling } = useRequest(getCartesByUserId, {
+  intervalTime: 1000 * 30,
+  onSuccess: (data) => {
+    if (oldCartCount.value === 0) {
+      stopPolling()
+      return;
+    }
+
+    //  记录刷新后的购物车商品数量
+    const newCount = data.length;
+
+    //  对比数量：新数量 < 旧数量 → 说明有座位过期被移除
+    if (newCount < oldCartCount.value) {
+      // 提示用户座位过期
+      ElMessage.warning("部分座位已过期，已自动移除");
+      // 关闭支付弹窗（如果打开）
+      payModalVisible.value = false;
+      // 清空选中的商品列表
+      checkedCartList.value = [];
+      // 取消全选状态
+      checkAll.value = false;
+    }
+
+    oldCartCount.value = newCount
+  }
+})
 // ========== 生命周期 ==========
-onMounted(async () => {
-  await getCartesByUserId();
-  startInteval();
+onMounted(() => {
+  // await getCartesByUserId();
+  // startInteval();
+  startPolling()
   // 获取用户折扣
   // discount.value = userStore.userInfo?.discount || 1;
 });
 
 onUnmounted(() => {
-  stopInteval();
+  // stopInteval();
+  stopPolling()
 });
+
 
 const startInteval = () => {
   // 防重复启动：如果定时器已存在（timer.value有值），则直接返回
@@ -218,6 +254,7 @@ const startInteval = () => {
         // 取消全选状态
         checkAll.value = false;
       }
+
     } catch (error) {
       // 异常处理：接口请求失败时打印错误，避免定时器因报错终止
       console.error("购物车定时刷新失败：", error);
@@ -234,11 +271,6 @@ const stopInteval = () => {
 };
 
 // ========== 方法定义 ==========
-/** 获取用户购物车列表 */
-const getCartesByUserId = async () => {
-  const res = await getCartes();
-  cartList.value = res || [];
-};
 
 /** 全选/取消全选 */
 const handleCheckAllChange = (val: boolean) => {
@@ -282,7 +314,7 @@ const addOrders = async () => {
   checkedCartList.value = [];
 };
 
-const { runFn: confirmPay,loading } = useRequest(addOrders, {
+const { runFn: confirmPay, loading } = useRequest(addOrders, {
   onSuccess: () => {
     payModalVisible.value = false;
   }

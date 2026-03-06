@@ -180,9 +180,8 @@ const { loading, runFn: pageQuery } = useRequest(getDataApi, {
     resultTableList.splice(0, resultTableList.length);
     Object.assign(resultTableList, res?.data || []);
     pageParams.total = res?.total ?? 0;
-  }
+  },
 })
-
 // 分页处理
 const handleSizeChange = (val: number): void => {
   pageParams.pager.pageSize = val;
