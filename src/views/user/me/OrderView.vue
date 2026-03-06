@@ -38,7 +38,7 @@
             <el-tag :type="getTypeByValue(payStatusOptions, order.status)" class="status-tag">
               {{ getLabelByValue(payStatusOptions, order.status) }}
             </el-tag>
-            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger" size="default"
+            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger" 
               class="cancel-btn" @click="cancelOrders(order)">
               取消订单
             </el-button>
@@ -245,18 +245,6 @@ const cancelOrders = async (order: OrderItem) => {
         }
 
         .cancel-btn {
-          height: 40px;
-          padding: 0 20px;
-          border-radius: 8px;
-          font-size: 14px;
-
-          &:disabled {
-            background-color: #f5f5f5;
-            border-color: #e9ecef;
-            color: #c0c4cc;
-            cursor: not-allowed;
-          }
-
         }
       }
     }

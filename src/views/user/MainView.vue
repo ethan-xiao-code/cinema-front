@@ -316,7 +316,7 @@ const goAdminPage = () => {
 
           .username {
             max-width: 80px;
-            font-size: 18px;
+            font-size: 14px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;

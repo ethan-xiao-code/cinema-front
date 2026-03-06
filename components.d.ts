@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BaseLoading: typeof import('./src/components/BaseLoading.vue')['default']
     EchartsCommon: typeof import('./src/components/EchartsCommon.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']

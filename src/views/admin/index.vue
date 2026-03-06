@@ -44,39 +44,6 @@
             <!-- 当前页面标题 -->
             <div class="page-title">{{ metaName }}</div>
 
-            <!-- 用户操作区 -->
-            <!-- <div class="user-actions">
-              <el-dropdown @command="handleCommand">
-                <span class="user-info">
-                  <el-avatar :size="36" :src="userAvatar" class="user-avatar" />
-                  <div class="user-details">
-                    <div class="user-name">{{ username }}</div>
-                  </div>
-                  <el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="home_page">
-                      <el-icon><User /></el-icon>
-                      <span>去首页</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item command="settings">
-                      <el-icon><Setting /></el-icon>
-                      <span>账户设置</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item command="change_password">
-                      <el-icon><Key /></el-icon>
-                      <span>修改密码</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item command="out">
-                      <el-icon><SwitchButton /></el-icon>
-                      <span>退出登录</span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div> -->
-
             <el-button type="primary" @click="toHomePage">去首页</el-button>
           </div>
         </header>

@@ -1,6 +1,5 @@
 <template>
-  <div id="show" class="show-container">
-    
+  <base-loading :loading="loading" text="购票数据加载中..." class="buy-ticket-container">
     <film-header :shopType="ShopEnum.Buy" :film="film" @Detail="toFilmDetail" />
     <div class="mainBox">
       <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
@@ -12,7 +11,6 @@
         <span class="schedule-label">排片列表</span>
         <el-menu :default-active="activeIndex" class="date-menu" mode="horizontal" @select="handleSelect">
           <el-menu-item :index="dateStr" v-for="dateStr in screeningDateList" :key="dateStr" class="date-menu-item">
-            <!-- {{ getHandleDate(item) }} -->
             {{ dateStr }}
           </el-menu-item>
         </el-menu>
@@ -55,7 +53,7 @@
         <el-empty :image-size="200" description="暂无排片"></el-empty>
       </div>
     </div>
-  </div>
+  </base-loading>
 </template>
 
 <script setup lang="ts">
@@ -70,6 +68,8 @@ import { Postcard, Reading, Star } from "@element-plus/icons-vue";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
 import { ShopEnum } from "@/api/film/type";
 import FilmHeader from "@/components/FilmHeader.vue";
+import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 // ========== 类型定义 ==========
 // 电影信息类型
@@ -220,20 +220,6 @@ const getScheduleDates = async () => {
   }
 };
 
-/**
- * 格式化日期（处理排片日期显示）
- * @param time 日期字符串/数组
- */
-const getHandleDate = (time: string | any[]) => {
-  // 兼容原代码的日期格式（数组/字符串）
-  let date: Date;
-  if (Array.isArray(time)) {
-    date = new Date(time[0], time[1] - 1, time[2]);
-  } else {
-    date = new Date(time);
-  }
-  return date.toLocaleDateString();
-};
 
 /**
  * 格式化时间（时分）
@@ -252,7 +238,6 @@ const getHandleTime = (time: string) => {
  */
 const handleSelect = async (scheduleDate: string) => {
   try {
-    // const selectDate = getHandleDate(scheduleDate);
     const res = await getScheduleListByDate(scheduleDate, filmId.value);
     scheduleList.value = res || [];
     isDisableButton(); // 处理按钮禁用状态
@@ -296,27 +281,28 @@ const toShowChooseSeat = (row: Schedule) => {
   });
 };
 
-/**
- * 评分变化回调（原show方法，避免关键字冲突）
- */
-const showScore = (val: number) => {
-  console.log("当前评分：", val);
-};
+const getInitData = () => {
+  return Promise.allSettled([getSingleFilmById(), getScheduleDates()])
+}
 
-// ========== 生命周期 ==========
-onMounted(async () => {
-  if (filmId.value) {
-    await Promise.allSettled([getSingleFilmById(), getScheduleDates()]);
-  } else {
-    ElMessage.warning("未获取到电影ID");
-    router.push("/user/home");
-  }
-});
+const {loading} = useRequest(getInitData,{
+  immediate: true
+})
+
+// // ========== 生命周期 ==========
+// onMounted(async () => {
+//   if (filmId.value) {
+//     await Promise.allSettled([getSingleFilmById(), getScheduleDates()]);
+//   } else {
+//     ElMessage.warning("未获取到电影ID");
+//     router.push("/user/home");
+//   }
+// });
 </script>
 
 <style scoped lang="scss">
 // 根容器
-.show-container {
+.buy-ticket-container {
   background-color: #fff;
 }
 

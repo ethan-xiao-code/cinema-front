@@ -1,57 +1,29 @@
 <template>
   <div id="tableTemplate">
     <div class="searchArea">
-      <el-form
-        ref="searchFormRef"
-        v-if="showSearchForm"
-        :model="searchParamsForm"
-        :inline="true"
-        size="default"
-        label-width="auto"
-      >
+      <el-form ref="searchFormRef" v-if="showSearchForm" :model="searchParamsForm" :inline="true" size="default"
+        label-width="auto">
         <template v-for="(item, index) in searchParamsList" :key="index">
           <el-form-item :label="item.label" :prop="item.prop">
             <template v-if="item.type === 'input'">
-              <el-input
-                class="w180"
-                v-model="searchParamsForm[item.prop]"
-                :placeholder="item.placeholder"
-                clearable
-                v-bind="item.attrs"
-              ></el-input>
+              <el-input class="w180" v-model="searchParamsForm[item.prop]" :placeholder="item.placeholder" clearable
+                v-bind="item.attrs"></el-input>
             </template>
 
             <template v-if="item.type === 'select'">
-              <el-select
-                v-model.trim="searchParamsForm[item.prop]"
-                class="w180"
-                clearable
-                v-bind="item.attrs"
-              >
-                <el-option
-                  v-for="(option, optionIndex) in item.options as OptionType[]"
-                  :key="optionIndex"
-                  :label="option.label"
-                  :value="option.value"
-                ></el-option>
+              <el-select v-model.trim="searchParamsForm[item.prop]" class="w180" clearable v-bind="item.attrs">
+                <el-option v-for="(option, optionIndex) in item.options as OptionType[]" :key="optionIndex"
+                  :label="option.label" :value="option.value"></el-option>
               </el-select>
             </template>
 
             <template v-if="item.type === 'time'">
-              <el-date-picker
-                v-model="searchParamsForm[item.prop]"
-                class="w180"
-                type="date"
-                v-bind="item.attrs"
-              ></el-date-picker>
+              <el-date-picker v-model="searchParamsForm[item.prop]" class="w180" type="date"
+                v-bind="item.attrs"></el-date-picker>
             </template>
 
             <template v-if="item.type === 'searchSlot'">
-              <slot
-                name="searchSlot"
-                :searchParamsForm="searchParamsForm"
-                :itemProp="item.prop"
-              ></slot>
+              <slot name="searchSlot" :searchParamsForm="searchParamsForm" :itemProp="item.prop"></slot>
             </template>
           </el-form-item>
         </template>
@@ -62,50 +34,33 @@
           <slot name="handle"></slot>
         </div>
         <div class="btns">
-          <el-button type="info" @click="pageQuery">查询</el-button>
+          <el-button :loading="loading" type="primary" @click="pageQuery">查询</el-button>
           <el-button type="info" @click="reset">重置</el-button>
         </div>
       </div>
     </div>
-
-    <el-table v-bind="tableProps" :max-height="700" :data="resultTableList">
-      <template v-for="item in tableParamsList" :key="item.prop">
-        <el-table-column
-          :fixed="item?.fixed"
-          :width="item.width"
-          :label="item?.label"
-          :prop="item?.prop"
-          :type="item?.type"
-          v-bind="item?.attrs"
-        >
-          <template #default="scope">
-            <div v-if="item.renderText">
-              <!-- 渲染文本 -->
-              {{ item.renderText(scope.row[item.prop]) }}
-            </div>
-            <div v-else-if="item.render">
-              <!-- 渲染DOM元素 -->
-              <component :is="item.render!(scope.row[item.prop], scope.row)" />
-            </div>
-          </template>
-        </el-table-column>
-      </template>
-
-      <!-- <el-table-column label="操作">
-        <template #default="scope">
-          <template v-if="scope.row.username != 'admin'">
-            <slot name="columnHandle" :row="scope.row" :index="scope.$index"></slot>
-          </template>
+    <BaseLoading :loading="loading" text="数据加载中...">
+      <el-table v-bind="tableProps" :max-height="700" :data="resultTableList">
+        <template v-for="item in tableParamsList" :key="item.prop">
+          <el-table-column :fixed="item?.fixed" :width="item.width" :label="item?.label" :prop="item?.prop"
+            :type="item?.type" v-bind="item?.attrs">
+            <template #default="scope">
+              <div v-if="item.renderText">
+                <!-- 渲染文本 -->
+                {{ item.renderText(scope.row[item.prop]) }}
+              </div>
+              <div v-else-if="item.render">
+                <!-- 渲染DOM元素 -->
+                <component :is="item.render!(scope.row[item.prop], scope.row)" />
+              </div>
+            </template>
+          </el-table-column>
         </template>
-      </el-table-column> -->
-    </el-table>
-    <Pager
-      :pageNo="pageParams.pager.pageNo"
-      :pageSize="pageParams.pager.pageSize"
-      :total="pageParams.total"
-      @changePageSize="handleSizeChange"
-      @changePageNo="handleCurrentChange"
-    ></Pager>
+      </el-table>
+    </BaseLoading>
+
+    <Pager :pageNo="pageParams.pager.pageNo" :pageSize="pageParams.pager.pageSize" :total="pageParams.total"
+      @changePageSize="handleSizeChange" @changePageNo="handleCurrentChange"></Pager>
   </div>
 </template>
 
@@ -115,8 +70,6 @@ import {
   reactive,
   onMounted,
   VNode,
-  defineProps,
-  defineEmits,
   toRaw,
   type ComputedRef,
   type DefineComponent,
@@ -125,6 +78,8 @@ import { debounce } from "lodash-es";
 import Pager from "@/components/Pager.vue";
 import type { FormInstance } from "element-plus";
 import type { TableProps } from "element-plus";
+import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "./BaseLoading.vue";
 
 // 更精确的类型定义
 interface OptionType {
@@ -202,6 +157,32 @@ const pageParams = reactive<PageParamsType>({
 const resultTableList = reactive<TableRow[]>([]);
 const searchParamsForm = reactive<Record<string, any>>({});
 
+// const pageQuery = debounce(async () => {
+//   const res = await props.getTableData(
+//     { ...pageParams.pager },
+//     toRaw(searchParamsForm) // 解除响应式
+//   );
+//   console.log(res, "res**");
+//   resultTableList.splice(0, resultTableList.length);
+//   Object.assign(resultTableList, res?.data || []);
+//   pageParams.total = res?.total ?? 0;
+// }, 300);
+
+const getDataApi = () => {
+  return props.getTableData(
+    { ...pageParams.pager },
+    toRaw(searchParamsForm) // 解除响应式
+  )
+}
+
+const { loading, runFn: pageQuery } = useRequest(getDataApi, {
+  onSuccess: (res) => {
+    resultTableList.splice(0, resultTableList.length);
+    Object.assign(resultTableList, res?.data || []);
+    pageParams.total = res?.total ?? 0;
+  }
+})
+
 // 分页处理
 const handleSizeChange = (val: number): void => {
   pageParams.pager.pageSize = val;
@@ -228,16 +209,7 @@ onMounted(() => {
   pageQuery();
 });
 
-const pageQuery = debounce(async () => {
-  const res = await props.getTableData(
-    { ...pageParams.pager },
-    toRaw(searchParamsForm) // 解除响应式
-  );
-  console.log(res, "res**");
-  resultTableList.splice(0, resultTableList.length);
-  Object.assign(resultTableList, res?.data || []);
-  pageParams.total = res?.total ?? 0;
-}, 300);
+
 
 // 对外暴露
 defineExpose({
@@ -252,18 +224,22 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 20px;
+
   .searchArea {
     background-color: #fff;
     padding: 20px;
   }
+
   .w180 {
     width: 180px;
   }
+
   .buttonArea {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     margin-top: 8px;
+
     .btns {
       display: flex;
       flex-wrap: wrap;

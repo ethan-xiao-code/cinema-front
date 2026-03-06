@@ -25,20 +25,20 @@
         </span>
       </div>
     </header>
-
-    <!-- 电影列表+分页 -->
-    <div v-if="filmList.length" class="movie-list-container">
-      <div class="movie-grid">
-        <FilmCard v-for="film in filmList" :key="film.id" :film="film" class="movie-card-item" />
+    <BaseLoading :loading="loading" text="影片数据加载中...">
+      <!-- 电影列表+分页 -->
+      <div v-if="filmList.length" class="movie-list-container">
+        <div class="movie-grid">
+          <FilmCard v-for="film in filmList" :key="film.id" :film="film" class="movie-card-item" />
+        </div>
       </div>
 
-   
-    </div>
+      <!-- 空状态 -->
+      <div v-else class="empty-container">
+        <el-empty :image-size="400" description="暂无影片数据，换个筛选条件试试吧～" />
+      </div>
+    </BaseLoading>
 
-    <!-- 空状态 -->
-    <div v-else class="empty-container">
-      <el-empty :image-size="400" description="暂无影片数据，换个筛选条件试试吧～" />
-    </div>
   </div>
 </template>
 
@@ -49,6 +49,8 @@ import { pageQueryFilm } from "@/api/film";
 import FilmCard from "@/components/FilmCard.vue";
 import Pager from "@/components/Pager.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";
+import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 
 
@@ -66,18 +68,36 @@ const activeRegion = ref(-1);
 // 电影数据列表
 const filmList = ref<any[]>([]);
 
-// 核心查询方法
-const pageQueryFilmList = async (title?: string) => {
-  const res = await pageQueryFilm({
+// // 核心查询方法
+// const pageQueryFilmList = async (title?: string) => {
+//   const res = await pageQueryFilm({
+//     pageNo: 1,
+//     pageSize: 9999,
+//     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
+//     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
+//     title,
+//   });
+//   filmList.value = res.records || [];
+//   total.value = res.total || 0;
+// };
+
+const pageQueryFilmApi = (title?: string) => {
+  return pageQueryFilm({
     pageNo: 1,
     pageSize: 9999,
     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
     title,
-  });
-  filmList.value = res.records || [];
-  total.value = res.total || 0;
-};
+  })
+}
+
+const { runFn: pageQueryFilmList, loading } = useRequest(pageQueryFilmApi, {
+  immediate: true,
+  onSuccess: (res) => {
+    filmList.value = res.records || [];
+    total.value = res.total || 0;
+  }
+})
 
 // 类型筛选 - 选择单个
 const updateTypeColor = (index: number) => {
@@ -108,12 +128,8 @@ const handleCurrentChange = (val: number) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-// 初始化查询
-onMounted(() => {
-  // pageQueryFilmList();
-});
 
-watch([pageNo,pageSize,activeRegion,activeType],(data) => {
+watch([pageNo, pageSize, activeRegion, activeType], (data) => {
   pageQueryFilmList();
 })
 
@@ -122,7 +138,7 @@ watch(
   () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
   (newVal) => {
     const title = newVal?.toString();
-    console.log(title,'title')
+    console.log(title, 'title')
     pageNo.value = 1;
     pageQueryFilmList(title);
   },

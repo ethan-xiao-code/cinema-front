@@ -108,7 +108,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="payModalVisible = false">取消支付</el-button>
-          <el-button type="primary" @click="confirmPay">确认支付</el-button>
+          <el-button :loading="loading" type="primary" @click="confirmPay">确认支付</el-button>
         </span>
       </template>
     </el-dialog>
@@ -122,6 +122,7 @@ import { useUserStore } from "@/stores";
 import { getCartes, deleteCartByIdApi } from "@/api/cart";
 import { saveOrdersApi } from "@/api/orders";
 import { Delete } from "@element-plus/icons-vue";
+import { useRequest } from "@/utils/useRequest";
 
 // ========== 类型定义 ==========
 interface CartItem {
@@ -271,14 +272,6 @@ const openCheckoutModal = () => {
   payModalVisible.value = true;
 };
 
-
-/** 确认支付 */
-const confirmPay = async () => {
-  await addOrders();
-  // 关闭Modal
-  payModalVisible.value = false;
-};
-
 /** 保存订单 */
 const addOrders = async () => {
   await saveOrdersApi(ordersParams.value);
@@ -288,6 +281,21 @@ const addOrders = async () => {
   checkAll.value = false;
   checkedCartList.value = [];
 };
+
+const { runFn: confirmPay,loading } = useRequest(addOrders, {
+  onSuccess: () => {
+    payModalVisible.value = false;
+  }
+})
+
+// /** 确认支付 */
+// const confirmPay = async () => {
+//   await addOrders();
+//   // 关闭Modal
+//   payModalVisible.value = false;
+// };
+
+
 
 /** 转换购物车数据为订单数据 */
 const ordersParams = computed<OrderItem[]>(() => {
@@ -395,11 +403,13 @@ const ordersParams = computed<OrderItem[]>(() => {
             grid-template-columns: repeat(2, 1fr);
             column-gap: 20px;
             margin-top: 16px;
+
             .info-item {
               font-size: 14px;
               color: #495057;
               // margin-right: 24px;
               line-height: 25px;
+
               &.highlight {
                 color: #e74c3c;
                 font-weight: 500;

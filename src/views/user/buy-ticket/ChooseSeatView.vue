@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading" element-loading-text="正在加入购物车..." id="seat">
+  <base-loading :loading="loadingPage" text="选座信息加载中..." id="seat">
     <!-- 步骤条 -->
     <el-steps :active="2" align-center class="steps">
       <el-step title="选择场次" description="选择电影和放映时间" />
@@ -111,7 +111,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </base-loading>
 </template>
 
 <script setup lang="ts">
@@ -127,6 +127,8 @@ import { useWebSocket } from "@/utils/useWebSocket";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
 import { useRequest } from "@/utils/useRequest";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { use } from "echarts/types/src/extension.js";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 // ========== 类型 ==========
 interface SeatType {
@@ -199,7 +201,7 @@ const handleWsMessage = (msg: any) => {
       if (seat) {
         item.status = seat.status
         seat.userId !== userStore.userId && numbers.push(item.number) // 不是当前用户时，push
-      } 
+      }
     })
 
     if (numbers.length) {
@@ -236,7 +238,7 @@ const startSubscribe = async () => {
       'Content-Type': 'application/json',
       'Authorization': userStore.token || '', // 现在可以携带请求头了
     },
-    
+
     // 建立连接时的回调
     async onopen(response) {
       if (response.ok) {
@@ -250,14 +252,14 @@ const startSubscribe = async () => {
     onmessage(msg) {
       // msg.event 对应原生 addEventListener 的事件名 (init, seatUpdate)
       // msg.data 对应 event.data
-      
+
       try {
         const data = JSON.parse(msg.data);
 
         if (msg.event === 'init') {
           console.log("初始化 sse 成功", data);
           handleWsMessage(data);
-        } 
+        }
         else if (msg.event === 'seatUpdate') {
           console.log("收到座位更新", data);
           handleWsMessage(data);
@@ -274,7 +276,7 @@ const startSubscribe = async () => {
     onerror(err) {
       console.error("SSE 连接出现异常:", err);
       // 可以在这里抛出错误来阻止自动重连
-      throw err; 
+      throw err;
     }
   });
 };
@@ -381,19 +383,25 @@ const totalPrice = computed(() => {
   return Number((selectedSeatList.value.length * filmSchedule.price).toFixed(2))
 })
 
-
+const { loading: loadingPage, runFn: getFilmSchedule } = useRequest(getFilmAndScheduleById, {
+  onSuccess: (res) => {
+    Object.assign(filmSchedule, res);
+    initSeats();
+    getSeatList();
+  }
+})
 
 onMounted(() => {
-  getFilmSchedule();
+  getFilmSchedule({ scheduleId: scheduleId.value });
   // initWebSocket();
 });
 /** 获取排片信息 */
-const getFilmSchedule = async () => {
-  const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
-  Object.assign(filmSchedule, res);
-  initSeats();
-  getSeatList();
-};
+// const getFilmSchedule = async () => {
+//   const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
+//   Object.assign(filmSchedule, res);
+//   initSeats();
+//   getSeatList();
+// };
 
 /** 获取座位信息 */
 const getSeatList = async () => {

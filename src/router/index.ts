@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { routes } from './routes';
 import { RoleEnum } from '@/utils/constant';
+import { ElMessage } from 'element-plus';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -30,14 +31,17 @@ router.beforeEach((to, from, next) => {
   const role = userStore.userInfo?.roleId
   // 需要登录
   if (to.matched.some(r => r.meta.requiresAuth)) {
-    // debugger
     if (!token) {
-      return next({
-        path: "/login",
-        query: {
-          redirect: to.fullPath
-        }
-      });
+      ElMessage.warning("请先完成登录才可以执行相应操作")
+      setTimeout(() => {
+        next({
+          path: "/login",
+          query: {
+            redirect: to.fullPath
+          }
+        })
+      }, 1000)
+      return;
     }
   }
 

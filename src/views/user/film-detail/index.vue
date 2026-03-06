@@ -1,5 +1,6 @@
 <template>
-  <div class="filmDetailModule">
+
+  <BaseLoading :loading="loading" text="影片详情加载中..." class="filmDetailModule">
     <!-- 头部 -->
     <FilmHeader :shopType="ShopEnum.Detail" :film="film" @buy="toBuyFilm" @rate="toRate" />
 
@@ -22,7 +23,7 @@
 
     <AddCommentDialog v-if="dialogVisible" v-model:dialogVisible="dialogVisible" :commentValue="commentForm"
       @submit="saveComment" />
-  </div>
+  </BaseLoading>
 </template>
 
 <script setup lang="ts">
@@ -36,13 +37,14 @@ import {
   getCommentByFilmIdApi,
 } from "@/api/comment";
 import { getFilmById } from "@/api/film";
-import { ShoppingCart, Star } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores";
 import AddCommentDialog from "./components/AddCommentDialog.vue";
 import { CommentFormType } from "@/api/comment/type";
 import { FilmType, ShopEnum } from "@/api/film/type";
 import UserCommentModule from "./components/UserCommentModule.vue";
 import FilmHeader from "@/components/FilmHeader.vue";
+import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -78,17 +80,23 @@ const isLogin = computed(() => {
   return !!userStore?.token;
 });
 
+const { runFn: getNewFilmInfo, loading } = useRequest(getFilmById, {
+  onSuccess: (filmRes) => {
+    film.value = filmRes;
+  }
+})
+
 // ========== 方法定义 ==========
 // 获取电影和评论数据
-const getNewFilmInfo = async () => {
-  // 获取电影详情
-  const filmRes = await getFilmById(filmId.value);
-  film.value = filmRes;
+// const getNewFilmInfo = async () => {
+//   // 获取电影详情
+//   const filmRes = await getFilmById(filmId.value);
+//   film.value = filmRes;
 
-  // // 获取评论列表
-  // const commentRes = await getCommentByFilmIdApi(filmId.value);
-  // userList.value = commentRes;
-};
+//   // // 获取评论列表
+//   // const commentRes = await getCommentByFilmIdApi(filmId.value);
+//   // userList.value = commentRes;
+// };
 
 const toRate = async () => {
   if (!isLogin.value) {
@@ -112,7 +120,7 @@ const saveComment = async (values: any) => {
   });
   dialogVisible.value = false;
   ElMessage.success("评价成功");
-  getNewFilmInfo(); // 重新加载评论
+  getNewFilmInfo(filmId.value); // 重新加载评论
 };
 
 // 跳转到购票页面
@@ -129,7 +137,7 @@ const toBuyFilm = () => {
 // ========== 生命周期 ==========
 // 组件挂载时加载数据（替代created）
 onMounted(() => {
-  filmId.value && getNewFilmInfo();
+  filmId.value && getNewFilmInfo(filmId.value);
 });
 </script>
 

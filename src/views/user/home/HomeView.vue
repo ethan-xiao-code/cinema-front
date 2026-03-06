@@ -1,57 +1,60 @@
 <template>
-  <div class="main" >
-    <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card"
-      ref="carouselRef">
-      <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
-        @click="toShowFilmDetail(item.filmId!)">
-        <el-image class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
-      </el-carousel-item>
-    </el-carousel>
+    <BaseLoading class="main" :loading="loading" text="首页加载中...">
+      <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card"
+        ref="carouselRef">
+        <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
+          @click="toShowFilmDetail(item.filmId!)">
+          <el-image class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
+        </el-carousel-item>
+      </el-carousel>
 
-    <div class="container">
-      <section class="leftBox">
-        <UserHome :filmList="hotfilmList" :status="2" />
-        <UserHome :filmList="upcomingList" :status="1" />
-      </section>
+      <div class="container">
+        <section class="leftBox">
+          <UserHome :filmList="hotfilmList" :status="2" />
+          <UserHome :filmList="upcomingList" :status="1" />
+        </section>
 
-      <section class="rightBox">
-        <div class="title">热门榜单Top{{ num }}</div>
-        <div v-if="topfilmList.length" class="rankList">
-          <div class="top01" @click="toShowFilmDetail(topfilmList[0].id)">
-            <img :src="topfilmList[0].poster" />
-            <div class="box">
-              <span>{{ topfilmList[0].title }}</span>
-              <span class="score">
-                {{ (topfilmList[0].averageScore * 2).toFixed(1) }} 分
+        <section class="rightBox">
+          <div class="title">热门榜单Top{{ num }}</div>
+          <div v-if="topfilmList.length" class="rankList">
+            <div class="top01" @click="toShowFilmDetail(topfilmList[0].id)">
+              <img :src="topfilmList[0].poster" />
+              <div class="box">
+                <span>{{ topfilmList[0].title }}</span>
+                <span class="score">
+                  {{ (topfilmList[0].averageScore * 2).toFixed(1) }} 分
+                </span>
+                <img class="top1-icon" :src="top1Icon" alt="Top 1" />
+              </div>
+            </div>
+            <div v-for="(film, i) in topfilmList.slice(1)" :key="film.id" class="filmTop6"
+              @click="toShowFilmDetail(film.id)">
+              <div>
+                <span class="rank">{{ i + 2 }}</span>
+                <span class="name">{{ film.title }}</span>
+              </div>
+              <span class="score" v-if="film.averageScore != null">
+                {{ (film.averageScore * 2).toFixed(1) }} 分
               </span>
-              <img class="top1-icon" :src="top1Icon" alt="Top 1" />
+              <span v-else> 暂无评分 </span>
             </div>
           </div>
-          <div v-for="(film, i) in topfilmList.slice(1)" :key="film.id" class="filmTop6"
-            @click="toShowFilmDetail(film.id)">
-            <div>
-              <span class="rank">{{ i + 2 }}</span>
-              <span class="name">{{ film.title }}</span>
-            </div>
-            <span class="score" v-if="film.averageScore != null">
-              {{ (film.averageScore * 2).toFixed(1) }} 分
-            </span>
-            <span v-else> 暂无评分 </span>
-          </div>
-        </div>
-      </section>
-    </div>
-  </div>
+        </section>
+      </div>
+    </BaseLoading>
+
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import film, { getFilmesByStatus, getFilmListByScore } from "@/api/film";
 import UserHome from "./components/UserHome.vue";
 import { getCinemaCarouselListApi } from "@/api/cinema-carousel";
 import { CinemaCarouselItemType } from "@/api/cinema-carousel/type";
 import { FilmResultType, FilmTopType } from "@/api/film/type";
+import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 const router = useRouter();
 
@@ -72,32 +75,54 @@ const toShowFilmDetail = (filmId: number) => {
   });
 };
 
-const loading = ref(false)
+const promiseAll = () => {
+  return Promise.all([
+    getFilmesByStatus(2),
+    getFilmesByStatus(1),
+    getFilmListByScore(num.value),
+    getCinemaCarouselListApi()
+  ])
+}
+
+const { data, loading } = useRequest(promiseAll, {
+  immediate: true
+})
+
+watchEffect(() => {
+  if (data.value) {
+    const [hotFilms, comingFilms, scoreFilms, carouselRes] = data.value
+    console.log(hotFilms, 'hotFilms')
+    hotfilmList.value = hotFilms;
+    upcomingList.value = comingFilms;
+    topfilmList.value = scoreFilms;
+    carouselList.value = carouselRes;
+  }
+})
+
 
 onMounted(async () => {
-  try {
-    loading.value = true
-    const [
-      hotRes,
-      upcomingRes,
-      topRes,
-      carouselRes
-    ] = await Promise.all([
-      getFilmesByStatus(2),
-      getFilmesByStatus(1),
-      getFilmListByScore(num.value),
-      getCinemaCarouselListApi()
-    ]);
 
-    hotfilmList.value = hotRes;
-    upcomingList.value = upcomingRes;
-    topfilmList.value = topRes;
-    carouselList.value = carouselRes;
-  } finally {
-    loading.value = false
-  }
+  // try {
+  //   loading.value = true
+  //   const [
+  //     hotRes,
+  //     upcomingRes,
+  //     topRes,
+  //     carouselRes
+  //   ] = await Promise.all([
+  //     getFilmesByStatus(2),
+  //     getFilmesByStatus(1),
+  //     getFilmListByScore(num.value),
+  //     getCinemaCarouselListApi()
+  //   ]);
 
-
+  //   hotfilmList.value = hotRes;
+  //   upcomingList.value = upcomingRes;
+  //   topfilmList.value = topRes;
+  //   carouselList.value = carouselRes;
+  // } finally {
+  //   loading.value = false
+  // }
 });
 
 </script>

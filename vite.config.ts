@@ -20,7 +20,7 @@ export default defineConfig({
     Components({
       resolvers: [ElementPlusResolver()],
     }),
-    viteImagemin({ 
+    viteImagemin({
       webp: { // 将打包后的图片统一转化成webp，减少图片体积
         quality: 75, // 压缩质量 0-100
       },
