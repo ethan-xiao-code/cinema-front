@@ -57,8 +57,6 @@ import BaseLoading from "@/components/BaseLoading.vue";
 const route = useRoute();
 
 // 分页相关
-const pageSize = ref(18);
-const pageNo = ref(1);
 const total = ref(0);
 
 // 筛选状态
@@ -68,28 +66,31 @@ const activeRegion = ref(-1);
 // 电影数据列表
 const filmList = ref<any[]>([]);
 
-// // 核心查询方法
-// const pageQueryFilmList = async (title?: string) => {
-//   const res = await pageQueryFilm({
-//     pageNo: 1,
-//     pageSize: 9999,
-//     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
-//     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
-//     title,
-//   });
-//   filmList.value = res.records || [];
-//   total.value = res.total || 0;
-// };
+// const pageQueryFilmApi = (params?: any) => {
+//   // 模拟：如果是筛选“爱情”片，服务器响应特别慢
+//   const delay = activeType.value < 0 ? 3000 : 500;
 
-const pageQueryFilmApi = (title?: string) => {
+//   return new Promise((resolve) => {
+//     setTimeout(async () => {
+//       const res = await pageQueryFilm({
+//         pageNo: 1,
+//         pageSize: 9999,
+//         ...params
+//       });
+//       resolve(res);
+//     }, delay);
+//   });
+// }
+
+const pageQueryFilmApi = (params?: any) => {
+  // 模拟：如果是筛选“爱情”片，服务器响应特别慢
   return pageQueryFilm({
     pageNo: 1,
     pageSize: 9999,
-    types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
-    regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
-    title,
-  })
+    ...params
+  });
 }
+
 
 const { runFn: pageQueryFilmList, loading } = useRequest(pageQueryFilmApi, {
   immediate: true,
@@ -102,48 +103,33 @@ const { runFn: pageQueryFilmList, loading } = useRequest(pageQueryFilmApi, {
 // 类型筛选 - 选择单个
 const updateTypeColor = (index: number) => {
   activeType.value = index;
-  pageNo.value = 1;
+
 };
 // 类型筛选 - 选择全部
 const selectTypeAll = () => {
   activeType.value = -1;
-  pageNo.value = 1;
+
 };
 
 // 地区筛选 - 选择单个
 const updateRegionColor = (index: number) => {
   activeRegion.value = index;
-  pageNo.value = 1;
+
 };
 // 地区筛选 - 选择全部
 const selectRegionAll = () => {
   activeRegion.value = -1;
-  pageNo.value = 1;
+
 };
-
-// 分页切换
-const handleCurrentChange = (val: number) => {
-  pageNo.value = val;
-  // 平滑滚动到顶部，替代生硬的scrollTop
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-
-watch([pageNo, pageSize, activeRegion, activeType], (data) => {
-  pageQueryFilmList();
+watch([activeType, activeRegion, () => route.query.filmTitle], (data) => {
+  const [types, regions, title] = data
+  console.log(data, 'data')
+  pageQueryFilmList({
+    types: types < 0 ? "" : filmTypeList[activeType.value],
+    regions: regions < 0 ? "" : filmRegionList[activeRegion.value],
+    title,
+  });
 })
-
-
-watch(
-  () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
-  (newVal) => {
-    const title = newVal?.toString();
-    console.log(title, 'title')
-    pageNo.value = 1;
-    pageQueryFilmList(title);
-  },
-  { immediate: true }
-);
 
 
 </script>

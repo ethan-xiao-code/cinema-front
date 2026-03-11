@@ -25,11 +25,11 @@ export function getFilmById(id: number): Promise<any> {
   })
 }
 
-export function pageQueryFilm(params: any): Promise<any> {
+export function pageQueryFilm(params: any,signal?:AbortController): Promise<any> {
   return request({
     url: '/film/page',
     method: 'get',
-    params
+    params,
   })
 }
 

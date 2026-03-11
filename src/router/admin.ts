@@ -9,7 +9,7 @@ export const adminRoutes = {
   children: [
     {
       path: 'home',
-      name: 'adminHome', // 配置name，用于缓存组件（注意：一定要与该组件的name一直，否则keep-alive无效）
+      // name: 'adminHome', // 配置name，用于缓存组件（注意：一定要与该组件的name一直，否则keep-alive无效）
       component: () => import('@/views/admin/home/index.vue'),
       meta: {
         title: '个人中心',
