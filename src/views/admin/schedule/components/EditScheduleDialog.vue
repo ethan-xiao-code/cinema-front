@@ -14,22 +14,7 @@
         ref="scheduleFormRef"
         label-width="120px"
       >
-        <el-form-item label="影院" prop="cinemaId" class="w80">
-          <el-select
-            v-model="scheduleForm.cinemaId"
-            placeholder="请选择影院"
-            @change="handleCinemaChange"
-            filterable
-            clearable
-          >
-            <el-option
-              v-for="item in cinemaOptions"
-              :key="item"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
+       
         <el-form-item label="放映厅" prop="screenRoomId" class="w80">
           <el-select
             v-model="scheduleForm.screenRoomId"
@@ -115,7 +100,6 @@ import {
   onMounted,
 } from "vue";
 import { ElMessage, FormInstance } from "element-plus";
-import { getScreenRoomListApi, getScreensByCinemaIdApi } from "@/api/screen";
 import { languageList } from "@/utils/constant";
 import { ScheduleActionType } from "../index.vue";
 import { ScheduleFormType, type OptionsType } from "@/api/schedule/type";
@@ -128,7 +112,7 @@ interface Props {
   actionType?: ScheduleActionType;
   schedule?: ScheduleFormType | null;
   filmOptions: OptionsType[];
-  cinemaOptions: OptionsType[];
+  screenRoomOptions: OptionsType[];
 }
 
 // Props 定义
@@ -142,7 +126,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["handleSuccess", "update:modelValue"]);
 
 const scheduleFormRef = ref<FormInstance>();
-const screenRoomOptions = ref<OptionsType[]>([]);
 const filmItem = ref<FilmResultType | null>(null);
 const scheduleForm = reactive<ScheduleFormType>({} as any);
 const validateDateTime = (rule: any, value: any, callback: any) => {
@@ -157,7 +140,6 @@ const validateDateTime = (rule: any, value: any, callback: any) => {
   callback();
 };
 const rules = {
-  cinemaId: [{ required: true, message: "请选择影院", trigger: "change" }],
   screenRoomId: [
     { required: true, message: "请选择放映厅", trigger: "change" },
   ],
@@ -189,8 +171,7 @@ onMounted(() => {
 const initEditData = () => {
   console.log(props.schedule, "props.schedule");
   Object.assign(scheduleForm, props.schedule);
-  const { cinemaId, filmId } = { ...props.schedule };
-  cinemaId && handleCinemaChange(cinemaId,true);
+  const {filmId } = { ...props.schedule };
   filmId && handleFilmChange(filmId);
 };
 const handleFilmChange = (id: number) => {
@@ -204,20 +185,7 @@ const handlePrice = (val: string) => {
   if (!val) return;
   scheduleForm.price = Number(val);
 };
-const handleCinemaChange = async (id: number,isFirst = false) => {
-  !isFirst && scheduleForm.screenRoomId && Object.assign(scheduleForm,{...scheduleForm,screenRoomId: undefined})
-  if(!id) {
-    screenRoomOptions.value = []
-    return
-  }
-  const data = (await getScreensByCinemaIdApi(id)) || [];
-  console.log(data, "data");
-  screenRoomOptions.value = data.map((item: any) => ({
-    ...item,
-    label: item.name as string,
-    value: item.id,
-  }));
-};
+
 
 const handleAddSchedule = async (): Promise<void> => {
   if (!scheduleFormRef.value) return;

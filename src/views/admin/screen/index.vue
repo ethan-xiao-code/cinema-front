@@ -7,7 +7,6 @@
       :form-data="currentFormData"
       :actionType="actionType"
       :title="title"
-      :cinemaOptions="cinemaOptions"
       @success="handleFormSuccess"
     />
 
@@ -35,7 +34,6 @@ import EditScreenForm, {
   ActionType,
   ScreenFormType,
 } from "./components/EditScreenForm.vue";
-import { getCinemaListApi } from "@/api/cinema";
 import { PagerType, SearchParamType } from "@/components/SearchTableTemplate.vue";
 import { screenTypeOptions } from "@/utils/constant";
 import { deleteScreenApi, getScreenByIdApi, pageQueryScreenApi } from "@/api/screen";
@@ -49,10 +47,7 @@ const title = ref("");
 defineOptions({
   name: 'adminScreen'
 })
-export type CinemaOptions = {
-  label: string;
-  value: any;
-};
+
 // 表格配置
 const tableParamsList = ref([
   {
@@ -60,18 +55,7 @@ const tableParamsList = ref([
     prop: "name",
     width: 100
   },
-  {
-    label: "影院名",
-    prop: "cinemaId",
-    width: 150,
-    renderText: (value: any) => {
-      const item =
-        cinemaOptions.value.find(
-          (item: CinemaOptions) => item.value === value
-        ) || {};
-      return item.label;
-    },
-  },
+
   {
     label: "座位数",
     prop: "seatCount",
@@ -132,18 +116,10 @@ const tableParamsList = ref([
     },
   },
 ]);
-const cinemaOptions = ref<CinemaOptions[]>([]);
 const extraParams = ref({});
 const showSearchForm = ref(true);
 const searchParamsList = ref<SearchParamType[]>([
-  {
-    label: "影院名",
-    prop: "cinemaId",
-    type: "select",
-    placeholder: "请选择影院名",
-    options: [],
-    filterable: true
-  },
+ 
   {
     label: "放映类型",
     prop: "screeningType",
@@ -167,19 +143,8 @@ const getTableData = async (pageParams: PagerType, searchParams: Record<string,a
 
 // 生命周期
 onMounted(() => {
-  getCinemaList();
 });
 
-const getCinemaList = async () => {
-  const data = await getCinemaListApi();
-  console.log(data, "data");
-  cinemaOptions.value = data.map(({ id, name }) => ({
-    label: name,
-    value: id,
-  }));
-  searchParamsList.value[0].options = cinemaOptions.value
-  // console.log(cinemaOptions.value,'vcinemaOptions')
-};
 
 // 方法
 const showAddForm = () => {

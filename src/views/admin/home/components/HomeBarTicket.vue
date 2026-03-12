@@ -11,57 +11,43 @@ interface ChartItem {
 	value: number
 }
 
-interface EchartsOption {
-	title?: any
-	grid?: any
-	xAxis?: any
-	yAxis?: any
-	[key: string]: any
-}
-
 interface Props {
 	type?: string
 	itemArr?: ChartItem[]
-	echartsOption?: EchartsOption
 }
 
 const props = withDefaults(defineProps<Props>(), {
 	type: 'bar',
 	itemArr: () => [],
-	echartsOption: () => ({})
 })
 
-const startValue = ref(0)
-const endValue = ref(3)
 
 const xData = computed(() => props.itemArr.map((i) => i.name))
 const seriesData = computed(() => props.itemArr.map((i) => i.value))
 
 const baseOption = computed(() => ({
-	title: { ...(props.echartsOption.title || {}), text: '影片票房统计' },
-	grid: props.echartsOption.grid,
-	xAxis: props.echartsOption.xAxis,
-	yAxis: props.echartsOption.yAxis,
-	series: [ { type: 'bar', barWidth: 66, label: { show: true, position: 'top', color: 'black' }, itemStyle: { barBorderRadius: [5,5,0,0] } } ],
-	tooltip: { trigger: 'item', formatter: (params: any) => `影片名：${params.name}<br />票房：${params.data}`, axisPointer: { type: 'shadow' } }
+	title: { text: '影片票房统计' },
+	series: [
+		{
+			type: 'bar',
+			barWidth: 46,
+			label: { show: true, position: 'top', color: 'black' },
+			itemStyle: { barBorderRadius: [5, 5, 0, 0] }
+		}
+	],
+
+	tooltip: {
+		trigger: 'axis',
+		formatter: (params: any) =>
+			`影片名：${params[0].name}<br />票房：${params[0].data}`,
+		axisPointer: {
+			show: true,
+			type: 'line', // 指示器类型：线（垂直于x轴）
+		}
+	}
 }))
 
-let timer: any
-const startInterval = () => {
-	if (timer) clearInterval(timer)
-	timer = setInterval(() => {
-		startValue.value++
-		endValue.value++
-		if (endValue.value > props.itemArr.length - 1) {
-			startValue.value = 0
-			endValue.value = 3
-		}
-	}, 2000)
-}
 
-watch(() => props.itemArr, () => { startInterval() }, { immediate: true })
-
-defineExpose({ startInterval })
 </script>
 
 <style lang="scss" scoped>

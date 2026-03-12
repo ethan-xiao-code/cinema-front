@@ -1,57 +1,21 @@
 <template>
-  <el-dialog
-    :title="title"
-    :model-value="showEditDialog"
-    @close="handleClose"
-    modal
-    :close-on-click-modal="false"
-  >
-    <el-form
-      label-width="120px"
-      :model="screenForm"
-      :rules="rules"
-      ref="screenFormRef"
-    >
-      <el-form-item label="所在影院" prop="cinemaId" class="w80">
-        <el-select v-model="screenForm.cinemaId" placeholder="请选择影院">
-          <el-option
-            v-for="item in cinemaOptions"
-            :label="item.label"
-            :value="item.value"
-          ></el-option>
-        </el-select>
-      </el-form-item>
+  <el-dialog :title="title" :model-value="showEditDialog" @close="handleClose" modal :close-on-click-modal="false">
+    <el-form label-width="120px" :model="screenForm" :rules="rules" ref="screenFormRef">
+
       <el-form-item label="名称" prop="name" class="w80">
-        <el-input
-          v-model="screenForm.name"
-          autocomplete="off"
-          placeholder="请输入名称"
-        ></el-input>
+        <el-input v-model="screenForm.name" autocomplete="off" placeholder="请输入名称"></el-input>
       </el-form-item>
       <el-form-item label="座位数" prop="seatCount" class="w80">
-        <el-input
-          v-model.number="screenForm.seatCount"
-          autocomplete="off"
-          placeholder="请填写座位数"
-        ></el-input>
+        <el-input v-model.number="screenForm.seatCount" autocomplete="off" placeholder="请填写座位数"></el-input>
       </el-form-item>
       <el-form-item label="类型" prop="screeningType" class="w80">
         <el-select v-model="screenForm.screeningType" placeholder="请选择放映类型">
-          <el-option
-            v-for="item in screenTypeOptions"
-            :label="item.label"
-            :value="item.value"
-            :key="item.value"
-          ></el-option>
+          <el-option v-for="item in screenTypeOptions" :label="item.label" :value="item.value"
+            :key="item.value"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="简介" prop="description" class="w80">
-        <el-input
-          type="textarea"
-          :rows="2"
-          placeholder="请输入内容"
-          v-model="screenForm.description"
-        ></el-input>
+        <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="screenForm.description"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -66,11 +30,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch, defineProps, defineEmits } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import { ElMessage, ElForm } from "element-plus";
 import { FormInstance } from "element-plus";
 import { addScreenApi, updateScreenApi } from "@/api/screen";
-import { CinemaOptions } from "../index.vue";
 import { screenTypeOptions } from "@/utils/constant";
 
 export interface ScreenFormType {
@@ -79,7 +42,6 @@ export interface ScreenFormType {
   seatCount: string;
   screeningType: string;
   description: string;
-  cinemaId: number;
 }
 
 export type ActionType = "add" | "update";
@@ -89,7 +51,6 @@ interface Props {
   formData?: ScreenFormType;
   actionType: ActionType;
   title: string;
-  cinemaOptions: CinemaOptions[];
 }
 
 const props = defineProps<Props>();
@@ -97,7 +58,7 @@ const emit = defineEmits(["update:showEditDialog", "success"]);
 
 const screenFormRef = ref<FormInstance>();
 
-const screenForm = reactive<ScreenFormType>({});
+const screenForm = reactive<ScreenFormType>({} as any);
 
 onMounted(() => {
   if (props.formData) {
@@ -117,7 +78,7 @@ const validateValue = (rule: any, value: any, callback: any) => {
 };
 
 // 表单规则
-const rules = reactive({
+const rules = {
   name: [{ required: true, message: "请填写名称" }],
   seatCount: [
     { required: true, message: "请填写座位数" },
@@ -126,8 +87,7 @@ const rules = reactive({
     { validator: validateValue },
   ],
   screeningType: [{ required: true, message: "请选择类型", trigger: "change" }],
-  cinemaId: [{ required: true, message: "请选择影院", trigger: "change" }],
-});
+};
 
 // 方法
 const handleClose = () => {
@@ -140,7 +100,6 @@ const handleSubmit = async () => {
   try {
     await screenFormRef.value.validate();
     handleAddOrUpdate({ ...screenForm }, props.actionType);
-    emit("success");
   } catch (error) {
     console.error("表单验证失败:", error);
   }
@@ -157,6 +116,7 @@ const handleAddOrUpdate = async (
     await updateScreenApi(formData);
     ElMessage.success("修改放映厅成功");
   }
+  emit("success");
   handleClose();
 };
 </script>

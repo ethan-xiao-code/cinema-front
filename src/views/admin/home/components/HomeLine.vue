@@ -11,18 +11,10 @@ interface ChartItem {
   value: number
 }
 
-interface EchartsOption {
-  title?: any
-  grid?: any
-  xAxis?: any
-  yAxis?: any
-  [key: string]: any
-}
 
 interface Props {
   type?: string
   itemArr?: ChartItem[]
-  echartsOption?: EchartsOption
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,12 +27,9 @@ const xData = computed(() => props.itemArr.map((i) => i.name))
 const seriesData = computed(() => props.itemArr.map((i) => i.value))
 
 const baseOption = computed(() => ({
-  title: { ...(props.echartsOption.title || {}), text: '每月售票量统计' },
-  grid: props.echartsOption.grid,
-  xAxis: props.echartsOption.xAxis,
-  yAxis: props.echartsOption.yAxis,
+  title: { text: '每月售票量统计' },
   series: [ { type: 'line', label: { show: true, position: 'top', color: 'black' } } ],
-  tooltip: { trigger: 'item', formatter: (params: any) => `月份：${params.name}<br />售票量：${params.data}` }
+  tooltip: { trigger: 'axis', formatter: (params: any) => `日期：${params[0].name}<br />售票量：${params[0].data}` }
 }))
 
 watch(() => props.itemArr, () => {}, { deep: true })

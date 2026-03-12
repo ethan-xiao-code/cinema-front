@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { ChartParamsType } from './type'
 
 export function pageQueryOrders(params: any): Promise<any> {
   return request({
@@ -30,23 +31,19 @@ export function cancelOrdersApi(id: number): Promise<any> {
   })
 }
 
-export function getFilmBoxOfficeApi(): Promise<any> {
+export function getFilmBoxOfficeApi(data: ChartParamsType): Promise<any> {
   return request({
-    url: `/orders/film/box_office`,
-    method: 'get'
+    url: `/orders/filmBoxOffice`,
+    method: 'post',
+    data
   })
 }
 
-export function getMonthTicketApi(): Promise<any> {
+export function getMonthTicketApi(data: ChartParamsType): Promise<any> {
   return request({
-    url: `/orders/month/ticket`,
-    method: 'get'
+    url: `/orders/trend/boxOffice`,
+    method: 'post',
+    data
   })
 }
 
-export function getMonthAmountApi(): Promise<any> {
-  return request({
-    url: `/orders/month/amount`,
-    method: 'get'
-  })
-}
