@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 
 
-export function updatePassword(data: any): Promise<any> {
+export function updatePasswordApi(data: any): Promise<any> {
   return request({
     url: `/password`,
     method: 'put',
