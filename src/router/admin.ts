@@ -17,9 +17,9 @@ export const adminRoutes = {
       }
     },
     {
-      path: 'users',
+      path: 'user-list',
       name: 'adminUsers',
-      component: () => import('@/views/admin/users/index.vue'),
+      component: () => import('@/views/admin/user-list/index.vue'),
       meta: {
         title: '用户管理',
         icon: 'UserFilled'
@@ -35,45 +35,45 @@ export const adminRoutes = {
     //   }
     // },
     {
-      path: 'screen',
+      path: 'screen-list',
       name: 'adminScreen',
-      component: () => import('@/views/admin/screen/index.vue'),
+      component: () => import('@/views/admin/screen-list/index.vue'),
       meta: {
         title: '放映厅管理',
         icon: 'Box'
       }
     },
     {
-      path: 'film',
+      path: 'film-list',
       name: 'adminFilm',
-      component: () => import('@/views/admin/film/index.vue'),
+      component: () => import('@/views/admin/film-list/index.vue'),
       meta: {
         title: '影片管理',
         icon: 'Film'
       }
     },
     {
-      path: 'schedule',
+      path: 'schedule-list',
       name: 'adminSchedule',
-      component: () => import('@/views/admin/schedule/index.vue'),
+      component: () => import('@/views/admin/schedule-list/index.vue'),
       meta: {
         title: '排片管理',
         icon: 'Aim'
       }
     },
     {
-      path: 'cinema-carousel',
+      path: 'cinema-carousel-list',
       name: 'adminCarousel',
-      component: () => import('@/views/admin/cinema-carousel/index.vue'),
+      component: () => import('@/views/admin/cinema-carousel-list/index.vue'),
       meta: {
         title: '影片轮播图管理',
         icon: 'Menu'
       }
     },
     {
-      path: 'orders',
+      path: 'orders-list',
       name: 'adminOrders',
-      component: () => import('@/views/admin/orders/OrdersView.vue'),
+      component: () => import('@/views/admin/orders-list/index.vue'),
       meta: {
         title: '查看所有订单',
         icon: 'List'

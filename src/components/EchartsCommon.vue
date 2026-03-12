@@ -13,7 +13,7 @@ interface EChartProps {
   seriesData?: SeriesDataType
   xData?: any[]
   theme?: string | object
-  baseOption?: EChartsOption
+  baseOption?: any
 }
 
 const props = defineProps<EChartProps>()

@@ -49,23 +49,23 @@ export function useRequest<T = any>(
   let runFn: (...args: any[]) => void = run
   // 优先使用 debounce
   if (debounceTime > 0) {
-    runFn = debounce(run, debounceTime)
+    runFn = debounce(runFn, debounceTime)
   }
 
   // 其次 throttle
   else if (throttleTime > 0) {
-    runFn = throttle(run, throttleTime)
+    runFn = throttle(runFn, throttleTime)
   }
 
-  const refresh = () => run() // 刷新
+  const refresh = () => runFn() // 刷新
 
   const startPolling = () => {
     // 开启轮询
     if (intervalTime <= 0 || timer) return
-    run()
+    runFn()
     timer = setInterval(() => {
       if (!loading.value) {
-        run()
+        runFn()
       }
     }, intervalTime)
   }
@@ -84,7 +84,7 @@ export function useRequest<T = any>(
   }
 
   if (immediate) {
-    run()
+    runFn()
   }
 
   onUnmounted(() => {

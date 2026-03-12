@@ -139,7 +139,7 @@ const props = defineProps<{
     searchParams: Record<string, any>
   ) => Promise<{ data: TableRow[]; total: number }>;
 }>();
-
+const searchParamsForm = reactive<Record<string, any>>({});
 // Emits（签名风格）
 const emit = defineEmits<{
   "update:extraParams": (value: Record<string, any>) => void;
@@ -155,18 +155,6 @@ const pageParams = reactive<PageParamsType>({
   total: 0,
 });
 const resultTableList = reactive<TableRow[]>([]);
-const searchParamsForm = reactive<Record<string, any>>({});
-
-// const pageQuery = debounce(async () => {
-//   const res = await props.getTableData(
-//     { ...pageParams.pager },
-//     toRaw(searchParamsForm) // 解除响应式
-//   );
-//   console.log(res, "res**");
-//   resultTableList.splice(0, resultTableList.length);
-//   Object.assign(resultTableList, res?.data || []);
-//   pageParams.total = res?.total ?? 0;
-// }, 300);
 
 const getDataApi = () => {
   return props.getTableData(
@@ -181,6 +169,7 @@ const { loading, runFn: pageQuery } = useRequest(getDataApi, {
     Object.assign(resultTableList, res?.data || []);
     pageParams.total = res?.total ?? 0;
   },
+  throttleTime: 1000
 })
 // 分页处理
 const handleSizeChange = (val: number): void => {
