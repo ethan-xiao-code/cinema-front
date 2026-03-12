@@ -66,3 +66,11 @@ export function recharge(data: any): Promise<any> {
     data
   })
 }
+
+
+export function getUserListApi(): Promise<any> {
+  return request({
+    url: '/user/list',
+    method: 'get',
+  })
+}

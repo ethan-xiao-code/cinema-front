@@ -44,7 +44,7 @@ export const accountStatusOptions = [
 
 export const payStatusOptions = [
   { label: '已取消', value: 0, type: 'danger' },
-  { label: '待观影', value: 1, type: 'warning' },
+  { label: '待观影', value: 1, type: 'primary' },
   { label: '已完成', value: 2, type: 'success' },
 ]
 
@@ -60,6 +60,12 @@ export const getTypeByValue = (options: { label: string; value: any; type?: stri
   const item = options.find(item => item.value === value)
   return item?.type
 }
+
+export const getItemByValue = (options: { label: string; value: any; type?: string }[], value: any) => {
+  const item = options.find(item => item.value === value)
+  return item
+}
+
 
 
 

@@ -49,46 +49,48 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "名称",
     prop: "title",
-    width: 150,
+    minWidth: 160
   },
   {
     label: "海报",
     prop: "poster",
+    width: 150,
     render: (value: string) => {
       return h("img", { src: value, class: "image" });
     },
-    width: 200,
   },
   {
     label: "上映日期",
     prop: "releaseDate",
-    width: 150,
+    minWidth: 160
   },
   {
     label: "下线日期",
     prop: "endDate",
-    width: 150,
+    minWidth: 160
   },
 
   {
     label: "影片类型",
     prop: "types",
-    width: 100,
+    minWidth: 120
+
   },
   {
     label: "发行地区",
     prop: "regions",
-    width: 100,
+    minWidth: 120
+
   },
   {
     label: "时长(分钟)",
     prop: "duration",
-    width: 120,
+    minWidth: 100
+
   },
   {
     label: "上映状态",
     prop: "status",
-    width: 150,
     render: (value: number) => {
       const { label, type } = filmStatusOptions.find(item => item.value === value) || {}
       return h(ElTag, { type }, () => label)
@@ -97,16 +99,18 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "创建时间",
     prop: "createTime",
-    width: 180,
+    minWidth: 160
+
   },
   {
     label: "更新时间",
     prop: "updateTime",
-    width: 180,
+    minWidth: 160
+
   },
   {
     label: "操作",
-    width: 150,
+    minWidth: 150,
     prop: "option",
     fixed: "right",
     render: (_: any, row: any) => {

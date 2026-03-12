@@ -1,25 +1,13 @@
 <template>
   <div id="screen_room">
-    <SearchTableTemplate
-      ref="searchTableTemplateRef"
-      :extra-params="extraParams"
-      :table-params-list="tableParamsList"
-      :search-params-list="searchParamsList"
-      :show-search-form="showSearchForm"
-      :getTableData="getTableData"
-    >
+    <SearchTableTemplate ref="searchTableTemplateRef" :extra-params="extraParams" :table-params-list="tableParamsList"
+      :search-params-list="searchParamsList" :show-search-form="showSearchForm" :getTableData="getTableData">
       <template #handle>
         <el-button type="primary" @click="showAddForm">新增轮播图</el-button>
       </template>
     </SearchTableTemplate>
-    <EditForm
-      v-if="showEditDialog"
-      v-model:showEditDialog="showEditDialog"
-      :currentRow="currentRow"
-      :isAdd="isAdd"
-      :filmOptions="filmOptions"
-      @reloadData="reloadData"
-    />
+    <EditForm v-if="showEditDialog" v-model:showEditDialog="showEditDialog" :currentRow="currentRow" :isAdd="isAdd"
+      :filmOptions="filmOptions" @reloadData="reloadData" />
   </div>
 </template>
 
@@ -51,31 +39,28 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "影片ID",
     prop: "filmId",
-    width: 200,
   },
   {
     label: "影片名",
     prop: "filmName",
-    width: 200,
+    minWidth: 160
   },
   {
     label: "轮播图",
     prop: "imgUrl",
-    width: 200,
-     render: (value: string) => {
+    width: 250,
+    render: (value: string) => {
       return h("img", { src: value, class: "imgUrlClass" });
     },
   },
-  
+
   {
     label: "排序",
     prop: "sort",
-    width: 100,
   },
   {
     label: "简介",
     prop: "remark",
-    width: 200,
     render: (value: string) => {
       return h("div", { class: "descText" }, value); // 构建DOM元素
     },
@@ -83,12 +68,12 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "创建日期",
     prop: "createTime",
-    width: 200,
+    minWidth: 160
   },
   {
     label: "更新日期",
     prop: "updateTime",
-    width: 200,
+    minWidth: 160
   },
   {
     label: "操作",
@@ -198,7 +183,7 @@ const handleDelete = async (row: any) => {
   } catch (error) {
     if (error === "cancel") {
       ElMessage.info("已取消删除");
-    } 
+    }
   }
 };
 </script>
@@ -216,8 +201,9 @@ const handleDelete = async (row: any) => {
   text-overflow: ellipsis;
   /* 超出部分用省略号代替 */
 }
+
 .imgUrlClass {
   width: 100%;
-  height: 110px; 
+  height: 110px;
 }
 </style>

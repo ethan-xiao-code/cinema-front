@@ -42,7 +42,7 @@
     <BaseLoading :loading="loading" text="数据加载中...">
       <el-table v-bind="tableProps" :max-height="700" :data="resultTableList">
         <template v-for="item in tableParamsList" :key="item.prop">
-          <el-table-column :fixed="item?.fixed" :width="item.width" :label="item?.label" :prop="item?.prop"
+          <el-table-column :fixed="item?.fixed" :width="item.width" :min-width="item.minWidth"  :label="item?.label" :prop="item?.prop"
             :type="item?.type" v-bind="item?.attrs">
             <template #default="scope">
               <div v-if="item.renderText">
@@ -53,6 +53,7 @@
                 <!-- 渲染DOM元素 -->
                 <component :is="item.render!(scope.row[item.prop], scope.row)" />
               </div>
+              
             </template>
           </el-table-column>
         </template>
@@ -103,6 +104,7 @@ export interface TableParamType {
   label?: string;
   prop?: string;
   width?: number;
+  minWidth?: number;
   fixed?: "right" | "left" | "";
   type?: "selection" | "index" | "expand";
   renderText?: (value?: any, row?: Record<string, any>) => any;

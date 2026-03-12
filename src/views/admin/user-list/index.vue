@@ -51,17 +51,18 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "ID",
     prop: "id",
-    width: 60,
   },
   {
     label: "用户名",
     prop: "username",
-    width: 120,
+    minWidth: 120
+
   },
   {
     label: "电话号码",
     prop: "phone",
-    width: 160,
+    minWidth: 120
+
   },
   {
     label: "角色",
@@ -69,7 +70,6 @@ const tableParamsList = ref<TableParamType[]>([
     renderText: (value: number) => {
       return userRoleOptions.find((item: any) => item.value === value)?.label || '';
     },
-    width: 100,
   },
   {
     label: "账号状态",
@@ -78,21 +78,20 @@ const tableParamsList = ref<TableParamType[]>([
       return accountStatusOptions.find((item: any) => item.value === value)
         ?.label || '';
     },
-    width: 120,
   },
   {
     label: "创建时间",
     prop: "createTime",
-    width: 200,
+    minWidth: 160
   },
   {
     label: "更新时间",
     prop: "updateTime",
-    width: 200,
+    minWidth: 160
   },
   {
     label: "操作",
-    width: 150,
+    minWidth: 150,
     prop: "option",
     fixed: "right",
     render: (_: any, row: any) => {

@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import { ChartParamsType } from './type'
 
-export function pageQueryOrders(params: any): Promise<any> {
+export function pageQueryOrdersApi(params: any): Promise<any> {
   return request({
     url: '/orders/page',
     method: 'get',

@@ -101,7 +101,7 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "影片名",
     prop: "filmName",
-    width: 120,
+     minWidth: 160
   },
   {
     label: "放映厅",
@@ -114,12 +114,11 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "时长(分钟)",
     prop: "duration",
-    width: 100,
+    minWidth: 100
   },
   {
     label: "票价(元)",
     prop: "price",
-    width: 80,
   },
   // {
   //   label: "放映日期",
@@ -129,22 +128,21 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "开始时间",
     prop: "startTime",
-    width: 160,
     renderText: (time: string) => {
       return dayjs(time).format("YYYY-MM-DD HH:mm");
     },
+    minWidth: 160
   },
   {
     label: "结束时间",
     prop: "endTime",
-    width: 160,
     renderText: (time: string) => {
       return dayjs(time).format("YYYY-MM-DD HH:mm");
     },
+    minWidth: 160
   },
   {
     label: "排片状态",
-    // width: 100,
     prop: "status",
     render: (val: number) => {
       const { label, type } =
@@ -161,12 +159,13 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "创建时间",
     prop: "createTime",
-    width: 180,
+    minWidth: 160
   },
   {
     label: "更新时间",
     prop: "updateTime",
-    width: 180,
+    minWidth: 160
+
   },
   {
     label: "操作",

@@ -53,13 +53,11 @@ const tableParamsList = ref([
   {
     label: "名称",
     prop: "name",
-    width: 100
   },
 
   {
     label: "座位数",
     prop: "seatCount",
-    width: 80,
   },
   {
     label: "类型",
@@ -67,12 +65,11 @@ const tableParamsList = ref([
     renderText: (value: any) => {
       return screenTypeOptions.find(item => item.value === value)?.label || '';
     },
-    width: 100,
   },
   {
     label: "介绍",
+    width: 150,
     prop: "description",
-    width: 200,
     render: (value: string) => {
       return h("div", { class: "showOneRowText" }, value);
     },
@@ -80,12 +77,14 @@ const tableParamsList = ref([
   {
     label: "创建日期",
     prop: "createTime",
-    width: 200,
+    minWidth: 160
+
   },
   {
     label: "更新日期",
     prop: "updateTime",
-    width: 200,
+    minWidth: 160
+
   },
   {
     label: "操作",

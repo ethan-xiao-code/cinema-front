@@ -1,203 +1,194 @@
 <template>
   <div id="orders">
-    <div style="text-align: left">
-      <el-input
-        v-model="name"
-        placeholder="请输入影片名"
-        style="width: 20%"
-      >
-
-      </el-input>
-
-      <el-input
-        v-model="username"
-        placeholder="请输入用户名"
-        style="width: 20%;margin-left: 20px"
-      >
-
-      </el-input>
-
-      <el-button
-        type="info"
-        @click="pageQueryOrders"
-        style="margin-left: 20px"
-      >查询</el-button>
-      <el-button
-        type="info"
-        @click="reset"
-        style="margin-left: 20px"
-      >重置</el-button>
-
-    </div>
-
-    <el-table
-      :data="ordersArr"
-      style="width: 100%;margin-top: 10px"
-    >
-
-      <el-table-column
-        prop="name"
-        label="影片名"
-        width="200"
-      >
-      </el-table-column>
-
-      <el-table-column
-        label="图片"
-        width="150"
-      >
-        <template slot-scope="scope">
-          <img
-            :src="scope.row.poster"
-            height="140px"
-          >
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="screenRoomName"
-        label="放映厅名"
-        width="120"
-      >
-      </el-table-column>
-      <el-table-column
-        prop="seatNumberStr"
-        label="座位号"
-        width="100"
-      >
-      </el-table-column>
-      <el-table-column
-        prop="username"
-        label="用户名"
-        width="120"
-      >
-      </el-table-column>
-      <el-table-column
-        label="金额"
-        width="100"
-      >
-        <template slot-scope="scope">
-          <b>{{ scope.row.amount.toFixed(2) }} 元</b>
-        </template>
-      </el-table-column>
-      <el-table-column
-        label="支付状态"
-        width="100px"
-      >
-        <template slot-scope="scope">
-          <el-tag v-if="scope.row.status == 1">已支付</el-tag>
-          <el-tag v-if="scope.row.status == 0" type="error">已取消</el-tag>
-          <el-tag v-if="scope.row.status == 2" type="success">已完成</el-tag>
-
-        </template>
-      </el-table-column>
-
-      <el-table-column
-        prop="startTime"
-        label="影片开始时间"
-      >
-      </el-table-column>
-      <el-table-column
-        prop="payTime"
-        label="支付时间"
-      >
-      </el-table-column>
-
-    </el-table>
-
-    <div
-      class="block"
-      style="margin-top: 10px"
-    >
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="pageNo"
-        :page-sizes="[2,5,10,20]"
-        :page-size="pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-      >
-      </el-pagination>
-
-    </div>
-
+    <SearchTableTemplate ref="searchTableTemplateRef" :table-params-list="tableParamsList"
+      :search-params-list="searchParamsList" :getTableData="getTableData" :show-search-form="true" />
   </div>
 </template>
 
-<script>
-import { pageQueryOrders } from "@/api/orders";
+<script setup lang="ts">
+import { ref, h, onMounted } from "vue";
+import { ElTag } from "element-plus";
+import SearchTableTemplate, {
+  PagerType,
+  SearchParamType,
+  TableParamType,
+} from "@/components/SearchTableTemplate.vue";
+
+import { pageQueryOrdersApi } from "@/api/orders";
+import { computed } from "vue";
+import { getFilmListApi } from "@/api/film/index";
+import { OptionsType } from "@/api/schedule/type";
+import { getUserListApi } from "@/api/user";
+import { getItemByValue, payStatusOptions } from "@/utils/constant";
+
 defineOptions({
-  name: 'adminOrders'
+  name: "adminOrders",
+});
+
+const searchTableTemplateRef = ref<typeof SearchTableTemplate>();
+
+/** 表格列配置 */
+const tableParamsList = ref<TableParamType[]>([
+  {
+    label: "订单ID",
+    prop: "id",
+  },
+  // {
+  //   label: "影片ID",
+  //   prop: "filmId",
+  //   width: 100,
+  // },
+  {
+    label: "影片名",
+    prop: "filmName",
+    minWidth: 160
+  },
+  // {
+  //   label: "图片",
+  //   prop: "poster",
+  //   width: 120,
+  //   render: (value: string) => {
+  //     return h("img", {
+  //       src: value,
+  //       class: "imgUrlClass",
+  //     });
+  //   },
+  // },
+  {
+    label: "放映厅名",
+    prop: "screenRoomName",
+  },
+  // {
+  //   label: "放映厅ID",
+  //   prop: "screenRoomId",
+  //   width: 100,
+  // },
+  {
+    label: "座位号",
+    prop: "seatNumberStr",
+  },
+  {
+    label: "用户名",
+    prop: "username",
+  },
+  {
+    label: "交易金额(元)",
+    prop: "amount",
+    render: (value: number) => {
+      return h("b", null, `${value.toFixed(2)}`);
+    },
+    minWidth: 100
+  },
+  {
+    label: "支付状态",
+    prop: "status",
+    render: (value: number) => {
+      const item = getItemByValue(payStatusOptions, value)
+      return h(ElTag, { type: item?.type }, () => item?.label);
+    },
+  },
+  {
+    label: "支付时间",
+    prop: "payTime",
+    minWidth: 160
+  },
+]);
+const filmOptions = ref<OptionsType[]>([]);
+const userOptions = ref<OptionsType[]>([]);
+/** 搜索配置 */
+const searchParamsList = ref<SearchParamType[]>([
+  {
+    label: "影片名",
+    prop: "filmIds",
+    type: "select",
+    options: computed(() =>
+      filmOptions.value.map((item: any) => ({
+        label: item.label,
+        value: item.value,
+      }))
+    ),
+    attrs: {
+      placeholder: "请选择影片",
+      multiple: true,
+      clearable: true,
+      filterable: true,
+      reserveKeyword: false, // 选中一个选项后是否保留当前的搜索关键词
+    },
+  },
+  {
+    label: "用户名",
+    prop: "userIds",
+    type: "select",
+    options: computed(() =>
+      userOptions.value.map((item: any) => ({
+        label: item.label,
+        value: item.value,
+      }))
+    ),
+    attrs: {
+      placeholder: "请选择用户",
+      multiple: true,
+      clearable: true,
+      filterable: true,
+      reserveKeyword: false, // 选中一个选项后是否保留当前的搜索关键词
+    },
+  },
+  {
+    label: "订单状态",
+    prop: "orderStatus",
+    type: "select",
+    options: payStatusOptions,
+    attrs: {
+      placeholder: "请选择状态",
+      clearable: true,
+    },
+  },
+]);
+
+onMounted(() => {
+  initFilmList()
+  initUserList()
 })
-export default {
-  data() {
-    return {
-      ordersArr: [
-        {
-          name: "",
-          poster: "",
-          username: "",
-          amount: "",
-          status: "",
-          startTime: "",
-          payTime: "",
-        },
-      ],
-      name: "", // 影片名
-      username: "",
 
-      pageNo: 1,
-      pageSize: 10,
-      total: "",
-    };
-  },
-  created() {
-    this.pageQueryOrders();
-  },
-  methods: {
-    async pageQueryOrders() {
-      // this.$http
-      //   .get("/orders/page", {
-      //     params: {},
-      //   })
-      //   .then((res) => {
-      //     if (res.data.code === 1) {
-      //        = res.data.data.records;
-      //        = res.data.data.total;
-      //     }
-      //   });
-      const { records, total } = await pageQueryOrders({
-        name: this.name,
-        username: this.username,
-        pageNo: this.pageNo,
-        pageSize: this.pageSize
-      });
-      this.ordersArr = records
-      this.total = total
-    },
+const initFilmList = async () => {
+  const data = (await getFilmListApi()) || [];
+  filmOptions.value = data.map((item: any) => ({
+    ...item,
+    label: item.title,
+    value: item.title,
+  }));
+};
 
-    handleSizeChange(val) {
-      this.pageSize = val;
-      this.pageQueryOrders();
-    },
-    handleCurrentChange(val) {
-      this.pageNo = val;
-      this.pageQueryOrders();
-    },
+const initUserList = async () => {
+  const data = (await getUserListApi()) || [];
+  userOptions.value = data.map((item: any) => ({
+    ...item,
+    label: item.username,
+    value: item.id,
+  }));
+};
 
-    reset() {
-      this.name = "";
-      this.username = "";
-      this.pageQueryOrders();
-    },
+/** 表格数据请求 */
+const getTableData = async (
+  pageParams: PagerType,
+  searchParams: Record<string, any>
+) => {
+  const res = await pageQueryOrdersApi({
+    ...pageParams,
+    ...searchParams,
+    userIds: searchParams.userIds?.join(","),
+    filmIds: searchParams.filmIds?.join(","),
+  });
 
-    // 底部
-  },
+  return {
+    data: res.records,
+    total: res.total,
+  };
 };
 </script>
 
-
-
-  <style scoped>
+<style lang="scss">
+.imgUrlClass {
+  height: 165px;
+}
 </style>
-
