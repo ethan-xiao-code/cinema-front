@@ -5,7 +5,7 @@
         <!-- 左：Logo -->
         <div class="logoBox">
           <img :src="url" />
-          <span>汪汪影院</span>
+          <span>{{ userSystemTitle }}</span>
         </div>
 
         <!-- 右：菜单 + 搜索 + 用户 -->
@@ -236,9 +236,9 @@ const goAdminPage = () => {
     z-index: 1000;
 
     .navContainer {
+      width: 1200px;
       height: 100%;
       margin: auto;
-      padding: 0 24px;
       display: flex;
       align-items: center;
 

@@ -27,13 +27,13 @@
             <!-- 系统信息 -->
             <div class="system-info">
               <el-avatar shape="square" :size="40" fit="fill" :src="logoUrl" />
-              <span class="system-name">汪汪影院</span>
+              <span class="system-name">{{ adminSystemTitle }}</span>
             </div>
 
             <!-- 当前页面标题 -->
             <div class="page-title">{{ metaName }}</div>
 
-            <el-button type="primary" @click="toHomePage">去首页</el-button>
+            <el-button type="primary" @click="toHomePage">购票中心</el-button>
           </div>
         </header>
 

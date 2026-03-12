@@ -9,8 +9,8 @@
         </el-form-item>
 
         <el-form-item>
-          <el-date-picker v-model="dateRange" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期"
-            format="YYYY-MM-DD" value-format="YYYY-MM-DD" range-separator="至" />
+          <el-date-picker :clearable="false" v-model="dateRange" type="daterange" start-placeholder="开始日期"
+            end-placeholder="结束日期" format="YYYY-MM-DD" value-format="YYYY-MM-DD" range-separator="至" />
         </el-form-item>
 
         <!-- 按钮 -->
@@ -22,24 +22,25 @@
     </el-form>
 
     <!-- 图表展示 -->
-    <div class="echarts">
-      <HomeBarTicket v-if="filmList.length" :itemArr="handleFilmList" />
-
-      <HomeLine v-if="monthTicketList.length" :itemArr="handleMonthTicketList" />
+    <div class="echarts" v-if="filmList.length && monthTicketList.length">
+      <HomeBarTicket :itemArr="handleFilmList" />
+      <HomeLine :itemArr="handleMonthTicketList" />
     </div>
+    <el-empty v-else :image-size="250" description="暂无数据，请更换查询条件~" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import { getFilmBoxOfficeApi, getMonthTicketApi } from '@/api/orders'
 import HomeBarTicket from './components/HomeBarTicket.vue'
 import HomeLine from './components/HomeLine.vue'
 import { ChartParamsType } from '@/api/orders/type'
 import dayjs from 'dayjs'
 import { useRequest } from '@/utils/useRequest'
-
+defineOptions({
+  name: 'adminDataBoard'
+})
 interface FilmBoxOfficeItem { id: number; filmName: string; boxOffice: number; type: string | number }
 interface MonthTicketItem { date: string; ticketCount: number }
 interface ChartItem { name: string; value: number }
@@ -49,8 +50,8 @@ const dateRange = ref<[string, string]>([
 ])
 const params = ref<ChartParamsType>({
   filmName: '',
-  startTime: '2026-01',
-  endTime: '2026-03'
+  startTime: '',
+  endTime: ''
 })
 
 const filmList = ref<FilmBoxOfficeItem[]>([])
@@ -74,7 +75,7 @@ const getMonthTicket = async (params: ChartParamsType) => {
 }
 
 const handleData = () => {
-  const newParams = {...params.value}
+  const newParams = { ...params.value }
   if (dateRange.value.length === 2) {
     newParams.startTime = dayjs(dateRange.value[0]).startOf('day').format("YYYY-MM-DD HH:mm:ss")
     newParams.endTime = dayjs(dateRange.value[1]).endOf('day').format("YYYY-MM-DD HH:mm:ss")
@@ -82,7 +83,7 @@ const handleData = () => {
   return Promise.all([getFilmBoxOffice(newParams), getMonthTicket(newParams)])
 }
 
-const { runFn: qeuryChartData,loading,startPolling } = useRequest(handleData, {
+const { runFn: qeuryChartData, loading, startPolling } = useRequest(handleData, {
   onSuccess: (resList) => {
     const [res1, res2] = resList
     filmList.value = res1.map(item => {
@@ -103,6 +104,11 @@ startPolling()
 
 const resetFilters = () => {
   params.value = { filmName: '', startTime: undefined, endTime: undefined }
+  dateRange.value = [
+    dayjs().subtract(1, "month").format("YYYY-MM-DD"),
+    dayjs().format("YYYY-MM-DD")
+  ]
+  qeuryChartData()
 }
 
 onMounted(() => { qeuryChartData() })
