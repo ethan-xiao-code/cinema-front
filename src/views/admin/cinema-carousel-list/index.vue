@@ -14,15 +14,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, h, computed } from "vue";
 import { ElMessage, ElMessageBox, ElButton } from "element-plus";
-import { deleteCinemaApi, pageQueryCinemaApi } from "@/api/cinema";
 import SearchTableTemplate, {
   PagerType,
   SearchParamType,
   TableParamType,
 } from "@/components/SearchTableTemplate.vue";
-import { CinemaFormType } from "@/api/cinema/type";
 import EditForm from "./components/EditForm.vue";
-import { getFilmListApi } from "@/api/film/index";
+import { getValidFilmListApi } from "@/api/film/index";
 import { OptionsType } from "@/api/schedule/type";
 import { deleteCinemaCarouselApi, pageCinemaCarouselApi } from "@/api/cinema-carousel";
 defineOptions({
@@ -129,7 +127,7 @@ onMounted(() => {
 });
 
 const initFilmList = async () => {
-  const data = (await getFilmListApi()) || [];
+  const data = (await getValidFilmListApi()) || [];
   filmOptions.value = data.map((item: any) => ({
     ...item,
     label: item.title as string,
@@ -204,6 +202,6 @@ const handleDelete = async (row: any) => {
 
 .imgUrlClass {
   width: 100%;
-  height: 110px;
+  height: 100px;  
 }
 </style>

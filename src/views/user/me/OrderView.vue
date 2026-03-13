@@ -113,7 +113,7 @@ const cancelOrders = async (order: OrderItem) => {
   )
 
   await cancelOrdersApi(order.id)
-  await getOrdersByUserId() // 刷新订单列表
+  order.status = 0 // 改成已取消
   ElMessage.success("取消成功")
 
 }

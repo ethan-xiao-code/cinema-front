@@ -19,8 +19,8 @@
           </div>
           <div class="searchBox">
             <!-- 搜索 -->
-            <el-input v-model="filmTitle" placeholder="搜索电影" class="searchInput" />
-            <el-button class="searchBtn" type="primary" @click="handleFilmQuery">查询</el-button>
+            <el-input clearable v-model="filmTitle" placeholder="搜索电影" class="searchInput" />
+            <el-button class="searchBtn" type="primary" @click="() => toShowMovies(filmTitle)">查询</el-button>
           </div>
 
 
@@ -113,14 +113,11 @@ import { ElMessage } from "element-plus";
 import userDefault from "@/assets/images/user-default.png";
 
 import {
-  ShoppingCart,
   Document,
   Help,
   SwitchButton,
   ArrowDownBold,
   ShoppingCartFull,
-  CloseBold,
-  Aim,
   User,
   Remove,
 } from "@element-plus/icons-vue";
@@ -152,9 +149,15 @@ watch(
   },
   { immediate: true },
 );
-const handleFilmQuery = () => {
-  toShowMovies(filmTitle.value)
-}
+
+watch(
+  () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
+  (newVal) => {
+    filmTitle.value = newVal?.toString() || ''
+  },
+  { immediate: true }
+);
+
 
 
 // 下拉菜单处理
@@ -223,32 +226,29 @@ const goAdminPage = () => {
 #main {
   min-height: 100vh;
   background: #f6f7fb;
-
+  min-width: 1000PX;
   .navBar {
     position: fixed;
     top: 0;
     width: 100%;
-    min-width: 1000px;
     height: 72px;
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     z-index: 1000;
-
+    padding: 0 24px;
     .navContainer {
       width: 1200px;
       height: 100%;
-      margin: auto;
       display: flex;
       align-items: center;
-
+      margin: auto;
       /* 左 */
       .logoBox {
         display: flex;
         align-items: center;
         gap: 12px;
         cursor: pointer;
-
         img {
           width: 40px;
           height: 40px;
@@ -309,14 +309,14 @@ const goAdminPage = () => {
           cursor: pointer;
 
           &>img {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
           }
 
           .username {
             max-width: 80px;
-            font-size: 14px;
+            font-size: 16PX;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -333,5 +333,6 @@ const goAdminPage = () => {
   .mainContent {
     padding: 24px;
   }
+
 }
 </style>

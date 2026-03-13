@@ -16,7 +16,7 @@ import SearchTableTemplate, {
 
 import { pageQueryOrdersApi } from "@/api/orders";
 import { computed } from "vue";
-import { getFilmListApi } from "@/api/film/index";
+import { getValidFilmListApi } from "@/api/film/index";
 import { OptionsType } from "@/api/schedule/type";
 import { getUserListApi } from "@/api/user";
 import { getItemByValue, payStatusOptions } from "@/utils/constant";
@@ -84,7 +84,7 @@ const tableParamsList = ref<TableParamType[]>([
     prop: "status",
     render: (value: number) => {
       const item = getItemByValue(payStatusOptions, value)
-      return h(ElTag, { type: item?.type }, () => item?.label);
+      return h(ElTag, { type: item?.type as any  }, () => item?.label);
     },
   },
   {
@@ -151,7 +151,7 @@ onMounted(() => {
 })
 
 const initFilmList = async () => {
-  const data = (await getFilmListApi()) || [];
+  const data = (await getValidFilmListApi()) || [];
   filmOptions.value = data.map((item: any) => ({
     ...item,
     label: item.title,

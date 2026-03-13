@@ -1,7 +1,7 @@
 <template>
     <BaseLoading class="main" :loading="loading" text="首页加载中...">
       <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card"
-        ref="carouselRef">
+        >
         <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
           @click="toShowFilmDetail(item.filmId!)">
           <el-image class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import { getFilmesApi, getFilmListByScoreApi } from "@/api/film";
+import { getFilmListApi, getFilmListByScoreApi } from "@/api/film";
 import UserHome from "./components/UserHome.vue";
 import { getCinemaCarouselListApi } from "@/api/cinema-carousel";
 import { CinemaCarouselItemType } from "@/api/cinema-carousel/type";
@@ -64,7 +64,6 @@ const upcomingList = ref<FilmResultType[]>([]);
 const topfilmList = ref<FilmTopType[]>([]);
 const num = ref(6);
 const top1Icon = ref(new URL("@/assets/images/top1.png", import.meta.url).href);
-const carouselRef = ref(null);
 
 const toShowFilmDetail = (filmId: number) => {
   router.push({
@@ -77,8 +76,8 @@ const toShowFilmDetail = (filmId: number) => {
 
 const promiseAll = () => {
   return Promise.all([
-    getFilmesApi({status: [2]}),
-    getFilmesApi({status: [1]}),
+    getFilmListApi({status: [2]}),
+    getFilmListApi({status: [1]}),
     getFilmListByScoreApi(num.value),
     getCinemaCarouselListApi()
   ])

@@ -1,15 +1,5 @@
 import request from '@/utils/request'
 import { FilmFormType, FilmResultType, FilmSearchParamsType } from './type'
-
-export function getFilmesApi(params: FilmSearchParamsType): Promise<any> {
-  return request({
-    url: `/film/list`,
-    method: 'get',
-    params
-  })
-}
-
-
 export function getFilmListByScoreApi(num: number): Promise<any> {
   return request({
     url: '/film/score',
@@ -56,10 +46,18 @@ export function deleteFilmByIdApi(id: number): Promise<any> {
 }
 
 
-export function getFilmListApi(): Promise<any> {
+export function getFilmListApi(params: FilmSearchParamsType): Promise<any> {
   return request({
     url: `/film/list`,
-    method: 'get'
+    method: 'get',
+    params
+  })
+}
+
+export function getValidFilmListApi(): Promise<any> {
+  return request({
+    url: `/film/valid/list`,
+    method: 'get',
   })
 }
 

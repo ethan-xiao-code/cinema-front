@@ -43,22 +43,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
-import { getFilmesApi, pageQueryFilmApi } from "@/api/film";
+import { getFilmListApi, pageQueryFilmApi } from "@/api/film";
 import FilmCard from "@/components/FilmCard.vue";
-import Pager from "@/components/Pager.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";
 import { useRequest } from "@/utils/useRequest";
 import BaseLoading from "@/components/BaseLoading.vue";
-
-
-
 const route = useRoute();
-
-// 分页相关
-const pageSize = ref(18);
-const pageNo = ref(1);
 
 // 筛选状态
 const activeType = ref(-1);
@@ -69,7 +61,7 @@ const filmList = ref<any[]>([]);
 
 
 const queryFilmList = (title?: string) => {
-  return getFilmesApi({
+  return getFilmListApi({
     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
     title,
@@ -86,26 +78,26 @@ const { runFn: getAllFilmData, loading } = useRequest(queryFilmList, {
 // 类型筛选 - 选择单个
 const updateTypeColor = (index: number) => {
   activeType.value = index;
-  pageNo.value = 1;
 };
 // 类型筛选 - 选择全部
 const selectTypeAll = () => {
   activeType.value = -1;
-  pageNo.value = 1;
 };
 
 // 地区筛选 - 选择单个
 const updateRegionColor = (index: number) => {
   activeRegion.value = index;
-  pageNo.value = 1;
 };
 // 地区筛选 - 选择全部
 const selectRegionAll = () => {
   activeRegion.value = -1;
-  pageNo.value = 1;
 };
 
-watch([pageNo, pageSize, activeRegion, activeType], (data) => {
+onUnmounted(() => {
+  
+})
+
+watch([activeRegion, activeType], (data) => {
   getAllFilmData();
 })
 
@@ -114,8 +106,6 @@ watch(
   () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
   (newVal) => {
     const title = newVal?.toString();
-    console.log(title, 'title')
-    pageNo.value = 1;
     getAllFilmData(title);
   },
   { immediate: true }

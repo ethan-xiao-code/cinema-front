@@ -19,7 +19,7 @@ export const filmStatusOptions = [
 ]
 
 export const shceduleStatusOptions = [
-  { label: '已取消', value: ScheduleStatus.Canceled, type: 'warning' },
+  // { label: '已取消', value: ScheduleStatus.Canceled, type: 'warning' },
   { label: '未发布', value: ScheduleStatus.Unpubilshed, },
   { label: '已发布', value: ScheduleStatus.Published, type: 'success' },
   { label: '已结束', value: ScheduleStatus.Expired, type: 'danger' }
@@ -38,8 +38,8 @@ export const userRoleOptions = [
   { label: '管理员', value: RoleEnum.Admin }
 ]
 export const accountStatusOptions = [
-  { label: "启用", value: 1, },
-  { label: "禁用", value: 0, },
+  { label: "启用", value: 1, type: 'primary' },
+  { label: "禁用", value: 0,type: 'danger' },
 ]
 
 export const payStatusOptions = [

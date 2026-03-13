@@ -1,5 +1,4 @@
 <template>
-
   <BaseLoading :loading="loading" text="影片详情加载中..." class="filmDetailModule">
     <!-- 头部 -->
     <FilmHeader :shopType="ShopEnum.Detail" :film="film" @buy="toBuyFilm" @rate="toRate" />
@@ -145,7 +144,7 @@ onMounted(() => {
 $width: 900px;
 
 .filmDetailModule {
-  padding: 0 30px;
+  background-color: #fff;
 
   .mainBox {
     text-align: left;

@@ -9,8 +9,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from "vue";
-import { ElButton, ElMessage, ElMessageBox } from "element-plus";
-import { accountStatusOptions, userRoleOptions } from "@/utils/constant";
+import { ElButton, ElMessage, ElMessageBox, ElTag } from "element-plus";
+import { accountStatusOptions, getItemByValue, userRoleOptions } from "@/utils/constant";
 import SearchTableTemplate, { PagerType, SearchParamType, TableParamType } from "@/components/SearchTableTemplate.vue";
 import { pageQueryUserApi, updateUserApi } from "@/api/user";
 // 响应式数据
@@ -45,9 +45,9 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "账号状态",
     prop: "status",
-    renderText: (value: any) => {
-      return accountStatusOptions.find((item: any) => item.value === value)
-        ?.label || '';
+    render: (value: number) => {
+      const item = getItemByValue(accountStatusOptions, value)
+      return h(ElTag, { type: item?.type as any }, () => item?.label);
     },
   },
   {

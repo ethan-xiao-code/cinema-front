@@ -5,23 +5,13 @@
       :tableProps="tableProps">
       <template #handle>
         <el-button type="primary" @click="showAddDialog">新增排片</el-button>
-        <el-button type="primary" :disabled="selectRows.length === 0"
-          @click="showPublishDialog = true">批量发布排片</el-button>
+        <el-button type="primary" :disabled="selectRows.length === 0" @click="confirmPublish">批量发布排片</el-button>
       </template>
     </SearchTableTemplate>
 
     <EditScheduleDialog v-if="dialogFormVisible" v-model="dialogFormVisible" :actionType="actionType"
       :schedule="scheduleForm" :filmOptions="filmOptions" :screenRoomOptions="screenRoomOptions"
       @handleSuccess="handleSuccess" />
-    <el-dialog v-model="showPublishDialog" title="提示" width="30%">
-      <span>确认发布选中的排片吗？发布后排片内容将同步至购票平台，用户可查看并购票，且该排片不能被编辑</span>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showPublishDialog = false">取消</el-button>
-          <el-button type="primary" @click="handlePublish">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -35,8 +25,8 @@ import {
 import { getScreenRoomListApi } from "@/api/screen";
 import {
   pageQueryScheduleApi,
-  updateScheduleApi,
-  updateScheduleStatusApi,
+  publishScheduleApi,
+  unPublishScheduleApi,
 } from "@/api/schedule";
 import EditScheduleDialog from "./components/EditScheduleDialog.vue";
 import SearchTableTemplate from "@/components/SearchTableTemplate.vue";
@@ -52,7 +42,7 @@ import {
   ScheduleFormType,
   ScheduleStatus,
 } from "@/api/schedule/type";
-import { getFilmListApi } from "@/api/film/index";
+import { getValidFilmListApi } from "@/api/film/index";
 import { ElTag } from "element-plus";
 import { ElMessage } from "element-plus";
 defineOptions({
@@ -62,7 +52,6 @@ export type ScheduleActionType = "add" | "update";
 // 响应式数据
 const dialogFormVisible = ref(false);
 const actionType = ref<ScheduleActionType>("add");
-const showPublishDialog = ref(false);
 const searchTableTemplateRef = ref<InstanceType<typeof SearchTableTemplate>>();
 
 const screenRoomOptions = ref<OptionsType[]>([]);
@@ -72,7 +61,6 @@ const scheduleForm = ref<ScheduleFormType | null>(null);
 const selectRows = ref<ScheduleFormType[]>([]);
 const handleSelectChange = (list: ScheduleFormType[]) => {
   selectRows.value = [...list];
-  console.log(selectRows.value, "selectRows");
 };
 
 const tableProps = {
@@ -101,7 +89,7 @@ const tableParamsList = ref<TableParamType[]>([
   {
     label: "影片名",
     prop: "filmName",
-     minWidth: 160
+    minWidth: 160
   },
   {
     label: "放映厅",
@@ -174,23 +162,13 @@ const tableParamsList = ref<TableParamType[]>([
     fixed: "right",
     render: (_: any, row: any) => {
       return h("div", { class: "action-buttons" }, [
-        // row.status === ScheduleStatus.Unpubilshed
-        //   ? h(
-        //       ElButton,
-        //       {
-        //         type: "warning",
-        //         size: "small",
-        //         onClick: () => showEditDialog(row),
-        //       },
-        //       () => "编辑"
-        //     )
-        //   : null,
         h(
           ElButton,
           {
             type: "warning",
             size: "small",
             onClick: () => showEditDialog(row),
+            disabled: row.status !== ScheduleStatus.Unpubilshed // 只有未发布的排片可以进行编辑
           },
           () => "编辑"
         )
@@ -202,24 +180,27 @@ const tableParamsList = ref<TableParamType[]>([
               type: "success",
               size: "small",
               onClick: () => {
-                selectRows.value.push(row);
-                showPublishDialog.value = true;
+                selectRows.value.push(row)
+                confirmPublish()
               },
             },
-            () => "发布"
+            () => "发布" // 将排片同步到购票前台
           )
           : null,
-        row.status === ScheduleStatus.Published
-          ? h(
-            ElButton,
-            {
-              type: "danger",
-              size: "small",
-              // onClick: () => handlePublish(row),
-            },
-            () => "取消发布"
-          )
-          : null,
+        // 取消发布功能等以后再扩展
+        // row.status === ScheduleStatus.Published
+        //   ? h(
+        //     ElButton,
+        //     {
+        //       type: "danger",
+        //       size: "small",
+        //       onClick: () => {
+        //         confirmUnPublish(row)
+        //       },
+        //     },
+        //     () => "取消发布"
+        //   )
+        //   : null,
       ]);
     },
   },
@@ -287,14 +268,41 @@ onMounted(() => {
   getScreenRoomListName();
   initFilmList();
 });
-const handlePublish = async () => {
+
+import { ElMessageBox } from 'element-plus'
+
+const confirmPublish = async () => {
+  await ElMessageBox.confirm(
+    '确认发布选中的排片吗？发布后排片内容将同步至购票平台，用户可查看并购票，且该排片不能被编辑',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
   const ids = selectRows.value.map((item) => item.id);
-  console.log(ids, "ids");
-  await updateScheduleStatusApi(ids);
+  console.log(selectRows.value, 'selectRows')
+  await publishScheduleApi(ids);
   ElMessage.success("发布成功");
-  showPublishDialog.value = false;
   reloadData();
-};
+}
+
+const confirmUnPublish = async (row: any) => {
+  await ElMessageBox.confirm(
+    '确认要取消发布吗？只有距离该影片开场时间大于1天并且没有用户选座购票时才可以取消喔',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
+  await unPublishScheduleApi(row.id)
+  ElMessage.success("取消发布成功");
+  reloadData();
+}
+
 const getTableData = async (
   pageParams: PagerType,
   searchParams: Record<string, any>
@@ -316,7 +324,7 @@ const getTableData = async (
 };
 
 const initFilmList = async () => {
-  const data = (await getFilmListApi()) || [];
+  const data = (await getValidFilmListApi()) || [];
   filmOptions.value = data.map((item: any) => ({
     ...item,
     label: item.title as string,
