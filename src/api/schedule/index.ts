@@ -32,7 +32,7 @@ export function pageQueryScheduleApi(params: any): Promise<any> {
   })
 }
 
-export function getScheduleDateList(id: number): Promise<any> {
+export function getScheduleDateListApi(id: number): Promise<any> {
   return request({
     url: '/schedule/screeningDateList',
     method: 'get',
@@ -40,7 +40,7 @@ export function getScheduleDateList(id: number): Promise<any> {
   })
 }
 
-export function getScheduleListByDate(screeningDate: string, filmId: number): Promise<any> {
+export function getScheduleListByDateApi(screeningDate: string, filmId: number): Promise<any> {
   return request({
     url: '/schedule/screeningDate/scheduleList',
     method: 'get',
@@ -48,7 +48,7 @@ export function getScheduleListByDate(screeningDate: string, filmId: number): Pr
   })
 }
 
-export function getFilmAndScheduleById(params: any): Promise<any> {
+export function getFilmAndScheduleByIdApi(params: any): Promise<any> {
   return request({
     url: '/schedule/detail',
     method: 'get',

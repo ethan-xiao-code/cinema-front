@@ -8,7 +8,7 @@ export function addCartApi(data: any): Promise<any> {
   })
 }
 
-export function getCartes(): Promise<any> {
+export function getCartesApi(): Promise<any> {
   return request({
     url: `/cart/list`,
     method: 'get'

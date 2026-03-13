@@ -10,7 +10,7 @@ export function updatePasswordApi(data: any): Promise<any> {
   })
 }
 
-export function upload(data: any): Promise<any> {
+export function uploadApi(data: any): Promise<any> {
   return request({
     url: `/upload`,
     method: 'post',

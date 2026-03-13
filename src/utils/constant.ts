@@ -1,7 +1,7 @@
 import { ScheduleStatus } from "@/api/schedule/type";
 export const userSystemTitle = "汪汪影院购票中心"
 export const adminSystemTitle = "汪汪影院管理后台"
-export const filmTypeList = ["动作", "动画", "喜剧", "犯罪", "恐怖", "爱情", "科幻", "战争", "其他"];
+export const filmTypeList = ["动作", "动画", "剧情", "喜剧", "犯罪", "恐怖", "爱情", "科幻", "战争", "其他"];
 export const filmRegionList = ["内地", "香港", "台湾", "日本", "美国", "其他"];
 export const languageList = ['国语', '英语', '粤语', '其他']
 

@@ -10,7 +10,6 @@ const router = createRouter({
   routes,
 })
 
-const whiteList = ['/login', '/404', '/register', '/test']
 
 // router.beforeEach(async (to, from, next) => {
 //   const userStore = useUserStore()

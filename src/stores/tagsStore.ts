@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { RouteLocationNormalizedLoaded } from "vue-router";
 
-export const useTagsViewStore = defineStore("tagsView", {
+export const useTagsViewStore = defineStore("tags-name", {
   state: () => ({
     cachedNames: [] as string[], // keep-alive 缓存组件名
   }),

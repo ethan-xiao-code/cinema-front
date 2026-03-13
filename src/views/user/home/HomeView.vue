@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import film, { getFilmesApi, getFilmListByScore } from "@/api/film";
+import { getFilmesApi, getFilmListByScoreApi } from "@/api/film";
 import UserHome from "./components/UserHome.vue";
 import { getCinemaCarouselListApi } from "@/api/cinema-carousel";
 import { CinemaCarouselItemType } from "@/api/cinema-carousel/type";
@@ -79,7 +79,7 @@ const promiseAll = () => {
   return Promise.all([
     getFilmesApi({status: [2]}),
     getFilmesApi({status: [1]}),
-    getFilmListByScore(num.value),
+    getFilmListByScoreApi(num.value),
     getCinemaCarouselListApi()
   ])
 }
@@ -99,31 +99,6 @@ watchEffect(() => {
   }
 })
 
-
-onMounted(async () => {
-
-  // try {
-  //   loading.value = true
-  //   const [
-  //     hotRes,
-  //     upcomingRes,
-  //     topRes,
-  //     carouselRes
-  //   ] = await Promise.all([
-  //     getFilmesApi(2),
-  //     getFilmesApi(1),
-  //     getFilmListByScore(num.value),
-  //     getCinemaCarouselListApi()
-  //   ]);
-
-  //   hotfilmList.value = hotRes;
-  //   upcomingList.value = upcomingRes;
-  //   topfilmList.value = topRes;
-  //   carouselList.value = carouselRes;
-  // } finally {
-  //   loading.value = false
-  // }
-});
 
 </script>
 

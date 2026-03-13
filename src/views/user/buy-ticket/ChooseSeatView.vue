@@ -120,7 +120,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ElLoading, ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
 
-import { getFilmAndScheduleById } from "@/api/schedule";
+import { getFilmAndScheduleByIdApi } from "@/api/schedule";
 import { getSeatsByScheduleId } from "@/api/seat";
 import { addCartApi } from "@/api/cart";
 import { useWebSocket } from "@/utils/useWebSocket";
@@ -383,7 +383,7 @@ const totalPrice = computed(() => {
   return Number((selectedSeatList.value.length * filmSchedule.price).toFixed(2))
 })
 
-const { loading: loadingPage, runFn: getFilmSchedule } = useRequest(getFilmAndScheduleById, {
+const { loading: loadingPage, runFn: getFilmSchedule } = useRequest(getFilmAndScheduleByIdApi, {
   onSuccess: (res) => {
     Object.assign(filmSchedule, res);
     initSeats();
@@ -397,7 +397,7 @@ onMounted(() => {
 });
 /** 获取排片信息 */
 // const getFilmSchedule = async () => {
-//   const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
+//   const res = await getFilmAndScheduleByIdApi({ scheduleId: scheduleId.value });
 //   Object.assign(filmSchedule, res);
 //   initSeats();
 //   getSeatList();

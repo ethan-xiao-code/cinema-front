@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick, h } from "vue";
 import { ElMessage, ElMessageBox, ElButton } from "element-plus";
-import { pageQueryFilm, deleteFilmById } from "@/api/film";
+import { pageQueryFilmApi, deleteFilmByIdApi } from "@/api/film";
 // import AddScheduleDialog from "../schedule/components/AddScheduleDialog.vue";
 import EditFilmDialog from "./components/EditFilmDialog.vue";
 import SearchTableTemplate, {
@@ -170,7 +170,7 @@ const searchParamsList = ref<SearchParamType[]>([
 
 const getTableData = async (pageParams: PagerType, searchParams: Record<string, any>) => {
 
-  const res = await pageQueryFilm({
+  const res = await pageQueryFilmApi({
     ...pageParams,
     ...searchParams,
   });
@@ -200,7 +200,7 @@ const handleDelete = async (row) => {
       type: "warning",
     });
 
-    await deleteFilmById(row.id);
+    await deleteFilmByIdApi(row.id);
     ElMessage.success("删除成功");
     searchTableTemplateRef.value.pageQuery();
   } catch (error) {

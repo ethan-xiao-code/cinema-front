@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { ElMessage } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { upload } from "@/api/common";
+import { uploadApi } from "@/api/common";
 import { useRequest } from "@/utils/useRequest";
 
 // ========== Props ==========
@@ -42,7 +42,7 @@ const emit = defineEmits<{
 // // ========== 上传状态 ==========
 // const isUploading = ref(false);
 
-const { loading: isUploading, runFn: handleUpload } = useRequest(upload, {
+const { loading: isUploading, runFn: handleUpload } = useRequest(uploadApi, {
   onSuccess: (res) => {
     emit("update:modelValue", res);
     ElMessage.success("上传成功");

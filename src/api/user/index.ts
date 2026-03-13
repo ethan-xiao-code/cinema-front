@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 
 
-export function login(data: any): Promise<any> {
+export function loginApi(data: any): Promise<any> {
   return request({
     url: '/user/login',
     method: 'post',
@@ -10,7 +10,7 @@ export function login(data: any): Promise<any> {
   })
 }
 
-export function getUserInfo(roleId: number): Promise<any> {
+export function getUserInfoApi(roleId: number): Promise<any> {
   return request({
     url: `/info`,
     method: 'get',
@@ -20,7 +20,7 @@ export function getUserInfo(roleId: number): Promise<any> {
   })
 }
 
-export function logout(data: any): Promise<any> {
+export function logoutApi(data: any): Promise<any> {
   return request({
     url: `/user/logout`,
     method: 'post',
@@ -28,7 +28,7 @@ export function logout(data: any): Promise<any> {
   })
 }
 
-export function register(data: any): Promise<any> {
+export function registerApi(data: any): Promise<any> {
   return request({
     url: '/user/register',
     method: 'post',
@@ -44,7 +44,7 @@ export function pageQueryUserApi(params: any): Promise<any> {
   })
 }
 
-export function getUserById(id: number): Promise<any> {
+export function getUserByIdApi(id: number): Promise<any> {
   return request({
     url: '/user/single',
     params: { id }
@@ -58,16 +58,6 @@ export function updateUserApi( data: any): Promise<any> {
     data
   })
 }
-
-export function recharge(data: any): Promise<any> {
-  return request({
-    url: `/user/recharge`,
-    method: 'put',
-    data
-  })
-}
-
-
 export function getUserListApi(): Promise<any> {
   return request({
     url: '/user/list',

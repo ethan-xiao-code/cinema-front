@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { getFilmesApi, pageQueryFilm } from "@/api/film";
+import { getFilmesApi, pageQueryFilmApi } from "@/api/film";
 import FilmCard from "@/components/FilmCard.vue";
 import Pager from "@/components/Pager.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";

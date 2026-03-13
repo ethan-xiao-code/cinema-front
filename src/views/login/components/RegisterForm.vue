@@ -43,7 +43,7 @@
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { register } from "@/api/user";
+import { registerApi } from "@/api/user";
 
 const router = useRouter();
 const formRef = ref();
@@ -95,16 +95,11 @@ const handleRegister = async () => {
   const valid = await formRef.value.validate();
   if (!valid) return;
 
-  await register({ ...registerForm });
+  await registerApi({ ...registerForm });
   ElMessage.success("注册成功");
 
   // 注册成功 → 切回登录页
   router.replace("/login");
-};
-
-
-const toLogin = () => {
-  router.push("/login");
 };
 </script>
 

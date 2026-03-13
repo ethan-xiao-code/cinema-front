@@ -10,21 +10,21 @@ export function getFilmesApi(params: FilmSearchParamsType): Promise<any> {
 }
 
 
-export function getFilmListByScore(num: number): Promise<any> {
+export function getFilmListByScoreApi(num: number): Promise<any> {
   return request({
     url: '/film/score',
     params: { num }
   })
 }
 
-export function getFilmById(id: number): Promise<FilmResultType> {
+export function getFilmByIdApi(id: number): Promise<FilmResultType> {
   return request({
     url: `/film/single/${id}`,
     method: 'get'
   })
 }
 
-export function pageQueryFilm(params: any): Promise<FilmResultType[]> {
+export function pageQueryFilmApi(params: any): Promise<FilmResultType[]> {
   return request({
     url: '/film/page',
     method: 'get',
@@ -32,7 +32,7 @@ export function pageQueryFilm(params: any): Promise<FilmResultType[]> {
   })
 }
 
-export function addFilm(data: FilmFormType): Promise<any> {
+export function addFilmApi(data: FilmFormType): Promise<any> {
   return request({
     url: '/film/save',
     method: 'post',
@@ -40,7 +40,7 @@ export function addFilm(data: FilmFormType): Promise<any> {
   })
 }
 
-export function updateFilm(data: FilmFormType): Promise<any> {
+export function updateFilmApi(data: FilmFormType): Promise<any> {
   return request({
     url: '/film/edit',
     method: 'put',
@@ -48,7 +48,7 @@ export function updateFilm(data: FilmFormType): Promise<any> {
   })
 }
 
-export function deleteFilmById(id: number): Promise<any> {
+export function deleteFilmByIdApi(id: number): Promise<any> {
   return request({
     url: `/film/${id}`,
     method: 'delete'

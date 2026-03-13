@@ -60,7 +60,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, ElEmpty } from 'element-plus'
-import { getOrdersList, cancelOrdersApi } from "@/api/orders";
+import { getOrdersListApi, cancelOrdersApi } from "@/api/orders";
 import { getLabelByValue, getTypeByValue, payStatusOptions } from '@/utils/constant';
 import { useRequest } from '@/utils/useRequest';
 import BaseLoading from '@/components/BaseLoading.vue';
@@ -82,7 +82,7 @@ interface OrderItem {
 
 const ordersList = ref<OrderItem[]>([])
 
-const { loading} = useRequest(getOrdersList, {
+const { loading} = useRequest(getOrdersListApi, {
   onSuccess: (res) => {
     ordersList.value = res || []
   },

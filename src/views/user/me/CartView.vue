@@ -119,7 +119,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
-import { getCartes, deleteCartByIdApi } from "@/api/cart";
+import { getCartesApi, deleteCartByIdApi } from "@/api/cart";
 import { saveOrdersApi } from "@/api/orders";
 import { Delete } from "@element-plus/icons-vue";
 import { useRequest } from "@/utils/useRequest";
@@ -174,7 +174,7 @@ const totalPrice = computed(() =>
 
 /** 获取用户购物车列表 */
 const getCartesByUserId = async () => {
-  const res = await getCartes();
+  const res = await getCartesApi();
   cartList.value = res || [];
   return res || [];
 };

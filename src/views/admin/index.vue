@@ -60,7 +60,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { useTagsViewStore } from "@/stores/tagsView";
+import { useTagsViewStore } from "@/stores/tagsStore";
 import {
   Fold,
   Expand,
@@ -161,26 +161,7 @@ const toHomePage = () => {
 
 }
 
-const handleCommand = async (command: string): Promise<void> => {
-  switch (command) {
-    case "out":
-      await logout();
-      break;
 
-    case "home_page":
-      router.push("/user")
-      break;
-
-    case "settings":
-      // 跳转到设置页面
-      router.push("/admin/settings");
-      break;
-
-    case "change_password":
-      showPasswordDialog.value = true;
-      break;
-  }
-};
 </script>
 
 <style scoped lang="scss">

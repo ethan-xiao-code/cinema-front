@@ -102,7 +102,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import { getFilmById, addFilm, updateFilm } from "@/api/film";
+import { getFilmByIdApi, addFilmApi, updateFilmApi } from "@/api/film";
 import UploadImage from "@/components/UploadImage.vue";
 import { filmTypeList, filmRegionList } from "@/utils/constant";
 import { FilmFormType } from "@/api/film/type";
@@ -177,7 +177,7 @@ const resetForm = () => {
 // 方法
 const getFilmByIdData = async (id: number) => {
   try {
-    const data = (await getFilmById(id)) || {};
+    const data = (await getFilmByIdApi(id)) || {};
     const { releaseDate, endDate, types, regions } = data;
     Object.assign(filmForm, {
       ...data,
@@ -229,12 +229,12 @@ const submitForm = () => {
 };
 
 const addFilmData = async (values: FilmFormType) => {
-  await addFilm({ ...values });
+  await addFilmApi({ ...values });
   ElMessage.success("添加影片成功");
 };
 
 const updateFilmData = async (values: FilmFormType) => {
-  await updateFilm({ ...values });
+  await updateFilmApi({ ...values });
   ElMessage.success("修改影片成功");
 };
 

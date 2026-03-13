@@ -17,7 +17,7 @@ export function saveOrdersApi(data: any): Promise<any> {
   })
 }
 
-export function getOrdersList(): Promise<any> {
+export function getOrdersListApi(): Promise<any> {
   return request({
     url: '/orders/list',
     method: 'get'

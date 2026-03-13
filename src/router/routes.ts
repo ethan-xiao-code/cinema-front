@@ -13,12 +13,6 @@ export const routes = [
     hidden: true,
     component: () => import('@/views/login/index.vue'),
   },
-  {
-    path: '/register',
-    name: 'register',
-    hidden: true,
-    component: () => import('@/views/user/register/index.vue')
-  },
   // {
   //   path: '/demo',
   //   hidden: true,

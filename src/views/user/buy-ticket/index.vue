@@ -61,8 +61,8 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 // 导入API函数（需确保返回Promise类型）
-import { getScheduleDateList, getScheduleListByDate } from "@/api/schedule";
-import { getFilmById } from "@/api/film";
+import { getScheduleDateListApi, getScheduleListByDateApi } from "@/api/schedule";
+import { getFilmByIdApi } from "@/api/film";
 import { addCommentApi } from "@/api/comment";
 import { Postcard, Reading, Star } from "@element-plus/icons-vue";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
@@ -148,7 +148,7 @@ const scheduleList = ref<Schedule[]>([]); // 排片列表
  */
 const getSingleFilmById = async () => {
   try {
-    const res = await getFilmById(filmId.value);
+    const res = await getFilmByIdApi(filmId.value);
     film.value = res;
   } catch (error) {
     ElMessage.error("获取电影信息失败");
@@ -203,7 +203,7 @@ const toFilmDetail = () => {
  */
 const getScheduleDates = async () => {
   try {
-    const res = (await getScheduleDateList(filmId.value)) || [];
+    const res = (await getScheduleDateListApi(filmId.value)) || [];
     res.length && res.sort((a: string, b: string) => {
       // 对放映日期进行升序排序
       return new Date(a).getTime() - new Date(b).getTime();
@@ -238,7 +238,7 @@ const getHandleTime = (time: string) => {
  */
 const handleSelect = async (scheduleDate: string) => {
   try {
-    const res = await getScheduleListByDate(scheduleDate, filmId.value);
+    const res = await getScheduleListByDateApi(scheduleDate, filmId.value);
     scheduleList.value = res || [];
     isDisableButton(); // 处理按钮禁用状态
   } catch (error) {
