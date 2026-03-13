@@ -50,8 +50,6 @@
       </div>
     </div>
 
-    <!-- 个人中心弹窗 -->
-    <MyCenterDialog v-model="showCenterDialog" />
 
     <!-- 修改密码弹窗
     <ChangePasswordDialog v-model="showPasswordDialog" /> -->
@@ -81,7 +79,6 @@ const userStore = useUserStore();
 const tagsStore = useTagsViewStore()
 // 响应式数据
 const currentPath = ref<string>(route.path);
-const showCenterDialog = ref<boolean>(false);
 const showPasswordDialog = ref<boolean>(false);
 const isCollapse = ref<boolean>(false);
 

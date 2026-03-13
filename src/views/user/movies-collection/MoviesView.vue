@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { pageQueryFilm } from "@/api/film";
+import { getFilmesApi, pageQueryFilm } from "@/api/film";
 import FilmCard from "@/components/FilmCard.vue";
 import Pager from "@/components/Pager.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";
@@ -59,7 +59,6 @@ const route = useRoute();
 // 分页相关
 const pageSize = ref(18);
 const pageNo = ref(1);
-const total = ref(0);
 
 // 筛选状态
 const activeType = ref(-1);
@@ -68,34 +67,19 @@ const activeRegion = ref(-1);
 // 电影数据列表
 const filmList = ref<any[]>([]);
 
-// // 核心查询方法
-// const pageQueryFilmList = async (title?: string) => {
-//   const res = await pageQueryFilm({
-//     pageNo: 1,
-//     pageSize: 9999,
-//     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
-//     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
-//     title,
-//   });
-//   filmList.value = res.records || [];
-//   total.value = res.total || 0;
-// };
 
-const pageQueryFilmApi = (title?: string) => {
-  return pageQueryFilm({
-    pageNo: 1,
-    pageSize: 9999,
+const queryFilmList = (title?: string) => {
+  return getFilmesApi({
     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
     title,
+    status: [1, 2]
   })
 }
 
-const { runFn: pageQueryFilmList, loading } = useRequest(pageQueryFilmApi, {
-  immediate: true,
+const { runFn: getAllFilmData, loading } = useRequest(queryFilmList, {
   onSuccess: (res) => {
-    filmList.value = res.records || [];
-    total.value = res.total || 0;
+    filmList.value = res || [];
   }
 })
 
@@ -121,16 +105,8 @@ const selectRegionAll = () => {
   pageNo.value = 1;
 };
 
-// 分页切换
-const handleCurrentChange = (val: number) => {
-  pageNo.value = val;
-  // 平滑滚动到顶部，替代生硬的scrollTop
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-
 watch([pageNo, pageSize, activeRegion, activeType], (data) => {
-  pageQueryFilmList();
+  getAllFilmData();
 })
 
 
@@ -140,7 +116,7 @@ watch(
     const title = newVal?.toString();
     console.log(title, 'title')
     pageNo.value = 1;
-    pageQueryFilmList(title);
+    getAllFilmData(title);
   },
   { immediate: true }
 );

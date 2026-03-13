@@ -1,16 +1,14 @@
 import request from '@/utils/request'
-import axios from 'axios'
-import { FilmFormType, FilmResultType } from './type'
+import { FilmFormType, FilmResultType, FilmSearchParamsType } from './type'
 
-export function getFilmesByStatus(status: number): Promise<any> {
+export function getFilmesApi(params: FilmSearchParamsType): Promise<any> {
   return request({
-    url: `/film/list/${status}`
+    url: `/film/list`,
+    method: 'get',
+    params
   })
 }
 
-export function getRecentFilmImage(num: number): Promise<any> {
-  return axios.get(`/film/recent/${num}`)
-}
 
 export function getFilmListByScore(num: number): Promise<any> {
   return request({
@@ -57,12 +55,6 @@ export function deleteFilmById(id: number): Promise<any> {
   })
 }
 
-export function getBoxOfficeByTypeApi(): Promise<any> {
-  return request({
-    url: `/film/type/box_office`,
-    method: 'get'
-  })
-}
 
 export function getFilmListApi(): Promise<any> {
   return request({
@@ -72,8 +64,3 @@ export function getFilmListApi(): Promise<any> {
 }
 
 
-export default {
-  getFilmesByStatus,
-  getRecentFilmImage,
-  getFilmListByScore
-}

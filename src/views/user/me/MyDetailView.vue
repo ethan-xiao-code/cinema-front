@@ -97,7 +97,7 @@ import { ElMessage, ElForm, ElMessageBox } from 'element-plus'
 import UploadImage from "@/components/UploadImage.vue";
 import { useUserStore } from '@/stores'
 import { updateUserApi } from "@/api/user";
-import { updatePassword, updatePasswordApi } from "@/api/common";
+import {  updatePasswordApi } from "@/api/common";
 import { accountStatusOptions, getLabelByValue, userRoleOptions } from '@/utils/constant';
 import { UserType } from '@/api/user/type';
 
