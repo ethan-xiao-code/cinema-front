@@ -1,27 +1,11 @@
 <template>
-  <el-form
-    :model="userForm"
-    :rules="rules"
-    status-icon
-    ref="formRef"
-    label-width="auto"
-    class="loginForm"
-  >
+  <el-form :model="userForm" :rules="rules" ref="formRef" label-width="auto" class="loginForm">
     <el-form-item label="账号" prop="username">
-      <el-input
-        type="text"
-        v-model="userForm.username"
-        placeholder="请输入用户名"
-      ></el-input>
+      <el-input type="text" v-model.trim="userForm.username" placeholder="请输入用户名"></el-input>
     </el-form-item>
 
     <el-form-item label="密码" prop="password">
-      <el-input
-        type="password"
-        v-model="userForm.password"
-        show-password
-        placeholder="请输入密码"
-      ></el-input>
+      <el-input type="password" v-model.trim="userForm.password" show-password placeholder="请输入密码"></el-input>
     </el-form-item>
 
     <el-form-item label="身份">
@@ -33,7 +17,7 @@
   </el-form>
   <div class="button-group">
     <el-button type="primary" class="login-btn" @click="handleLogin">
-      立即登录
+      登录
     </el-button>
   </div>
 </template>
@@ -42,18 +26,32 @@
 import { ref, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/stores";
-import { ElMessage } from "element-plus";
+import { ElMessage, type FormRules } from "element-plus";
 
 const router = useRouter();
 const route = useRoute();
 const store = useUserStore();
 
 const formRef = ref();
+
+// 表单数据
 const userForm = reactive({
-  username: "xzzz",
-  password: "123",
+  username: "",
+  password: "",
   roleId: 0,
 });
+
+// 表单校验规则
+const rules: FormRules = {
+  username: [
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { min: 4, max: 8, message: "长度在 4 到 8 个字符", trigger: "blur" },
+  ],
+  password: [
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 3, max: 10, message: "长度在 3 到 10 个字符", trigger: "blur" },
+  ],
+};
 
 const handleLogin = async () => {
   const valid = await formRef.value.validate();
@@ -63,7 +61,6 @@ const handleLogin = async () => {
   ElMessage.success("登录成功");
 
   const redirect = route.query.redirect as string;
-  console.log(redirect,'redirect')
   router.replace(redirect || "/user/home");
 };
 </script>
@@ -72,15 +69,5 @@ const handleLogin = async () => {
 .loginForm {
   width: 100%;
 
-  :deep(.el-input__wrapper) {
-    border-radius: 10px;
-  }
-
-  .login-btn {
-    width: 100%;
-    height: 42px;
-    border-radius: 10px;
-    font-size: 16px;
-  }
 }
 </style>

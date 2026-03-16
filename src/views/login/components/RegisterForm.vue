@@ -1,42 +1,22 @@
 <template>
-  <el-form
-    label-width="auto"
-    :model="registerForm"
-    status-icon
-    :rules="rules"
-    ref="formRef"
-    class="registerForm"
-  >
+  <el-form label-width="auto" :model="registerForm" :rules="rules" ref="formRef" class="registerForm">
     <el-form-item label="账号" prop="username">
-      <el-input
-        type="text"
-        v-model="registerForm.username"
-        placeholder="请输入用户名"
-      ></el-input>
+      <el-input type="text" v-model.trim="registerForm.username" placeholder="请输入用户名"></el-input>
     </el-form-item>
     <el-form-item label="密码" prop="password">
-      <el-input
-        type="password"
-        v-model="registerForm.password"
-        placeholder="请输入密码"
-        show-password
-      ></el-input>
+      <el-input type="password" v-model.trim="registerForm.password" placeholder="请输入密码" show-password></el-input>
     </el-form-item>
     <el-form-item label="确认密码" prop="checkPass">
-      <el-input
-        type="password"
-        v-model="registerForm.checkPass"
-        placeholder="请再次输入密码"
-        show-password
-      ></el-input>
+      <el-input type="password" v-model.trim="registerForm.checkPass" placeholder="请再次输入密码" show-password></el-input>
     </el-form-item>
     <el-form-item label="电话号码" prop="phone">
-      <el-input v-model="registerForm.phone" placeholder="请输入手机号"></el-input>
+      <el-input v-model.trim="registerForm.phone" placeholder="请输入手机号"></el-input>
     </el-form-item>
   </el-form>
   <div class="button-group">
-    <el-button type="primary" @click="handleRegister">注册</el-button>
+    <el-button :loading="loading" type="primary" @click="handleRegister">注册</el-button>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -44,16 +24,18 @@ import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { registerApi } from "@/api/user";
+import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 const router = useRouter();
 const formRef = ref();
 
 // 响应式数据
 const registerForm = reactive({
-  password: "",
-  checkPass: "",
-  username: "",
-  phone: "",
+  password: "123",
+  checkPass: "123",
+  username: "xxbb",
+  phone: "19142095100",
 });
 
 // 验证规则
@@ -79,8 +61,14 @@ const validatePass2 = (_rule: any, value: string, callback: (val?: any) => void)
 };
 
 const rules = reactive({
-  password: [{ validator: validatePass, trigger: "blur" }],
-  checkPass: [{ validator: validatePass2, trigger: "blur" }],
+  password: [
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { validator: validatePass, trigger: "blur" }
+  ],
+  checkPass: [
+    { required: true, message: "请输入确认密码", trigger: "blur" },
+    { validator: validatePass2, trigger: "blur" }
+  ],
   username: [
     { required: true, message: "请输入用户名", trigger: "blur" },
     { min: 4, max: 8, message: "长度在 4 到 8 个字符", trigger: "blur" },
@@ -96,34 +84,22 @@ const handleRegister = async () => {
   if (!valid) return;
 
   await registerApi({ ...registerForm });
-  ElMessage.success("注册成功");
-
-  // 注册成功 → 切回登录页
-  router.replace("/login");
+  submitRegister({ ...registerForm })
 };
+
+const { runFn: submitRegister, loading } = useRequest(registerApi, {
+  onSuccess: () => {
+    formRef.value.resetFields();
+    ElMessage.success("注册成功");
+    // 注册成功 → 切回登录页
+    router.replace("/login");
+  }
+})
 </script>
 
 <style scoped lang="scss">
 .registerForm {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 
-  // 表单样式优化
-  :deep(.el-form-item) {
-    width: 100%;
-    max-width: 400px;
-
-    .el-form-item__label {
-      font-weight: 500;
-    }
-  }
-}
-
-.button-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>
