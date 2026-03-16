@@ -20,11 +20,11 @@
           <div class="searchBox">
             <!-- 搜索 -->
             <el-input clearable v-model="filmTitle" placeholder="搜索电影" class="searchInput" />
-            <el-button class="searchBtn" type="primary" @click="() => toShowMovies(filmTitle)">查询</el-button>
+            <el-button class="searchBtn" type="primary" @click="() => toShowMovies(filmTitle)">搜索</el-button>
           </div>
 
 
-          <el-button type="success" @click="goAdminPage">后台管理</el-button>
+          <el-button :disabled="!isAdmin" type="success" @click="goAdminPage">后台管理</el-button>
 
           <!-- 用户 -->
           <el-dropdown @command="handleCommand">
@@ -101,6 +101,7 @@
     <div class="mainContent">
       <router-view />
     </div>
+
   </div>
 </template>
 
@@ -121,7 +122,8 @@ import {
   User,
   Remove,
 } from "@element-plus/icons-vue";
-import { userSystemTitle } from "@/utils/constant";
+import { RoleEnum, userSystemTitle } from "@/utils/constant";
+import { eventBus } from "../../utils/eventBus";
 
 // 路由和状态管理（原有逻辑不变）
 const route = useRoute();
@@ -140,7 +142,8 @@ onMounted(() => {
   document.title = userSystemTitle;
 });
 const user = computed(() => userStore.userInfo);
-
+// (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin
+const isAdmin = computed(() => userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin)
 // 监听路由变化
 watch(
   () => route.path,
@@ -187,10 +190,11 @@ const toSwitchAccount = async () => {
 
 // 登录跳转
 const toLogin = () => {
-  router.push({
-    path: "/login",
-    query: { redirect: route.fullPath },
-  });
+  eventBus.emit("showLoginDialog",{});
+  // router.push({
+  //   path: "/login",
+  //   query: { redirect: route.fullPath },
+  // });
 };
 
 // 退出登录
@@ -214,7 +218,7 @@ const toShowMovies = (filmTitle: string) => {
 const goAdminPage = () => {
   // const routeUrl = router.resolve({ path: "/admin" });
   // window.open(routeUrl.href, "_blank");
-  if (userStore.userId && userStore.userInfo?.roleId === 1) {
+  if (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin) {
     router.push("/admin")
   } else {
     ElMessage.warning("只有管理员才可以进入哦~")

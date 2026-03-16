@@ -6,6 +6,7 @@ import axios, {
 import router from '@/router'
 import { useUserStore } from '@/stores'
 import { ElMessage } from 'element-plus'
+import { eventBus } from './eventBus'
 
 // 响应数据接口
 export interface ApiResponse<T = any> {
@@ -72,14 +73,11 @@ service.interceptors.response.use(
         userId: store.userId
       }
 
-      try {
-        await store.logoutAction(data)
-      } catch (logoutError) {
-        console.error('退出登录失败:', logoutError)
-      }
+      await store.logoutAction(data)
 
-      msg = '登录过期了，请重新登录'
-      router.push('/login')
+      msg = '非法登录，请重新登录'
+      // router.push('/login')
+      eventBus.emit("showLoginDialog",{})
     } else if (status >= 500) {
       msg = '服务器出错啦'
     } else if (status >= 400) {

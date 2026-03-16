@@ -8,6 +8,7 @@ interface UseRequestOptionsType {
   onSuccess?: (data?: any) => void;
   onError?: (err?: any) => void;
   intervalTime?: number; // 轮询的时间间隔
+  delay?: number;
 }
 
 export function useRequest<T = any>(
@@ -20,7 +21,8 @@ export function useRequest<T = any>(
     debounceTime = 0,
     onSuccess, // 请求成功处理回调
     onError, // 请求失败处理回调
-    intervalTime = -1 // 轮询间隔时间
+    intervalTime = -1, // 轮询间隔时间
+    delay = 500
   } = options
 
   const data = ref<T | null>(null)
@@ -32,19 +34,21 @@ export function useRequest<T = any>(
   const run = async (...args: any[]) => {
     loading.value = true
     error.value = null
+    setTimeout(async () => {
+      try {
+        const res = await requestFn(...args)
+        data.value = res
+        onSuccess?.(res)
+        return res
+      } catch (err: any) {
+        error.value = err
+        onError?.(err)
+        return Promise.reject(err)
+      } finally {
+        loading.value = false
+      }
+    }, delay)
 
-    try {
-      const res = await requestFn(...args)
-      data.value = res
-      onSuccess?.(res)
-      return res
-    } catch (err: any) {
-      error.value = err
-      onError?.(err)
-      return Promise.reject(err)
-    } finally {
-      loading.value = false
-    }
   }
   let runFn: (...args: any[]) => void = run
   // 优先使用 debounce

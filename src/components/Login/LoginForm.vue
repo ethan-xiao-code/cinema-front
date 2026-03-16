@@ -16,9 +16,10 @@
     </el-form-item>
   </el-form>
   <div class="button-group">
-    <el-button type="primary" class="login-btn" @click="handleLogin">
+    <el-button :loading="loading" type="primary" class="login-btn" @click="handleLogin">
       登录
     </el-button>
+    <el-button @click="emit('onCancel')">取消</el-button>
   </div>
 </template>
 
@@ -27,17 +28,18 @@ import { ref, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/stores";
 import { ElMessage, type FormRules } from "element-plus";
+import { useRequest } from "@/utils/useRequest";
 
 const router = useRouter();
 const route = useRoute();
 const store = useUserStore();
-
+const emit = defineEmits(["onSuccess", "onCancel"])
 const formRef = ref();
 
 // 表单数据
 const userForm = reactive({
-  username: "",
-  password: "",
+  username: "xzzz",
+  password: "123",
   roleId: 0,
 });
 
@@ -56,18 +58,30 @@ const rules: FormRules = {
 const handleLogin = async () => {
   const valid = await formRef.value.validate();
   if (!valid) return;
-
-  await store.loginAction({ ...userForm });
-  ElMessage.success("登录成功");
-
-  const redirect = route.query.redirect as string;
-  router.replace(redirect || "/user/home");
+  onLogin({ ...userForm })
+  // await store.loginAction({ ...userForm });
+  // ElMessage.success("登录成功");
+  // emit("onSuccess")
+  // const redirect = route.query.redirect as string;
+  // router.replace(redirect || "/user/home");
 };
+
+const { runFn: onLogin, loading } = useRequest(store.loginAction, {
+  onSuccess: () => {
+    ElMessage.success("登录成功");
+    emit("onSuccess")
+  }
+})
 </script>
 
 <style lang="scss" scoped>
 .loginForm {
   width: 100%;
 
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
 }
 </style>

@@ -17,7 +17,8 @@ export const useUserStore = defineStore('user_info', {
     tokenState: (state) => state.token,
     username: (state) => state.userInfo?.username || '',
     userInfoState: (state) => state.userInfo,
-    userId: (state) => state.userInfo?.id || -1
+    userId: (state) => state.userInfo?.id || -1,
+    roleId: (state) => state.userInfo?.roleId || -1,
   },
   actions: {
     setToken(token: string | null) {

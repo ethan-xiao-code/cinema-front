@@ -7,12 +7,12 @@ export const routes = [
     redirect: '/user/home',
     hidden: true
   },
-  {
-    path: '/login',
-    name: 'login',
-    hidden: true,
-    component: () => import('@/views/login/index.vue'),
-  },
+  // {
+  //   path: '/login',
+  //   name: 'login',
+  //   hidden: true,
+  //   component: () => import('@/views/login/index.vue'),
+  // },
   // {
   //   path: '/demo',
   //   hidden: true,

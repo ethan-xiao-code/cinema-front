@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores'
 import { routes } from './routes';
 import { RoleEnum } from '@/utils/constant';
 import { ElMessage } from 'element-plus';
+import { eventBus } from '@/utils/eventBus';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -32,15 +33,9 @@ router.beforeEach((to, from, next) => {
   if (to.matched.some(r => r.meta.requiresAuth)) {
     if (!token) {
       ElMessage.warning("请先完成登录才可以执行相应操作")
-      setTimeout(() => {
-        next({
-          path: "/login",
-          query: {
-            redirect: to.fullPath
-          }
-        })
-      }, 1000)
-      return;
+      eventBus.emit("showLoginDialog", { redirectPath: to.fullPath });  // 把当前路径传给弹框
+      next(false); // 阻止路由跳转
+      return
     }
   }
 

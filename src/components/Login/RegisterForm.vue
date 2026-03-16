@@ -15,6 +15,7 @@
   </el-form>
   <div class="button-group">
     <el-button :loading="loading" type="primary" @click="handleRegister">注册</el-button>
+    <el-button @click="emit('onCancel')">取消</el-button>
   </div>
 
 </template>
@@ -29,13 +30,14 @@ import BaseLoading from "@/components/BaseLoading.vue";
 
 const router = useRouter();
 const formRef = ref();
+const emit = defineEmits(["onSuccess", "onCancel"])
 
 // 响应式数据
 const registerForm = reactive({
-  password: "123",
-  checkPass: "123",
-  username: "xxbb",
-  phone: "19142095100",
+  password: "",
+  checkPass: "",
+  username: "",
+  phone: "",
 });
 
 // 验证规则
@@ -82,8 +84,6 @@ const rules = reactive({
 const handleRegister = async () => {
   const valid = await formRef.value.validate();
   if (!valid) return;
-
-  await registerApi({ ...registerForm });
   submitRegister({ ...registerForm })
 };
 
@@ -91,9 +91,7 @@ const { runFn: submitRegister, loading } = useRequest(registerApi, {
   onSuccess: () => {
     formRef.value.resetFields();
     ElMessage.success("注册成功");
-    // 注册成功 → 切回登录页
-    router.replace("/login");
-  }
+  },
 })
 </script>
 
@@ -101,5 +99,10 @@ const { runFn: submitRegister, loading } = useRequest(registerApi, {
 .registerForm {
   width: 100%;
 
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
 }
 </style>
