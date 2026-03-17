@@ -123,11 +123,9 @@ import { useUserStore } from "@/stores";
 import { getFilmAndScheduleByIdApi } from "@/api/schedule";
 import { getSeatsByScheduleId } from "@/api/seat";
 import { addCartApi } from "@/api/cart";
-import { useWebSocket } from "@/utils/useWebSocket";
 import { getLabelByValue, screenTypeOptions } from "@/utils/constant";
 import { useRequest } from "@/utils/useRequest";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { use } from "echarts/types/src/extension.js";
 import BaseLoading from "@/components/BaseLoading.vue";
 
 // ========== 类型 ==========
@@ -214,20 +212,7 @@ const handleWsMessage = (msg: any) => {
   }
 };
 
-// const eventSource = new EventSource(
-//   `/api/seat/subscribe?scheduleId=${scheduleId.value}`
-// );
 
-// eventSource.addEventListener("init", (event) => {
-//   console.log("初始化sse成功",event.data)
-//   const data = JSON.parse(event.data);
-//   handleWsMessage(data);
-// });
-
-// eventSource.addEventListener("seatUpdate", (event) => {
-//   const data = JSON.parse(event.data);
-//   handleWsMessage(data);
-// });
 onMounted(() => {
   startSubscribe()
 })
@@ -236,7 +221,7 @@ const startSubscribe = async () => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': userStore.token || '', // 现在可以携带请求头了
+      'Authorization': userStore.token || '', // 携带请求头
     },
 
     // 建立连接时的回调
@@ -281,14 +266,6 @@ const startSubscribe = async () => {
   });
 };
 
-
-// const { initWebSocket, send, close } = useWebSocket({
-//   path: '/ws/seat',
-//   onMessage: handleWsMessage,
-//   params: {
-//     scheduleId: scheduleId.value,
-//   }
-// });
 
 const { loading, runFn } = useRequest(addCartApi, {
   onSuccess: () => {

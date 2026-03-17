@@ -5,7 +5,7 @@
       :title="actionType === 'add' ? '新增排片' : '编辑排片'"
       :model-value="modelValue"
       @close="handleCancel"
-      width="600px"
+      width="800px"
       :close-on-click-modal="false"
     >
       <el-form

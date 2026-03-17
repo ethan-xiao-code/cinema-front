@@ -1,6 +1,6 @@
 <template>
   <!-- 新增/编辑影院弹框 -->
-  <el-dialog :title="isAdd ? '新增影片轮播图' : '修改影片轮播图'" :model-value="showEditDialog" @close="handleClose" modal
+  <el-dialog width="800px" :title="isAdd ? '新增影片轮播图' : '修改影片轮播图'" :model-value="showEditDialog" @close="handleClose" modal
     :close-on-click-modal="false">
     <el-form label-width="120px" :model="cinemaCarouselForm" :rules="rules" ref="cinemaCarouselRef">
       <el-form-item label="影片" prop="filmId" class="w80">
