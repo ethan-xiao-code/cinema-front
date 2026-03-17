@@ -155,6 +155,7 @@ export function useRequest<T = any>(
     data.value = null
     error.value = null
     loading.value = false
+    latestRequestId = 0
   }
 
   // ========== 初始化逻辑 ==========
