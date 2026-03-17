@@ -43,21 +43,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
-import { pageQueryFilm } from "@/api/film";
+import { getFilmListApi, pageQueryFilmApi } from "@/api/film";
 import FilmCard from "@/components/FilmCard.vue";
-import Pager from "@/components/Pager.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";
 import { useRequest } from "@/utils/useRequest";
 import BaseLoading from "@/components/BaseLoading.vue";
-
-
-
 const route = useRoute();
-
-// 分页相关
-const total = ref(0);
 
 // 筛选状态
 const activeType = ref(-1);
@@ -66,70 +59,58 @@ const activeRegion = ref(-1);
 // 电影数据列表
 const filmList = ref<any[]>([]);
 
-// const pageQueryFilmApi = (params?: any) => {
-//   // 模拟：如果是筛选“爱情”片，服务器响应特别慢
-//   const delay = activeType.value < 0 ? 3000 : 500;
 
-//   return new Promise((resolve) => {
-//     setTimeout(async () => {
-//       const res = await pageQueryFilm({
-//         pageNo: 1,
-//         pageSize: 9999,
-//         ...params
-//       });
-//       resolve(res);
-//     }, delay);
-//   });
-// }
-
-const pageQueryFilmApi = (params?: any) => {
-  // 模拟：如果是筛选“爱情”片，服务器响应特别慢
-  return pageQueryFilm({
-    pageNo: 1,
-    pageSize: 9999,
-    ...params
-  });
+const queryFilmList = (title?: string) => {
+  return getFilmListApi({
+    types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
+    regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
+    title,
+    status: [1, 2]
+  })
 }
 
 
-const { runFn: pageQueryFilmList, loading } = useRequest(pageQueryFilmApi, {
-  immediate: true,
+const { runFn: getAllFilmData, loading } = useRequest(queryFilmList, {
   onSuccess: (res) => {
-    filmList.value = res.records || [];
-    total.value = res.total || 0;
+    filmList.value = res || [];
   }
 })
 
 // 类型筛选 - 选择单个
 const updateTypeColor = (index: number) => {
   activeType.value = index;
-
 };
 // 类型筛选 - 选择全部
 const selectTypeAll = () => {
   activeType.value = -1;
-
 };
 
 // 地区筛选 - 选择单个
 const updateRegionColor = (index: number) => {
   activeRegion.value = index;
-
 };
 // 地区筛选 - 选择全部
 const selectRegionAll = () => {
   activeRegion.value = -1;
-
 };
-watch([activeType, activeRegion, () => route.query.filmTitle], (data) => {
-  const [types, regions, title] = data
-  console.log(data, 'data')
-  pageQueryFilmList({
-    types: types < 0 ? "" : filmTypeList[activeType.value],
-    regions: regions < 0 ? "" : filmRegionList[activeRegion.value],
-    title,
-  });
+
+onUnmounted(() => {
+
 })
+
+watch([activeRegion, activeType], (data) => {
+  getAllFilmData();
+})
+
+
+watch(
+  () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
+  (newVal) => {
+    const title = newVal?.toString();
+    getAllFilmData(title);
+  },
+  { immediate: true }
+);
 
 
 </script>

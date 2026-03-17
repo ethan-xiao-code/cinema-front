@@ -1,5 +1,5 @@
 <template>
-  <div id="order">
+  <BaseLoading :loading="loading" text="订单数据加载中..." id="order">
     <div class="order-container">
       <h2 class="page-title">我的订单</h2>
       <p class="order-tip">
@@ -38,7 +38,7 @@
             <el-tag :type="getTypeByValue(payStatusOptions, order.status)" class="status-tag">
               {{ getLabelByValue(payStatusOptions, order.status) }}
             </el-tag>
-            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger" 
+            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger"
               class="cancel-btn" @click="cancelOrders(order)">
               取消订单
             </el-button>
@@ -54,14 +54,16 @@
         </el-button>
       </div>
     </div>
-  </div>
+  </BaseLoading>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, ElEmpty } from 'element-plus'
-import { getOrdersList, cancelOrdersApi } from "@/api/orders";
+import { getOrdersListApi, cancelOrdersApi } from "@/api/orders";
 import { getLabelByValue, getTypeByValue, payStatusOptions } from '@/utils/constant';
+import { useRequest } from '@/utils/useRequest';
+import BaseLoading from '@/components/BaseLoading.vue';
 
 interface OrderItem {
   id: number;
@@ -80,20 +82,12 @@ interface OrderItem {
 
 const ordersList = ref<OrderItem[]>([])
 
-onMounted(async () => {
-  await getOrdersByUserId()
-})
-
-/** 获取用户订单列表 */
-const getOrdersByUserId = async () => {
-  try {
-    const res = await getOrdersList()
+const { loading} = useRequest(getOrdersListApi, {
+  onSuccess: (res) => {
     ordersList.value = res || []
-  } catch (error) {
-    ElMessage.error('获取订单列表失败')
-    console.error(error)
-  }
-}
+  },
+  immediate: true
+})
 
 /** 判断订单是否过期（开场时间已过） */
 const isOrderExpired = (startTime: string) => {
@@ -119,7 +113,7 @@ const cancelOrders = async (order: OrderItem) => {
   )
 
   await cancelOrdersApi(order.id)
-  await getOrdersByUserId() // 刷新订单列表
+  order.status = 0 // 改成已取消
   ElMessage.success("取消成功")
 
 }
@@ -244,8 +238,7 @@ const cancelOrders = async (order: OrderItem) => {
           border-radius: 6px;
         }
 
-        .cancel-btn {
-        }
+        .cancel-btn {}
       }
     }
 

@@ -31,13 +31,13 @@
                 </span>
               </el-form-item>
 
-              <el-form-item label="账号状态" >
+              <el-form-item label="账号状态">
                 <span class="info-value">
                   {{ getLabelByValue(accountStatusOptions, userForm.status) }}
                 </span>
               </el-form-item>
 
-              <el-form-item label="账号创建时间" >
+              <el-form-item label="账号创建时间">
                 <span class="info-value">{{ userForm.createTime }}</span>
               </el-form-item>
             </div>
@@ -70,18 +70,18 @@
       class="password-dialog">
       <el-form :model="pwdForm" :rules="pwdRules" ref="pwdFormRef" class="password-form">
         <el-form-item label="原密码" prop="oldPassword">
-          <el-input v-model="pwdForm.oldPassword" />
+          <el-input placeholder="请输入原密码" v-model="pwdForm.oldPassword" />
         </el-form-item>
 
         <el-form-item label="新密码" prop="newPassword">
-          <el-input v-model="pwdForm.newPassword" />
+          <el-input placeholder="请输入新密码" v-model="pwdForm.newPassword" />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogPasswordVisible = false">取消</el-button>
-          <el-button type="primary" @click="updateEmployeePassword">
+          <el-button type="primary" @click="updateUserPassword">
             修改
           </el-button>
         </div>
@@ -93,11 +93,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElForm } from 'element-plus'
+import { ElMessage, ElForm, ElMessageBox } from 'element-plus'
 import UploadImage from "@/components/UploadImage.vue";
 import { useUserStore } from '@/stores'
 import { updateUserApi } from "@/api/user";
-import { updatePassword } from "@/api/common";
+import {  updatePasswordApi } from "@/api/common";
 import { accountStatusOptions, getLabelByValue, userRoleOptions } from '@/utils/constant';
 import { UserType } from '@/api/user/type';
 
@@ -171,15 +171,23 @@ const submitForm = async () => {
   if (!userFormRef.value) return
 
   const valid = await userFormRef.value.validate()
+  await ElMessageBox.confirm(
+    "确定要更新基本信息吗？",
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  )
   if (valid) {
     const id = userStore.userId
     await updateUserApi({
       ...userForm.value,
       id
     })
-    ElMessage.success("修改成功")
-    // 刷新用户信息
-    window.location.reload()
+    ElMessage.success("修改信息成功")
+    userStore.setUserInfo({ ...userForm.value })
   }
 
 }
@@ -190,21 +198,16 @@ const passwordDialog = () => {
 }
 
 /** 修改密码 */
-const updateEmployeePassword = async () => {
+const updateUserPassword = async () => {
   if (!pwdFormRef.value) return
 
-  try {
-    const valid = await pwdFormRef.value.validate()
-    if (valid) {
-      pwdForm.value.roleId = userStore.roleId
-      await updatePassword(pwdForm.value)
-      ElMessage.success("密码修改成功")
-      dialogPasswordVisible.value = false
-    }
-  } catch (error) {
-    ElMessage.error("表单验证失败，请检查输入内容")
-    console.error(error)
+  const valid = await pwdFormRef.value.validate()
+  if (valid) {
+    await updatePasswordApi(pwdForm.value)
+    ElMessage.success("密码修改成功")
+    dialogPasswordVisible.value = false
   }
+
 }
 
 /** 重置密码表单 */
@@ -251,7 +254,7 @@ const resetPasswordForm = () => {
       font-weight: 600;
       margin-bottom: 16px;
       color: #333;
-    
+
     }
   }
 
@@ -269,7 +272,7 @@ const resetPasswordForm = () => {
   }
 
   .form-right {
-    
+
     .avatar-card {
       background: #f8f9fa;
       border-radius: 12px;

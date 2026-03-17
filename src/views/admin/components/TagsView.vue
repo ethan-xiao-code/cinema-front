@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
 import { ref, watch, computed } from "vue";
-import { useTagsViewStore } from "@/stores/tagsView";
+import { useTagsViewStore } from "@/stores";
 
 const tagsStore = useTagsViewStore();
 
@@ -33,7 +33,6 @@ watch(
     }
     // 自动加入缓存
     tagsStore.addCachedView(route);
-    console.log(visitedViews, 'visitedViews')
   },
   { immediate: true }
 );

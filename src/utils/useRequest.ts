@@ -8,6 +8,7 @@ interface UseRequestOptionsType {
   onSuccess?: (data?: any) => void;
   onError?: (err?: any) => void;
   intervalTime?: number; // 轮询的时间间隔
+  delay?: number;
 }
 
 export function useRequest<T = any>(
@@ -18,10 +19,11 @@ export function useRequest<T = any>(
     immediate = false,
     throttleTime = 0,
     debounceTime = 0,
-    onSuccess,
-    onError,
-    intervalTime = -1
-  } = options;
+    onSuccess, // 请求成功处理回调
+    onError, // 请求失败处理回调
+    intervalTime = -1, // 轮询间隔时间
+    delay = 500
+  } = options
 
   const data = ref<T | null>(null);
   const loading = ref(false);
@@ -31,50 +33,39 @@ export function useRequest<T = any>(
   let latestRequestId = 0; // 最新请求标识符
 
   const run = async (...args: any[]) => {
-    loading.value = true;
-    error.value = null;
-
-    const requestId = ++latestRequestId; // 当前请求id
-
-    try {
-      const res = await requestFn(...args);
-
-      // 检查是否为最新请求
-      if (requestId === latestRequestId) {
-        data.value = res;
-        onSuccess?.(res);
+    loading.value = true
+    error.value = null
+    setTimeout(async () => {
+      try {
+        const res = await requestFn(...args)
+        data.value = res
+        onSuccess?.(res)
+        return res
+      } catch (err: any) {
+        error.value = err
+        onError?.(err)
+        return Promise.reject(err)
+      } finally {
+        loading.value = false
       }
+    }, delay)
 
-      return res;
-    } catch (err: any) {
-      if (requestId === latestRequestId) {
-        error.value = err;
-        onError?.(err);
-      }
-      return Promise.reject(err);
-    } finally {
-      // 只在最新请求完成时关闭 loading
-      if (requestId === latestRequestId) {
-        loading.value = false;
-      }
-    }
-  };
-
-  let runFn: (...args: any[]) => void = run;
-
+  }
+  let runFn: (...args: any[]) => void = run
+  // 优先使用 debounce
   if (debounceTime > 0) {
-    runFn = debounce(run, debounceTime);
+    runFn = debounce(runFn, debounceTime);
   } else if (throttleTime > 0) {
-    runFn = throttle(run, throttleTime);
+    runFn = throttle(runFn, throttleTime);
   }
 
   const refresh = () => runFn();
 
   const startPolling = () => {
     if (intervalTime <= 0 || timer) return;
-    run();
+    runFn();
     timer = setInterval(() => {
-      if (!loading.value) run();
+      if (!loading.value) runFn();
     }, intervalTime);
   };
 

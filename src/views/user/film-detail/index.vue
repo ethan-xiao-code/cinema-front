@@ -1,5 +1,4 @@
 <template>
-
   <BaseLoading :loading="loading" text="影片详情加载中..." class="filmDetailModule">
     <!-- 头部 -->
     <FilmHeader :shopType="ShopEnum.Detail" :film="film" @buy="toBuyFilm" @rate="toRate" />
@@ -36,7 +35,7 @@ import {
   getCommentByFilmAndUserIdApi,
   getCommentByFilmIdApi,
 } from "@/api/comment";
-import { getFilmById } from "@/api/film";
+import { getFilmByIdApi } from "@/api/film";
 import { useUserStore } from "@/stores";
 import AddCommentDialog from "./components/AddCommentDialog.vue";
 import { CommentFormType } from "@/api/comment/type";
@@ -80,7 +79,7 @@ const isLogin = computed(() => {
   return !!userStore?.token;
 });
 
-const { runFn: getNewFilmInfo, loading } = useRequest(getFilmById, {
+const { runFn: getNewFilmInfo, loading } = useRequest(getFilmByIdApi, {
   onSuccess: (filmRes) => {
     film.value = filmRes;
   }
@@ -90,7 +89,7 @@ const { runFn: getNewFilmInfo, loading } = useRequest(getFilmById, {
 // 获取电影和评论数据
 // const getNewFilmInfo = async () => {
 //   // 获取电影详情
-//   const filmRes = await getFilmById(filmId.value);
+//   const filmRes = await getFilmByIdApi(filmId.value);
 //   film.value = filmRes;
 
 //   // // 获取评论列表
@@ -145,7 +144,7 @@ onMounted(() => {
 $width: 900px;
 
 .filmDetailModule {
-  padding: 0 30px;
+  background-color: #fff;
 
   .mainBox {
     text-align: left;

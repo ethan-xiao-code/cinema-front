@@ -8,14 +8,6 @@ li {
     list-style: none;
 }
 
-
-.common-echarts {
-    width: 500px;
-    height: 500px;
-    border-radius: 30px;
-    background-color: #fff;
-}
-
 .w50 {
     width: 50%;
 }
@@ -34,4 +26,8 @@ li {
 
 .el-message {
     font-size: 16px !important;
+}
+
+.el-icon {
+    font-size: 20px !important;
 }

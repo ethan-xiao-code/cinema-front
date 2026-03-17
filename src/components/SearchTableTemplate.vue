@@ -42,7 +42,7 @@
     <BaseLoading :loading="loading" text="数据加载中...">
       <el-table v-bind="tableProps" :max-height="700" :data="resultTableList">
         <template v-for="item in tableParamsList" :key="item.prop">
-          <el-table-column :fixed="item?.fixed" :width="item.width" :label="item?.label" :prop="item?.prop"
+          <el-table-column :fixed="item?.fixed" :width="item.width" :min-width="item.minWidth"  :label="item?.label" :prop="item?.prop"
             :type="item?.type" v-bind="item?.attrs">
             <template #default="scope">
               <div v-if="item.renderText">
@@ -53,6 +53,7 @@
                 <!-- 渲染DOM元素 -->
                 <component :is="item.render!(scope.row[item.prop], scope.row)" />
               </div>
+              
             </template>
           </el-table-column>
         </template>
@@ -103,6 +104,7 @@ export interface TableParamType {
   label?: string;
   prop?: string;
   width?: number;
+  minWidth?: number;
   fixed?: "right" | "left" | "";
   type?: "selection" | "index" | "expand";
   renderText?: (value?: any, row?: Record<string, any>) => any;
@@ -139,7 +141,7 @@ const props = defineProps<{
     searchParams: Record<string, any>
   ) => Promise<{ data: TableRow[]; total: number }>;
 }>();
-
+const searchParamsForm = reactive<Record<string, any>>({});
 // Emits（签名风格）
 const emit = defineEmits<{
   "update:extraParams": (value: Record<string, any>) => void;
@@ -155,18 +157,6 @@ const pageParams = reactive<PageParamsType>({
   total: 0,
 });
 const resultTableList = reactive<TableRow[]>([]);
-const searchParamsForm = reactive<Record<string, any>>({});
-
-// const pageQuery = debounce(async () => {
-//   const res = await props.getTableData(
-//     { ...pageParams.pager },
-//     toRaw(searchParamsForm) // 解除响应式
-//   );
-//   console.log(res, "res**");
-//   resultTableList.splice(0, resultTableList.length);
-//   Object.assign(resultTableList, res?.data || []);
-//   pageParams.total = res?.total ?? 0;
-// }, 300);
 
 const getDataApi = () => {
   return props.getTableData(
@@ -181,6 +171,7 @@ const { loading, runFn: pageQuery } = useRequest(getDataApi, {
     Object.assign(resultTableList, res?.data || []);
     pageParams.total = res?.total ?? 0;
   },
+  throttleTime: 1000
 })
 // 分页处理
 const handleSizeChange = (val: number): void => {

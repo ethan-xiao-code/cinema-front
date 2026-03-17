@@ -1,32 +1,20 @@
 import request from '@/utils/request'
-import axios from 'axios'
-import { FilmFormType, FilmResultType } from './type'
-
-export function getFilmesByStatus(status: number): Promise<any> {
-  return request({
-    url: `/film/list/${status}`
-  })
-}
-
-export function getRecentFilmImage(num: number): Promise<any> {
-  return axios.get(`/film/recent/${num}`)
-}
-
-export function getFilmListByScore(num: number): Promise<any> {
+import { FilmFormType, FilmResultType, FilmSearchParamsType } from './type'
+export function getFilmListByScoreApi(num: number): Promise<any> {
   return request({
     url: '/film/score',
     params: { num }
   })
 }
 
-export function getFilmById(id: number): Promise<FilmResultType> {
+export function getFilmByIdApi(id: number): Promise<FilmResultType> {
   return request({
     url: `/film/single/${id}`,
     method: 'get'
   })
 }
 
-export function pageQueryFilm(params: any): Promise<FilmResultType[]> {
+export function pageQueryFilmApi(params: any): Promise<FilmResultType[]> {
   return request({
     url: '/film/page',
     method: 'get',
@@ -34,7 +22,7 @@ export function pageQueryFilm(params: any): Promise<FilmResultType[]> {
   })
 }
 
-export function addFilm(data: FilmFormType): Promise<any> {
+export function addFilmApi(data: FilmFormType): Promise<any> {
   return request({
     url: '/film/save',
     method: 'post',
@@ -42,7 +30,7 @@ export function addFilm(data: FilmFormType): Promise<any> {
   })
 }
 
-export function updateFilm(data: FilmFormType): Promise<any> {
+export function updateFilmApi(data: FilmFormType): Promise<any> {
   return request({
     url: '/film/edit',
     method: 'put',
@@ -50,30 +38,27 @@ export function updateFilm(data: FilmFormType): Promise<any> {
   })
 }
 
-export function deleteFilmById(id: number): Promise<any> {
+export function deleteFilmByIdApi(id: number): Promise<any> {
   return request({
     url: `/film/${id}`,
     method: 'delete'
   })
 }
 
-export function getBoxOfficeByTypeApi(): Promise<any> {
-  return request({
-    url: `/film/type/box_office`,
-    method: 'get'
-  })
-}
 
-export function getFilmListApi(): Promise<any> {
+export function getFilmListApi(params: FilmSearchParamsType): Promise<any> {
   return request({
     url: `/film/list`,
-    method: 'get'
+    method: 'get',
+    params
+  })
+}
+
+export function getValidFilmListApi(): Promise<any> {
+  return request({
+    url: `/film/valid/list`,
+    method: 'get',
   })
 }
 
 
-export default {
-  getFilmesByStatus,
-  getRecentFilmImage,
-  getFilmListByScore
-}

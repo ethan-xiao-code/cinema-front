@@ -16,11 +16,18 @@ export function updateScheduleApi(data: any): Promise<any> {
   })
 }
 
-export function updateScheduleStatusApi(data: any): Promise<any> {
+export function publishScheduleApi(data: any): Promise<any> {
   return request({
-    url: '/schedule/edit/status',
+    url: '/schedule/publish',
     method: 'put',
     data
+  })
+}
+
+export function unPublishScheduleApi(id: number): Promise<any> {
+  return request({
+    url: `/schedule/unPublish/${id}`,
+    method: 'put',
   })
 }
 
@@ -32,7 +39,7 @@ export function pageQueryScheduleApi(params: any): Promise<any> {
   })
 }
 
-export function getScheduleDateList(id: number): Promise<any> {
+export function getScheduleDateListApi(id: number): Promise<any> {
   return request({
     url: '/schedule/screeningDateList',
     method: 'get',
@@ -40,15 +47,15 @@ export function getScheduleDateList(id: number): Promise<any> {
   })
 }
 
-export function getScheduleListByDate(screeningDate: string, filmId: number): Promise<any> {
+export function getScheduleListByDateApi(screeningDate: string, filmId: number): Promise<any> {
   return request({
     url: '/schedule/screeningDate/scheduleList',
     method: 'get',
-    params: { screeningDate , filmId }
+    params: { screeningDate, filmId }
   })
 }
 
-export function getFilmAndScheduleById(params: any): Promise<any> {
+export function getFilmAndScheduleByIdApi(params: any): Promise<any> {
   return request({
     url: '/schedule/detail',
     method: 'get',

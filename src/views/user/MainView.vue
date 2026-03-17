@@ -5,7 +5,7 @@
         <!-- 左：Logo -->
         <div class="logoBox">
           <img :src="url" />
-          <span>汪汪影院</span>
+          <span>{{ userSystemTitle }}</span>
         </div>
 
         <!-- 右：菜单 + 搜索 + 用户 -->
@@ -19,12 +19,12 @@
           </div>
           <div class="searchBox">
             <!-- 搜索 -->
-            <el-input v-model="filmTitle" placeholder="搜索电影" class="searchInput" />
-            <el-button class="searchBtn" type="primary" @click="handleFilmQuery">查询</el-button>
+            <el-input clearable v-model.trim="filmTitle" placeholder="搜索电影" class="searchInput" />
+            <el-button class="searchBtn" type="primary" @click="() => toShowMovies(filmTitle)">搜索</el-button>
           </div>
 
 
-          <el-button type="success" @click="goAdminPage">后台管理</el-button>
+          <el-button :disabled="!isAdmin" type="success" @click="goAdminPage">后台管理</el-button>
 
           <!-- 用户 -->
           <el-dropdown @command="handleCommand">
@@ -101,6 +101,7 @@
     <div class="mainContent">
       <router-view />
     </div>
+
   </div>
 </template>
 
@@ -113,18 +114,16 @@ import { ElMessage } from "element-plus";
 import userDefault from "@/assets/images/user-default.png";
 
 import {
-  ShoppingCart,
   Document,
   Help,
   SwitchButton,
   ArrowDownBold,
   ShoppingCartFull,
-  CloseBold,
-  Aim,
   User,
   Remove,
 } from "@element-plus/icons-vue";
-import { userSystemTitle } from "@/utils/constant";
+import { RoleEnum, userSystemTitle } from "@/utils/constant";
+import { eventBus } from "../../utils/eventBus";
 
 // 路由和状态管理（原有逻辑不变）
 const route = useRoute();
@@ -143,7 +142,8 @@ onMounted(() => {
   document.title = userSystemTitle;
 });
 const user = computed(() => userStore.userInfo);
-
+// (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin
+const isAdmin = computed(() => userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin)
 // 监听路由变化
 watch(
   () => route.path,
@@ -152,9 +152,15 @@ watch(
   },
   { immediate: true },
 );
-const handleFilmQuery = () => {
-  toShowMovies(filmTitle.value)
-}
+
+watch(
+  () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
+  (newVal) => {
+    filmTitle.value = newVal?.toString() || ''
+  },
+  { immediate: true }
+);
+
 
 
 // 下拉菜单处理
@@ -184,10 +190,11 @@ const toSwitchAccount = async () => {
 
 // 登录跳转
 const toLogin = () => {
-  router.push({
-    path: "/login",
-    query: { redirect: route.fullPath },
-  });
+  eventBus.emit("showLoginDialog",{});
+  // router.push({
+  //   path: "/login",
+  //   query: { redirect: route.fullPath },
+  // });
 };
 
 // 退出登录
@@ -211,7 +218,7 @@ const toShowMovies = (filmTitle: string) => {
 const goAdminPage = () => {
   // const routeUrl = router.resolve({ path: "/admin" });
   // window.open(routeUrl.href, "_blank");
-  if (userStore.userId && userStore.userInfo?.roleId === 1) {
+  if (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin) {
     router.push("/admin")
   } else {
     ElMessage.warning("只有管理员才可以进入哦~")
@@ -223,32 +230,29 @@ const goAdminPage = () => {
 #main {
   min-height: 100vh;
   background: #f6f7fb;
-
+  min-width: 1000PX;
   .navBar {
     position: fixed;
     top: 0;
     width: 100%;
-    min-width: 1000px;
     height: 72px;
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     z-index: 1000;
-
+    padding: 0 24px;
     .navContainer {
+      width: 1200px;
       height: 100%;
-      margin: auto;
-      padding: 0 24px;
       display: flex;
       align-items: center;
-
+      margin: auto;
       /* 左 */
       .logoBox {
         display: flex;
         align-items: center;
         gap: 12px;
         cursor: pointer;
-
         img {
           width: 40px;
           height: 40px;
@@ -309,14 +313,14 @@ const goAdminPage = () => {
           cursor: pointer;
 
           &>img {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
           }
 
           .username {
             max-width: 80px;
-            font-size: 14px;
+            font-size: 16PX;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -333,5 +337,6 @@ const goAdminPage = () => {
   .mainContent {
     padding: 24px;
   }
+
 }
 </style>

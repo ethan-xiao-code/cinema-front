@@ -49,3 +49,10 @@ export enum ShopEnum {
   Buy = 0, // 购票页
   Detail = 1 // 详情页
 }
+
+export interface FilmSearchParamsType {
+  title?: string;
+  types?: string;
+  regions?: string;
+  status?: number[];
+}

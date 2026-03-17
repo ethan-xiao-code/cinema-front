@@ -1,7 +1,7 @@
 <template>
     <BaseLoading class="main" :loading="loading" text="首页加载中...">
       <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card"
-        ref="carouselRef">
+        >
         <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
           @click="toShowFilmDetail(item.filmId!)">
           <el-image class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
@@ -15,7 +15,7 @@
         </section>
 
         <section class="rightBox">
-          <div class="title">热门榜单Top{{ num }}</div>
+          <div class="title">热门榜单Top{{ topNumber }}</div>
           <div v-if="topfilmList.length" class="rankList">
             <div class="top01" @click="toShowFilmDetail(topfilmList[0].id)">
               <img :src="topfilmList[0].poster" />
@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import film, { getFilmesByStatus, getFilmListByScore } from "@/api/film";
+import { getFilmListApi, getFilmListByScoreApi } from "@/api/film";
 import UserHome from "./components/UserHome.vue";
 import { getCinemaCarouselListApi } from "@/api/cinema-carousel";
 import { CinemaCarouselItemType } from "@/api/cinema-carousel/type";
@@ -62,9 +62,8 @@ const carouselList = ref<Required<CinemaCarouselItemType>[]>([]);
 const hotfilmList = ref<FilmResultType[]>([]);
 const upcomingList = ref<FilmResultType[]>([]);
 const topfilmList = ref<FilmTopType[]>([]);
-const num = ref(6);
+const topNumber = ref(10);
 const top1Icon = ref(new URL("@/assets/images/top1.png", import.meta.url).href);
-const carouselRef = ref(null);
 
 const toShowFilmDetail = (filmId: number) => {
   router.push({
@@ -77,9 +76,9 @@ const toShowFilmDetail = (filmId: number) => {
 
 const promiseAll = () => {
   return Promise.all([
-    getFilmesByStatus(2),
-    getFilmesByStatus(1),
-    getFilmListByScore(num.value),
+    getFilmListApi({status: [2]}),
+    getFilmListApi({status: [1]}),
+    getFilmListByScoreApi(topNumber.value),
     getCinemaCarouselListApi()
   ])
 }
@@ -99,31 +98,6 @@ watchEffect(() => {
   }
 })
 
-
-onMounted(async () => {
-
-  // try {
-  //   loading.value = true
-  //   const [
-  //     hotRes,
-  //     upcomingRes,
-  //     topRes,
-  //     carouselRes
-  //   ] = await Promise.all([
-  //     getFilmesByStatus(2),
-  //     getFilmesByStatus(1),
-  //     getFilmListByScore(num.value),
-  //     getCinemaCarouselListApi()
-  //   ]);
-
-  //   hotfilmList.value = hotRes;
-  //   upcomingList.value = upcomingRes;
-  //   topfilmList.value = topRes;
-  //   carouselList.value = carouselRes;
-  // } finally {
-  //   loading.value = false
-  // }
-});
 
 </script>
 

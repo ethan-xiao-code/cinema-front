@@ -1,5 +1,5 @@
 <template>
-  <div id="cart">
+  <base-loading :loading="dataLoading" text="购物车数据加载中..." id="cart">
     <div class="cart-container">
       <h2 class="cart-title">购物车</h2>
 
@@ -108,21 +108,22 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="payModalVisible = false">取消支付</el-button>
-          <el-button :loading="loading" type="primary" @click="confirmPay">确认支付</el-button>
+          <el-button :loading="payLoading" type="primary" @click="confirmPay">确认支付</el-button>
         </span>
       </template>
     </el-dialog>
-  </div>
+  </base-loading>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
-import { getCartes, deleteCartByIdApi } from "@/api/cart";
+import { getCartesApi, deleteCartByIdApi } from "@/api/cart";
 import { saveOrdersApi } from "@/api/orders";
 import { Delete } from "@element-plus/icons-vue";
 import { useRequest } from "@/utils/useRequest";
+import BaseLoading from "@/components/BaseLoading.vue";
 
 // ========== 类型定义 ==========
 interface CartItem {
@@ -173,12 +174,12 @@ const totalPrice = computed(() =>
 
 /** 获取用户购物车列表 */
 const getCartesByUserId = async () => {
-  const res = await getCartes();
+  const res = await getCartesApi();
   cartList.value = res || [];
   return res || [];
 };
 
-const { startPolling, stopPolling } = useRequest(getCartesByUserId, {
+const { startPolling, stopPolling, loading: dataLoading } = useRequest(getCartesByUserId, {
   intervalTime: 1000 * 30,
   onSuccess: (data) => {
     if (oldCartCount.value === 0) {
@@ -314,7 +315,7 @@ const addOrders = async () => {
   checkedCartList.value = [];
 };
 
-const { runFn: confirmPay, loading } = useRequest(addOrders, {
+const { runFn: confirmPay, loading: payLoading } = useRequest(addOrders, {
   onSuccess: () => {
     payModalVisible.value = false;
   }

@@ -27,13 +27,13 @@
             <!-- 系统信息 -->
             <div class="system-info">
               <el-avatar shape="square" :size="40" fit="fill" :src="logoUrl" />
-              <span class="system-name">汪汪影院</span>
+              <span class="system-name">{{ adminSystemTitle }}</span>
             </div>
 
             <!-- 当前页面标题 -->
             <div class="page-title">{{ metaName }}</div>
 
-            <el-button type="primary" @click="toHomePage">去首页</el-button>
+            <el-button type="primary" @click="toHomePage">购票中心</el-button>
           </div>
         </header>
 
@@ -50,8 +50,6 @@
       </div>
     </div>
 
-    <!-- 个人中心弹窗 -->
-    <MyCenterDialog v-model="showCenterDialog" />
 
     <!-- 修改密码弹窗
     <ChangePasswordDialog v-model="showPasswordDialog" /> -->
@@ -62,7 +60,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { useTagsViewStore } from "@/stores/tagsView";
+import { useTagsViewStore } from "@/stores/tagsStore";
 import {
   Fold,
   Expand,
@@ -81,7 +79,6 @@ const userStore = useUserStore();
 const tagsStore = useTagsViewStore()
 // 响应式数据
 const currentPath = ref<string>(route.path);
-const showCenterDialog = ref<boolean>(false);
 const showPasswordDialog = ref<boolean>(false);
 const isCollapse = ref<boolean>(false);
 
@@ -164,26 +161,7 @@ const toHomePage = () => {
 
 }
 
-const handleCommand = async (command: string): Promise<void> => {
-  switch (command) {
-    case "out":
-      await logout();
-      break;
 
-    case "home_page":
-      router.push("/user")
-      break;
-
-    case "settings":
-      // 跳转到设置页面
-      router.push("/admin/settings");
-      break;
-
-    case "change_password":
-      showPasswordDialog.value = true;
-      break;
-  }
-};
 </script>
 
 <style scoped lang="scss">

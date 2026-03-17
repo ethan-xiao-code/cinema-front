@@ -57,7 +57,7 @@
           <span class="price">￥{{ totalPrice }}</span>
         </div>
 
-        <el-input v-model="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
+        <el-input v-model.trim="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
           show-word-limit />
         <el-button type="danger" class="add-cart-btn" @click="handleSaveCart(userStore.userId)" size="large"
           :loading="loading">
@@ -120,7 +120,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ElLoading, ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
 
-import { getFilmAndScheduleById } from "@/api/schedule";
+import { getFilmAndScheduleByIdApi } from "@/api/schedule";
 import { getSeatsByScheduleId } from "@/api/seat";
 import { addCartApi } from "@/api/cart";
 import { useWebSocket } from "@/utils/useWebSocket";
@@ -383,7 +383,7 @@ const totalPrice = computed(() => {
   return Number((selectedSeatList.value.length * filmSchedule.price).toFixed(2))
 })
 
-const { loading: loadingPage, runFn: getFilmSchedule } = useRequest(getFilmAndScheduleById, {
+const { loading: loadingPage, runFn: getFilmSchedule } = useRequest(getFilmAndScheduleByIdApi, {
   onSuccess: (res) => {
     Object.assign(filmSchedule, res);
     initSeats();
@@ -397,7 +397,7 @@ onMounted(() => {
 });
 /** 获取排片信息 */
 // const getFilmSchedule = async () => {
-//   const res = await getFilmAndScheduleById({ scheduleId: scheduleId.value });
+//   const res = await getFilmAndScheduleByIdApi({ scheduleId: scheduleId.value });
 //   Object.assign(filmSchedule, res);
 //   initSeats();
 //   getSeatList();

@@ -16,7 +16,6 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import SearchTableTemplate from "@/components/SearchTableTemplate.vue"
 
 // ---------------- ECharts ----------------
-import VChart from 'vue-echarts'
 import '@/plugins/echarts' // 初始化 echarts modules
 
 // ---------------- 虚拟滚动 ----------------
@@ -36,7 +35,6 @@ app.use(pinia)
 app.use(router)
 // ---------------- 全局注册组件 ----------------
 app.component('SearchTableTemplate', SearchTableTemplate)
-app.component('v-chart', VChart)
 //固定高度的虚拟列表
 
 app.component('RecycleScroller', VueVirtualScroller.RecycleScroller);

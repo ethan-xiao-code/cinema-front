@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { ElMessage } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { upload } from "@/api/common";
+import { uploadApi } from "@/api/common";
 import { useRequest } from "@/utils/useRequest";
 
 // ========== Props ==========
@@ -42,7 +42,7 @@ const emit = defineEmits<{
 // // ========== 上传状态 ==========
 // const isUploading = ref(false);
 
-const { loading: isUploading, runFn: handleUpload } = useRequest(upload, {
+const { loading: isUploading, runFn: handleUpload } = useRequest(uploadApi, {
   onSuccess: (res) => {
     emit("update:modelValue", res);
     ElMessage.success("上传成功");
@@ -130,7 +130,7 @@ const convertToWebP = (file: File): Promise<File> => {
           resolve(webpFile);
         },
         "image/webp", // 目标转换格式
-        1 // 压缩质量（0-1，1 为无损，0.8 兼顾质量和体积）
+        0.9 // 压缩质量（0-1，1 为无损，0.8 兼顾质量和体积）
       );
     };
 
