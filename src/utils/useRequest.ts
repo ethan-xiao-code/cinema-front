@@ -83,7 +83,9 @@ export function useRequest<T = any>(
     latestRequestId = 0;
   };
 
-  if (immediate) run();
+  if (immediate) {
+    runFn()
+  }
 
   onUnmounted(() => {
     stopPolling();

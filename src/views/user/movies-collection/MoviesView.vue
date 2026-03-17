@@ -69,7 +69,6 @@ const queryFilmList = (title?: string) => {
   })
 }
 
-
 const { runFn: getAllFilmData, loading } = useRequest(queryFilmList, {
   onSuccess: (res) => {
     filmList.value = res || [];
@@ -95,7 +94,7 @@ const selectRegionAll = () => {
 };
 
 onUnmounted(() => {
-
+  
 })
 
 watch([activeRegion, activeType], (data) => {
