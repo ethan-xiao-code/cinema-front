@@ -57,7 +57,7 @@
           <span class="price">￥{{ totalPrice }}</span>
         </div>
 
-        <el-input v-model="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
+        <el-input v-model.trim="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
           show-word-limit />
         <el-button type="danger" class="add-cart-btn" @click="handleSaveCart(userStore.userId)" size="large"
           :loading="loading">

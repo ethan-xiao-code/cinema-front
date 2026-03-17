@@ -75,7 +75,7 @@ export const adminRoutes = {
       name: 'adminOrders',
       component: () => import('@/views/admin/orders-list/index.vue'),
       meta: {
-        title: '查看所有订单',
+        title: '订单管理',
         icon: 'List'
       }
     }

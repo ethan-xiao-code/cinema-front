@@ -15,7 +15,7 @@
         </section>
 
         <section class="rightBox">
-          <div class="title">热门榜单Top{{ num }}</div>
+          <div class="title">热门榜单Top{{ topNumber }}</div>
           <div v-if="topfilmList.length" class="rankList">
             <div class="top01" @click="toShowFilmDetail(topfilmList[0].id)">
               <img :src="topfilmList[0].poster" />
@@ -62,7 +62,7 @@ const carouselList = ref<Required<CinemaCarouselItemType>[]>([]);
 const hotfilmList = ref<FilmResultType[]>([]);
 const upcomingList = ref<FilmResultType[]>([]);
 const topfilmList = ref<FilmTopType[]>([]);
-const num = ref(6);
+const topNumber = ref(10);
 const top1Icon = ref(new URL("@/assets/images/top1.png", import.meta.url).href);
 
 const toShowFilmDetail = (filmId: number) => {
@@ -78,7 +78,7 @@ const promiseAll = () => {
   return Promise.all([
     getFilmListApi({status: [2]}),
     getFilmListApi({status: [1]}),
-    getFilmListByScoreApi(num.value),
+    getFilmListByScoreApi(topNumber.value),
     getCinemaCarouselListApi()
   ])
 }

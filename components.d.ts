@@ -54,6 +54,7 @@ declare module 'vue' {
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTimePicker: typeof import('element-plus/es')['ElTimePicker']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     FilmCard: typeof import('./src/components/FilmCard.vue')['default']
     FilmHeader: typeof import('./src/components/FilmHeader.vue')['default']

@@ -1,53 +1,35 @@
 <template>
   <!-- 新增/编辑影院弹框 -->
-  <el-dialog
-    :title="isAdd ? '新增影片轮播图' : '修改影片轮播图'"
-    :model-value="showEditDialog"
-    @close="handleClose"
-    modal
-    :close-on-click-modal="false"
-  >
-    <el-form
-      label-width="120px"
-      :model="cinemaCarouselForm"
-      :rules="rules"
-      ref="cinemaCarouselRef"
-    >
+  <el-dialog :title="isAdd ? '新增影片轮播图' : '修改影片轮播图'" :model-value="showEditDialog" @close="handleClose" modal
+    :close-on-click-modal="false">
+    <el-form label-width="120px" :model="cinemaCarouselForm" :rules="rules" ref="cinemaCarouselRef">
       <el-form-item label="影片" prop="filmId" class="w80">
-        <el-select
-          v-model="cinemaCarouselForm.filmId"
-          placeholder="请选择影片"
-          filterable
-          clearable
-        >
-          <el-option
-            v-for="item in filmOptions"
-            :key="item"
-            :label="item.label"
-            :value="item.value"
-          />
+        <el-select v-model="cinemaCarouselForm.filmId" placeholder="请选择影片" filterable clearable>
+          <el-option v-for="item in filmOptions" :key="item" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
 
       <el-form-item label="轮播图片" prop="imgUrl">
-        <UploadImage :width="400" v-model="cinemaCarouselForm.imgUrl" />
+        <template #label>
+          <div class="carouselImg">
+            轮播图片
+            <el-tooltip content="建议图片比例 12 : 5" placement="top">
+              <el-icon style="vertical-align: middle;">
+                <QuestionFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+        </template>
+        <UploadImage :width="420" :height="175" v-model="cinemaCarouselForm.imgUrl" />
+
       </el-form-item>
 
       <el-form-item class="w80" label="排序" prop="sort">
-        <el-input
-          type="number"
-          v-model.number="cinemaCarouselForm.sort"
-          placeholder="请填写轮播图展示优先级(数字越小越靠前展示)"
-        />
+        <el-input type="number" v-model.number="cinemaCarouselForm.sort" placeholder="请填写轮播图展示优先级(数字越小越靠前展示)" />
       </el-form-item>
 
       <el-form-item label="备注" prop="description" class="w80">
-        <el-input
-          type="textarea"
-          :rows="2"
-          placeholder="请输入内容"
-          v-model="cinemaCarouselForm.remark"
-        ></el-input>
+        <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="cinemaCarouselForm.remark"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -69,6 +51,7 @@ import { CinemaCarouselFormType } from "@/api/cinema-carousel/type";
 import { addCinemaCarouselApi } from "@/api/cinema-carousel";
 import { OptionsType } from "@/api/schedule/type";
 import UploadImage from "@/components/UploadImage.vue";
+import { QuestionFilled } from "@element-plus/icons-vue";
 type PropsType = {
   showEditDialog: boolean;
   currentRow: any;
@@ -106,9 +89,9 @@ const handleClose = () => {
 
 onMounted(() => {
   const id = props.currentRow?.id;
-  if(id){
-    Object.assign(cinemaCarouselForm,{...props.currentRow})
-    console.log(cinemaCarouselForm,'cinemaCarouselForm')
+  if (id) {
+    Object.assign(cinemaCarouselForm, { ...props.currentRow })
+    console.log(cinemaCarouselForm, 'cinemaCarouselForm')
   }
 });
 
@@ -130,4 +113,11 @@ const handleAddOrUpdate = async () => {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+
+.carouselImg {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+</style>

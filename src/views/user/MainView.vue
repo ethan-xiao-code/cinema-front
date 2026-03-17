@@ -19,7 +19,7 @@
           </div>
           <div class="searchBox">
             <!-- 搜索 -->
-            <el-input clearable v-model="filmTitle" placeholder="搜索电影" class="searchInput" />
+            <el-input clearable v-model.trim="filmTitle" placeholder="搜索电影" class="searchInput" />
             <el-button class="searchBtn" type="primary" @click="() => toShowMovies(filmTitle)">搜索</el-button>
           </div>
 
