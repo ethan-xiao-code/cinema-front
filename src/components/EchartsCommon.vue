@@ -19,10 +19,10 @@ interface EChartProps {
 const props = defineProps<EChartProps>()
 
 const commonOptions: Partial<EChartsOption> = {
-  grid: { top: '15%', left: '5%', right: '6%', bottom: '3%', containLabel: true },
+  grid: {  top: 50,left: 20, right: 20, bottom: 45, containLabel: true },
   xAxis: {
     type: 'category',
-    axisLabel: { interval: 0, inside: false },
+    axisLabel: {  inside: false },
     axisTick: {
       alignWithLabel: true, // 关键：让刻度线与标签居中对齐（必开）
       length: 8, // 刻度线长度（默认5px，可按需调整）
@@ -42,6 +42,18 @@ const commonOptions: Partial<EChartsOption> = {
       }
     }
   },
+  
+  dataZoom: [
+    {
+      type: "slider", // 下方滑动条
+      show: true,
+      start: 0,
+      end: 100,
+      bottom: 10,
+      height: 25,
+    },
+  ],
+
 }
 
 const { baseOption = {}, seriesData = [], xData = [] } = computed(() => ({ ...props })).value

@@ -7,28 +7,6 @@
       </template>
     </SearchTableTemplate>
 
-    <!-- 订单详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="订单详情" width="600px">
-      <el-descriptions :column="2" border v-if="currentOrder">
-        <el-descriptions-item label="订单ID">{{ currentOrder.id }}</el-descriptions-item>
-        <el-descriptions-item label="用户名">{{ currentOrder.username }}</el-descriptions-item>
-        <el-descriptions-item label="影片名">{{ currentOrder.filmName }}</el-descriptions-item>
-        <el-descriptions-item label="放映厅">{{ currentOrder.screenRoomName }}</el-descriptions-item>
-        <el-descriptions-item label="座位号">{{ currentOrder.seatNumberStr }}</el-descriptions-item>
-        <el-descriptions-item label="交易金额">￥{{ currentOrder.amount?.toFixed(2) }}</el-descriptions-item>
-        <el-descriptions-item label="支付状态">
-          <el-tag :type="getItemByValue(payStatusOptions, currentOrder.status)?.type as any">
-            {{ getItemByValue(payStatusOptions, currentOrder.status)?.label }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="支付时间">{{ currentOrder.payTime || '未支付' }}</el-descriptions-item>
-      </el-descriptions>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="detailVisible = false">关闭</el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -48,14 +26,12 @@ import { getValidFilmListApi } from "@/api/film/index";
 import { OptionsType } from "@/api/schedule/type";
 import { getUserListApi } from "@/api/user";
 import { getItemByValue, payStatusOptions } from "@/utils/constant";
-
+import dayjs from 'dayjs'
 defineOptions({
   name: "adminOrders",
 });
 
 const router = useRouter();
-
-const searchTableTemplateRef = ref<typeof SearchTableTemplate>();
 
 /** 表格列配置 */
 const tableParamsList = ref<TableParamType[]>([
@@ -88,6 +64,11 @@ const tableParamsList = ref<TableParamType[]>([
     },
     minWidth: 100
   },
+   {
+    label: "售票数",
+    prop: "seatNumberStr",
+    renderText: (val) => val.split(",").length || 0 
+  },
   {
     label: "支付状态",
     prop: "status",
@@ -101,19 +82,7 @@ const tableParamsList = ref<TableParamType[]>([
     prop: "payTime",
     minWidth: 160
   },
-  {
-    label: "操作",
-    prop: "option",
-    fixed: "right",
-    minWidth: 100,
-    render: (_: any, row: any) => {
-      return h(ElButton, {
-        type: "primary",
-        size: "small",
-        onClick: () => openDetail(row)
-      }, () => "查看详情");
-    }
-  }
+
 ]);
 const filmOptions = ref<OptionsType[]>([]);
 const userOptions = ref<OptionsType[]>([]);
@@ -213,9 +182,9 @@ const getTableData = async (
   let startTime = "";
   let endTime = "";
   if (searchParams.payDateRange && searchParams.payDateRange.length === 2) {
-    startTime = searchParams.payDateRange[0] + " 00:00:00";
-    endTime = searchParams.payDateRange[1] + " 23:59:59";
-  }
+    startTime = dayjs(searchParams.payDateRange[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    endTime = dayjs(searchParams.payDateRange[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss');
+}
   const res = await pageQueryOrdersApi({
     ...pageParams,
     ...searchParams,
@@ -231,13 +200,8 @@ const getTableData = async (
   };
 };
 
-/** 订单详情逻辑 */
-const detailVisible = ref(false);
 const currentOrder = ref<any>(null);
-const openDetail = (row: any) => {
-  currentOrder.value = row;
-  detailVisible.value = true;
-};
+
 
 /** 跳转到数据大盘 */
 const goToDataBoard = () => {
