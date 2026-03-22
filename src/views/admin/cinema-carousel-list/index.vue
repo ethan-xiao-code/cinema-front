@@ -202,5 +202,6 @@ const handleDelete = async (row: any) => {
 
 .imgUrlClass {
   width: 100%;
+  /* height: 90px;  */
 }
 </style>

@@ -218,8 +218,6 @@ const goToDataBoard = () => {
 };
 </script>
 
-<style lang="scss">
-.imgUrlClass {
-  height: 165px;
-}
+<style lang="scss" scoepd>
+
 </style>

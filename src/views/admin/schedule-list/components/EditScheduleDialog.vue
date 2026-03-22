@@ -129,6 +129,10 @@ const scheduleFormRef = ref<FormInstance>();
 const filmItem = ref<FilmResultType | null>(null);
 const scheduleForm = reactive<ScheduleFormType>({} as any);
 const validateDateTime = (rule: any, value: any, callback: any) => {
+  console.log(value,
+  filmItem.value,
+    'value'
+  )
   const curTimestamp = new Date(value).getTime();
   const releaseDateTimestamp = new Date(filmItem.value!.releaseDate).getTime();
   console.log(curTimestamp, releaseDateTimestamp, "releaseDateTimestamp");
