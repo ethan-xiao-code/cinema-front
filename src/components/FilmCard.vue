@@ -1,6 +1,12 @@
 <template>
   <div class="filmItem">
-    <el-image  :src="film.poster" class="poster" lazy @click="toShowFilmDetail(film.id)" fit="cover">
+    <el-image
+      :src="film.poster"
+      class="poster"
+      lazy
+      @click="toShowFilmDetail(film.id)"
+      fit="cover"
+    >
       <template #placeholder>
         <div class="image-slot">加载中...</div>
       </template>
@@ -14,8 +20,8 @@ import { useRouter } from "vue-router";
 import { FilmCardType } from "@/api/film/type";
 
 type PropsType = {
-  film: FilmCardType
-}
+  film: FilmCardType;
+};
 
 const props = defineProps<PropsType>();
 
@@ -52,15 +58,14 @@ const toShowFilmDetail = (filmId: string | number) => {
   flex-direction: column;
   transition: all 0.3s ease; // 添加强制动画过渡
 
-
   &:hover {
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
     cursor: pointer;
     transform: scale(1.1);
-
   }
 
   .poster {
+    min-width: 140PX;
     width: 100%;
     height: auto;
     height: 250px;
