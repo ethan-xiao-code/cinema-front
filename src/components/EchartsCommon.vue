@@ -91,17 +91,32 @@ let chartInstance: echarts.ECharts | null = null
 const resizeChart = () => {
   chartInstance && chartInstance.resize()
 }
-
+let resizeObserver: ResizeObserver | null = null;
 onMounted(() => {
   if (chartRef.value) {
     chartInstance = echarts.init(chartRef.value as HTMLDivElement, props.theme)
     chartInstance.setOption(option.value)
+
+    // 监听容器尺寸变化
+    resizeObserver = new ResizeObserver(() => {
+      chartInstance && chartInstance.resize()
+    })
+
+    resizeObserver.observe(chartRef.value)
   }
+
   window.addEventListener('resize', resizeChart)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', resizeChart)
+
+  // ✅ 清理 observer
+  if (resizeObserver && chartRef.value) {
+    resizeObserver.unobserve(chartRef.value)
+    resizeObserver.disconnect()
+  }
+
   chartInstance && chartInstance.dispose()
 })
 

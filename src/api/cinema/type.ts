@@ -8,7 +8,7 @@ export interface CinemaFormType {
   address: string; // 详细地址
   phone: string; // 电话号码
   description?: string; // 简介
-  openingHours: Date; // 营业时间
+  openingHours?: Date; // 营业时间
 }
 
 export interface CinemaResultType extends CinemaFormType {

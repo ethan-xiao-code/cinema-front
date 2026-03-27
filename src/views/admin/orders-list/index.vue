@@ -1,17 +1,14 @@
 <template>
-  <div id="orders">
-    <SearchTableTemplate ref="searchTableTemplateRef" :table-params-list="tableParamsList"
-      :search-params-list="searchParamsList" :getTableData="getTableData" :show-search-form="true">
-      <template #handle>
-        <el-button type="success" @click="goToDataBoard">票房统计可视化分析</el-button>
-      </template>
-    </SearchTableTemplate>
-
-  </div>
+  <SearchTableTemplate ref="searchTableTemplateRef" :table-params-list="tableParamsList"
+    :search-params-list="searchParamsList" :getTableData="getTableData" :show-search-form="true">
+    <template #handle>
+      <el-button type="success" @click="goToDataBoard">票房统计可视化分析</el-button>
+    </template>
+  </SearchTableTemplate>
 </template>
 
 <script setup lang="ts">
-import { ref, h, onMounted } from "vue";
+import { ref, h, onMounted, onActivated, computed } from "vue";
 import { useRouter } from "vue-router";
 import { ElTag, ElButton } from "element-plus";
 import SearchTableTemplate, {
@@ -21,12 +18,12 @@ import SearchTableTemplate, {
 } from "@/components/SearchTableTemplate.vue";
 
 import { pageQueryOrdersApi } from "@/api/orders";
-import { computed } from "vue";
 import { getValidFilmListApi } from "@/api/film/index";
 import { OptionsType } from "@/api/schedule/type";
 import { getUserListApi } from "@/api/user";
 import { getItemByValue, payStatusOptions } from "@/utils/constant";
 import dayjs from 'dayjs'
+import { useRequest } from "@/utils/useRequest";
 defineOptions({
   name: "adminOrders",
 });
@@ -64,10 +61,10 @@ const tableParamsList = ref<TableParamType[]>([
     },
     minWidth: 100
   },
-   {
+  {
     label: "售票数",
     prop: "seatNumberStr",
-    renderText: (val) => val.split(",").length || 0 
+    renderText: (val) => val.split(",").length || 0
   },
   {
     label: "支付状态",
@@ -148,29 +145,6 @@ const searchParamsList = ref<SearchParamType[]>([
   },
 ]);
 
-onMounted(() => {
-  initFilmList()
-  initUserList()
-})
-
-const initFilmList = async () => {
-  const data = (await getValidFilmListApi()) || [];
-  filmOptions.value = data.map((item: any) => ({
-    ...item,
-    label: item.title,
-    value: item.title,
-  }));
-};
-
-const initUserList = async () => {
-  const data = (await getUserListApi()) || [];
-  userOptions.value = data.map((item: any) => ({
-    ...item,
-    label: item.username,
-    value: item.id,
-  }));
-};
-
 const currentSearchParams = ref<any>({});
 
 /** 表格数据请求 */
@@ -184,8 +158,8 @@ const getTableData = async (
   if (searchParams.payDateRange && searchParams.payDateRange.length === 2) {
     startTime = dayjs(searchParams.payDateRange[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss');
     endTime = dayjs(searchParams.payDateRange[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss');
-}
-  const res = await pageQueryOrdersApi({
+  }
+  const res = await fetchOrders({
     ...pageParams,
     ...searchParams,
     startTime,
@@ -200,7 +174,37 @@ const getTableData = async (
   };
 };
 
-const currentOrder = ref<any>(null);
+const { runFn: initFilmList, loading: filmLoading } = useRequest(getValidFilmListApi, {
+  onSuccess: (data) => {
+    filmOptions.value = (data || []).map((item: any) => ({
+      ...item,
+      label: item.title,
+      value: item.title,
+    }));
+  }
+});
+
+const { runFn: initUserList, loading: userLoading } = useRequest(getUserListApi, {
+  onSuccess: (data) => {
+    userOptions.value = (data || []).map((item: any) => ({
+      ...item,
+      label: item.username,
+      value: item.id,
+    }));
+  }
+});
+
+
+// manual: true, 因为表格数据是由 SearchTableTemplate 组件控制加载的
+const { runFn: fetchOrders } = useRequest(pageQueryOrdersApi);
+
+onMounted(() => { // 仅在组件首次挂载时执行一次
+  initUserList()
+})
+
+onActivated(() => { // 每次组件被激活时（包括从缓存中恢复）执行
+  initFilmList()
+})
 
 
 /** 跳转到票房统计可视化 */
@@ -218,6 +222,4 @@ const goToDataBoard = () => {
 };
 </script>
 
-<style lang="scss" scoepd>
-
-</style>
+<style lang="scss" scoepd></style>

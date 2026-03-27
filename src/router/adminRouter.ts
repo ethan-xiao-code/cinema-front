@@ -5,7 +5,7 @@ export const adminRoutes = {
     requiresAdmin: true
   },
   component: () => import('@/views/admin/index.vue'),
-  redirect: '/admin/data-board',
+  redirect: '/admin/user-list',
   children: [
 
     {

@@ -1,13 +1,13 @@
 export const userRoutes = {
   path: '/user',
   name: 'user',
-  component: () => import('@/views/user/MainView.vue'),
+  component: () => import('@/views/user/index.vue'),
   redirect: '/user/home',
   children: [
     // ===== 游客可访问 =====
     {
       path: 'home',
-      component: () => import('@/views/user/home/HomeView.vue')
+      component: () => import('@/views/user/home/index.vue')
     },
     {
       path: 'movies',
@@ -30,28 +30,28 @@ export const userRoutes = {
     {
       path: 'chooseSeat',
       name: 'chooseSeat',
-      component: () => import('@/views/user/buy-ticket/ChooseSeatView.vue'),
+      component: () => import('@/views/user/buy-ticket/ChooseSeat.vue'),
       meta: { requiresAuth: true }
     },
     {
-      path: 'me',
-      component: () => import('@/views/user/me/MyView.vue'),
+      path: 'my-center',
+      component: () => import('@/views/user/my-center/index.vue'),
       meta: { requiresAuth: true },
-      redirect: '/user/me/detail',
+      redirect: '/user/my-center/my-cart',
       children: [
         {
-          path: 'cart',
-          component: () => import('@/views/user/me/CartView.vue'),
+          path: 'my-cart',
+          component: () => import('@/views/user/my-center/components/MyCart.vue'),
           meta: { requiresAuth: true }
         },
         {
-          path: 'order',
-          component: () => import('@/views/user/me/OrderView.vue'),
+          path: 'my-order',
+          component: () => import('@/views/user/my-center/components/MyOrder.vue'),
           meta: { requiresAuth: true }
         },
         {
-          path: 'detail',
-          component: () => import('@/views/user/me/MyDetailView.vue'),
+          path: 'my-detail',
+          component: () => import('@/views/user/my-center/components/MyDetail.vue'),
           meta: { requiresAuth: true }
         }
       ]

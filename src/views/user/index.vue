@@ -62,21 +62,21 @@
               <el-dropdown-menu>
                 <!-- 已登录 -->
                 <template v-if="user?.username">
-                  <el-dropdown-item command="/user/me/cart">
+                  <el-dropdown-item command="/user/my-center/my-cart">
                     <el-icon>
                       <shopping-cart-full />
                     </el-icon>
                     <span>我的购物车</span>
                   </el-dropdown-item>
 
-                  <el-dropdown-item command="/user/me/order">
+                  <el-dropdown-item command="/user/my-center/my-order">
                     <el-icon>
                       <Document />
                     </el-icon>
                     <span>我的订单</span>
                   </el-dropdown-item>
 
-                  <el-dropdown-item command="/user/me/detail">
+                  <el-dropdown-item command="/user/my-center/my-detail">
                     <el-icon>
                       <User />
                     </el-icon>

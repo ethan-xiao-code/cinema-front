@@ -5,72 +5,52 @@
       <div class="filter-bar-right">
         <!-- 影片名称 -->
         <el-form-item>
-          <el-input
-            v-model="params.filmName"
-            placeholder="影片名称"
-            clearable
-          />
+          <el-input v-model="params.filmName" placeholder="影片名称" clearable />
         </el-form-item>
 
         <el-form-item>
-          <el-date-picker
-            :clearable="false"
-            v-model="dateRange"
-            type="daterange"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            format="YYYY-MM-DD"
-            value-format="YYYY-MM-DD"
-            range-separator="至"
-          />
+          <el-date-picker :clearable="false" v-model="dateRange" type="daterange" start-placeholder="开始日期"
+            end-placeholder="结束日期" format="YYYY-MM-DD" value-format="YYYY-MM-DD" range-separator="至" />
         </el-form-item>
 
         <!-- 按钮 -->
         <el-form-item>
-          <el-button :loading="loading" type="primary" @click="qeuryChartData"
-            >查询</el-button
-          >
+          <el-button :loading="loading" type="primary" @click="qeuryChartData">查询</el-button>
           <el-button @click="resetFilters">重置</el-button>
         </el-form-item>
       </div>
     </el-form>
 
     <!-- 核心指标卡片 -->
-    <div
-      class="kpi-cards"
-      v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length"
-    >
+    <div class="kpi-cards" v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length">
       <el-card shadow="hover" class="kpi-card">
         <div class="kpi-title">区间总票房 (元)</div>
-        <div class="kpi-value highlight">
+        <div class="kpi-value total">
           {{ statisticObj.totalBoxOffice.toLocaleString() }}
         </div>
       </el-card>
       <el-card shadow="hover" class="kpi-card">
         <div class="kpi-title">区间总售票 (张)</div>
-        <div class="kpi-value">
+        <div class="kpi-value tickets">
           {{ statisticObj.totalTickets.toLocaleString() }}
         </div>
       </el-card>
       <el-card shadow="hover" class="kpi-card">
         <div class="kpi-title">日均票房 (元)</div>
-        <div class="kpi-value">
+        <div class="kpi-value avg-box">
           {{ statisticObj.dailyAverageBoxOffice.toLocaleString() }}
         </div>
       </el-card>
       <el-card shadow="hover" class="kpi-card">
         <div class="kpi-title">日均售票 (张)</div>
-        <div class="kpi-value">
+        <div class="kpi-value avg-ticket">
           {{ statisticObj.dailyAverageTickets.toLocaleString() }}
         </div>
       </el-card>
     </div>
 
     <!-- 图表展示 -->
-    <div
-      class="echarts"
-      v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length"
-    >
+    <div class="echarts" v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length">
       <div class="chart-container">
         <BoxOfficeRankBar :itemArr="handleFilmList" />
       </div>
@@ -79,16 +59,12 @@
         <!-- 提示：若后端提供每日销售额API(如 getDailyRevenueApi )，可在此并排展示销售额趋势图 -->
       </div>
     </div>
-    <el-empty
-      v-else
-      :image-size="250"
-      description="暂无数据，请更换查询条件~"
-    />
+    <el-empty v-else :image-size="250" description="暂无数据，请更换查询条件~" />
   </BaseLoading>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted,onActivated } from "vue";
+import { ref, computed, onMounted, onActivated } from "vue";
 import { useRoute } from "vue-router";
 import {
   getFilmBoxOfficeTrendApi,
@@ -213,17 +189,17 @@ const {
   startPolling,
 } = useRequest(handleData, {
   onSuccess: (resList) => {
-    const [res1, res2,res3] = resList;
+    const [res1, res2, res3] = resList;
     statisticObj.value = res3
     filmBoxOfficeRank.value = res1.sort((a, b) => b.boxOffice - a.boxOffice);
-    dayBoxOfficeList.value = 
+    dayBoxOfficeList.value =
       fillMissingDates(res2, dateRange.value[0], dateRange.value[1]) || [];
   },
   throttleTime: 1000,
   intervalTime: 1000 * 60 * 5, // 每过5分钟就发一次接口请求
 });
 
-startPolling();
+startPolling(false); // 第一次不调用接口
 
 const resetFilters = () => {
   params.value = { filmName: "", startTime: undefined, endTime: undefined };
@@ -288,10 +264,21 @@ onActivated(() => {
       .kpi-value {
         font-size: 24px;
         font-weight: bold;
-        color: #303133;
 
-        &.highlight {
-          color: #e53e3e;
+        &.total {
+          color: #e53e3e; // 红（总票房）
+        }
+
+        &.tickets {
+          color: #3182ce; // 蓝（总票数）
+        }
+
+        &.avg-box {
+          color: #38a169; // 绿（日均票房）
+        }
+
+        &.avg-ticket {
+          color: #d69e2e; // 黄（日均票数）
         }
       }
     }
@@ -317,6 +304,7 @@ onActivated(() => {
         padding-left: 10px;
       }
     }
+
     .top0 {
       padding-top: 0;
     }

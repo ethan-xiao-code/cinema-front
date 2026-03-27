@@ -8,19 +8,19 @@
         </div>
         <el-menu :default-active="indexPath" class="sidebar-menu" router unique-opened active-text-color="#409eff"
           text-color="#333" background-color="#fff">
-          <el-menu-item index="/user/me/cart">
+          <el-menu-item index="/user/my-center/my-cart">
             <el-icon class="menu-icon">
               <ShoppingCart />
             </el-icon>
             <template #title>我的购物车</template>
           </el-menu-item>
-          <el-menu-item index="/user/me/order">
+          <el-menu-item index="/user/my-center/my-order">
             <el-icon class="menu-icon">
               <Tickets />
             </el-icon>
             <template #title>我的订单</template>
           </el-menu-item>
-          <el-menu-item index="/user/me/detail">
+          <el-menu-item index="/user/my-center/my-detail">
             <el-icon class="menu-icon">
               <Setting />
             </el-icon>
