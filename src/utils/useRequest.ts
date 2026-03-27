@@ -102,7 +102,7 @@ export function useRequest<T = any>(
 
   // ========== 防抖/节流处理（优先防抖，其次节流） ==========
   // 初始化执行函数为原始run函数
-  let runFn: (...args: any[]) => void = run
+  let runFn: (...args: any[]) => any = run
 
   // 如果配置了防抖时间，给run函数添加防抖处理（高频触发时只执行最后一次）
   if (debounceTime > 0) {
@@ -123,11 +123,11 @@ export function useRequest<T = any>(
    * 开启轮询请求（外部调用）
    * 按指定intervalTime间隔重复执行请求，避免请求叠加
    */
-  const startPolling = () => {
+  const startPolling = (isFirstFn: boolean = true) => {
     // 防护：轮询时间<=0 或 已有定时器时，不执行
     if (intervalTime <= 0 || timer) return
     // 先执行一次请求
-    runFn()
+    isFirstFn && runFn()
     // 设置轮询定时器：上一次请求结束后（loading=false）才执行下一次
     timer = setInterval(() => {
       if (!loading.value) {

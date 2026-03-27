@@ -7,7 +7,7 @@
         :key="comment.id"
         class="comment-item"
       >
-        <!-- 根评论 -->
+        <!-- 根评论（一级评论） -->
         <UserCommentItem
           :commentItem="comment"
           :getUsernameByCommentId="getUsernameByCommentId"
@@ -15,9 +15,10 @@
           @showReplyInput="showReplyText"
         />
 
-        <!-- 回复列表 -->
+        <!-- 回复列表（二级评论） -->
         <div v-if="comment.replies.length" class="comment-row-2">
           <div class="replies-container">
+            <!-- 回复头部：显示总回复数 + 折叠/展开图标 -->
             <div class="replies-header" @click="toggleReplies(comment)">
               <span class="replies-count">
                 共 {{ comment.replies.length }} 条回复
@@ -31,12 +32,12 @@
             </div>
 
             <div class="replies-content">
-              <!-- 折叠 -->
+              <!-- 折叠状态：只显示“展开回复”按钮 -->
               <div v-if="!comment.showAllReplies" class="view-more" @click="comment.showAllReplies = true">
                 展开回复
               </div>
 
-              <!-- 展开 -->
+              <!-- 展开状态：显示所有回复 + 加载更多 + 收起 -->
               <div v-else class="replies-expanded">
                 <UserCommentItem
                   v-for="reply in sortedComments(comment.replies).slice(0, comment.showCount)"
@@ -48,6 +49,7 @@
                   @showReplyInput="showReplyText"
                 />
 
+                <!-- 未展示完所有回复时，显示“展开更多” -->
                 <el-button
                   v-if="comment.showCount < comment.replies.length"
                   type="primary"
@@ -57,6 +59,7 @@
                   展开更多回复
                 </el-button>
 
+                <!-- 收起回复按钮 -->
                 <div class="view-less" @click="toggleReplies(comment)">
                   <el-icon><ArrowUp /></el-icon>
                   收起回复
@@ -66,9 +69,10 @@
           </div>
         </div>
 
-        <!-- 回复框 -->
+        <!-- 回复输入框：动态显示 -->
         <div v-if="isShowReplyInput(comment)" class="reply-box">
           <div class="reply-input">
+            <!-- 用户头像 -->
             <el-avatar
               v-if="userStore.userInfo?.avatar"
               :src="userStore.userInfo.avatar"
@@ -78,6 +82,7 @@
               {{ userStore.userInfo?.username?.charAt(0).toUpperCase() }}
             </el-avatar>
 
+            <!-- 回复输入框 -->
             <el-input
               type="textarea"
               v-model="replyContent"
@@ -87,6 +92,7 @@
             />
           </div>
 
+          <!-- 取消 / 提交按钮 -->
           <div class="reply-actions">
             <button class="cancel-btn" @click="cancelReply">取消</button>
             <button class="submit-btn" @click="submitReply(comment.id)">
@@ -97,7 +103,7 @@
       </div>
     </div>
 
-    <!-- 空状态 -->
+    <!-- 无评论空状态 -->
     <div v-else class="empty-comment">
       <el-empty :image-size="200" description="暂无用户评论" />
     </div>
@@ -121,36 +127,32 @@ import {
 import { useWebSocket } from "@/utils/useWebSocket";
 import { useRoute } from "vue-router";
 
-/* store */
+/* ====================== 全局状态 & 路由 ====================== */
 const userStore = useUserStore();
 const route = useRoute();
-const curFilmId = ref(Number(route.params.filmId));
+const curFilmId = ref(Number(route.params.filmId)); // 当前电影ID
 
-/* 评论树（reactive 管理） */
-const commentsData = reactive<CommentItemType[]>([]);
+/* ====================== 评论数据 ====================== */
+const commentsData = reactive<CommentItemType[]>([]); // 评论树数据
 
-/* 回复状态 */
-const activeReplyTargetId = ref<number | null>(null);
-const replyContent = ref("");
-const replyUsername = ref("");
+/* ====================== 回复框状态 ====================== */
+const activeReplyTargetId = ref<number | null>(null); // 当前激活的回复目标ID
+const replyContent = ref(""); // 回复内容
+const replyUsername = ref(""); // 要回复的用户名
 
-// WebSocket 消息处理
+/* ====================== WebSocket 消息处理 ====================== */
 const handleWsMessage = (msg: any) => {
   const { type, data } = msg;
 
+  // 新增一级评论
   if (type === CommentWsEnum.FirstComment) handleFirstComment(data);
+  // 新增回复评论
   if (type === CommentWsEnum.Reply) handleReplyMsg(data);
+  // 评论点赞/点踩
   if (type === CommentWsEnum.CommentLike) handleLikeMsg(data);
 };
 
-// const { initWebSocket, send, close } = useWebSocket(
-//   "/ws/comment",
-//   handleWsMessage,
-//   {
-//     token: userStore.token
-//   }
-// );
-
+// 初始化 WebSocket 连接
 const { initWebSocket, send, close } = useWebSocket({
   path: "/ws/comment",
   onMessage: handleWsMessage,
@@ -159,61 +161,67 @@ const { initWebSocket, send, close } = useWebSocket({
   }
 });
 
+/* ====================== 生命周期 ====================== */
 onMounted(async () => {
-  await getCommentList(curFilmId.value);
-  initWebSocket();
+  await getCommentList(curFilmId.value); // 获取评论列表
+  initWebSocket(); // 连接WebSocket
 });
 
 onUnmounted(() => {
-  close?.();
+  close?.(); // 断开连接，防止内存泄漏
 });
 
-// 按时间倒序排列
+/* ====================== 工具方法 ====================== */
+// 评论按时间倒序排列（最新在前）
 const sortedComments = (data: CommentItemType[]) => {
   return [...data].sort(
     (a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
   );
 };
 
-// 初始化 UI 状态
+// 初始化评论UI状态（展开、显示条数）
 const initCommentUIState = (c: CommentItemType) => {
   return {
     ...c,
     replies: c.replies || [],
-    showAllReplies: false,
-    showCount: 3,
+    showAllReplies: false, // 默认折叠回复
+    showCount: 3, // 默认显示3条回复
   };
 };
 
-// 获取评论列表
+/* ====================== 接口请求 ====================== */
+// 获取电影评论列表，并构建评论树
 const getCommentList = async (filmId: number) => {
-  // 注意：这里获取的后端数据一定要按创建时间升序排序，这样能保证一级评论先在commentsData中
   const res = await getCommentByFilmIdApi(filmId);
   commentsData.length = 0;
 
+  // 构建一级评论 + 二级回复结构
   res.forEach((c: CommentItemType) => {
     const comment = initCommentUIState(c);
     if (comment.parentId === -1) {
+      // 一级评论
       commentsData.push(comment);
     } else {
+      // 二级评论，挂载到对应父评论
       const parent = commentsData.find(p => p.id === comment.parentId);
       parent?.replies?.push(comment);
     }
   });
 };
 
+/* ====================== WebSocket 实时更新 ====================== */
 // 新增一级评论
 const handleFirstComment = (comment: CommentItemType) => {
   if (comment.filmId !== curFilmId.value) return;
   const newComment = initCommentUIState(comment);
-  commentsData.unshift(newComment);
+  commentsData.unshift(newComment); // 最新评论置顶
 };
 
-// 新增回复
+// 新增回复评论
 const handleReplyMsg = (reply: CommentItemType) => {
   if (reply.filmId !== curFilmId.value) return;
 
-  // 避免重复
+  // 去重
   const exist = commentsData.some(c => c.id === reply.id || c.replies.some(r => r.id === reply.id));
   if (exist) return;
 
@@ -221,49 +229,54 @@ const handleReplyMsg = (reply: CommentItemType) => {
   const parent = commentsData.find(c => c.id === reply.parentId);
   if (parent) {
     parent.replies.push(newReply);
-
-    // 当前用户评论则展开
+    // 自己发的回复自动展开
     if (reply.userId === userStore.userId) parent.showAllReplies = true;
   }
 };
 
-// 点赞消息
+// 点赞/点踩实时同步
 const handleLikeMsg = (data: CommentReactionResType) => {
   const allComments = commentsData.flatMap(c => [c, ...c.replies]);
   const item = allComments.find(c => c.id === data.commentId);
   if (!item) return;
 
+  // 更新点赞数
   item.likes = data.likes;
   item.unLikes = data.unLikes;
 
+  // 当前用户的点赞状态同步
   if (data.userId === userStore.userId) {
     item.liked = data.liked;
     item.unLiked = data.unLiked;
   }
 };
 
-/* UI 行为 */
+/* ====================== UI 交互行为 ====================== */
+// 切换回复展开/收起
 const toggleReplies = (comment: CommentItemType) => {
   comment.showAllReplies = !comment.showAllReplies;
-  comment.showCount = 3;
+  comment.showCount = 3; // 重置显示数量
 };
 
+// 显示回复输入框
 const showReplyText = (commentId: number) => {
   activeReplyTargetId.value = commentId;
   replyUsername.value = getUsernameByCommentId(commentId);
 };
 
+// 取消回复
 const cancelReply = () => {
   activeReplyTargetId.value = null;
   replyContent.value = "";
 };
 
+// 根据评论ID获取用户名
 const getUsernameByCommentId = (id: number) => {
   const allComments = commentsData.flatMap(c => [c, ...c.replies]);
   return allComments.find(c => c.id === id)?.username || "";
 };
 
-// 点赞操作
+// 发送点赞/点踩
 const handleLikeOrUnLike = (comment: CommentItemType, reactionType: ReactionEnum) => {
   send({
     type: CommentWsEnum.CommentLike,
@@ -281,6 +294,7 @@ const submitReply = (parentId: number) => {
     return ElMessage.warning("回复内容不能为空");
   }
 
+  // 发送回复消息
   const params: ReplyCommentType = {
     type: CommentWsEnum.Reply,
     data: {
@@ -293,14 +307,16 @@ const submitReply = (parentId: number) => {
   };
 
   send(params);
+  // 提交后清空输入框
   replyContent.value = "";
   activeReplyTargetId.value = null;
 };
 
-// 是否显示回复框
+// 判断当前评论项是否需要显示回复框
 const isShowReplyInput = (comment: CommentItemType) => {
   if (activeReplyTargetId.value === null) return false;
   if (comment.id === activeReplyTargetId.value) return true;
+  // 子评论回复也显示在父级下方
   return comment.replies.some(r => r.id === activeReplyTargetId.value);
 };
 </script>

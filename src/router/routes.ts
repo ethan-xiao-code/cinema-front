@@ -1,5 +1,5 @@
-import { adminRoutes } from './admin';
-import { userRoutes } from './user';
+import { adminRoutes } from './adminRouter';
+import { userRoutes } from './userRouter';
 
 export const routes = [
   {
@@ -7,12 +7,6 @@ export const routes = [
     redirect: '/user/home',
     hidden: true
   },
-  // {
-  //   path: '/login',
-  //   name: 'login',
-  //   hidden: true,
-  //   component: () => import('@/views/login/index.vue'),
-  // },
   // {
   //   path: '/demo',
   //   hidden: true,
@@ -22,7 +16,7 @@ export const routes = [
     path: '/404',
     name: '404',
     hidden: true,
-    component: () => import('@/views/404/404View.vue')
+    component: () => import('@/views/404-page/index.vue')
   },
   adminRoutes,
   userRoutes,

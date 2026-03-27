@@ -5,17 +5,9 @@ export const adminRoutes = {
     requiresAdmin: true
   },
   component: () => import('@/views/admin/index.vue'),
-  redirect: '/admin/data-board',
+  redirect: '/admin/user-list',
   children: [
-    {
-      path: 'data-board',
-      name: 'adminDataBoard', // 配置name，用于缓存组件（注意：一定要与该组件的name一直，否则keep-alive无效）
-      component: () => import('@/views/admin/data-board/index.vue'),
-      meta: {
-        title: '数据大盘',
-        icon: 'DataBoard'
-      }
-    },
+
     {
       path: 'user-list',
       name: 'adminUsers',
@@ -78,6 +70,15 @@ export const adminRoutes = {
         title: '订单管理',
         icon: 'List'
       }
-    }
+    },
+    {
+      path: 'data-board',
+      name: 'adminDataBoard', // 配置name，用于缓存组件（注意：一定要与该组件的name一直，否则keep-alive无效）
+      component: () => import('@/views/admin/data-board/index.vue'),
+      meta: {
+        title: '票房统计可视化',
+        icon: 'DataBoard'
+      }
+    },
   ]
 }

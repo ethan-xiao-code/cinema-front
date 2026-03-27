@@ -31,17 +31,25 @@ export function cancelOrdersApi(id: number): Promise<any> {
   })
 }
 
-export function getFilmBoxOfficeApi(data: ChartParamsType): Promise<any> {
+export function getFilmBoxOfficeTrendApi(data: ChartParamsType): Promise<any> {
   return request({
-    url: `/orders/filmBoxOffice`,
+    url: `/orders/boxOffice/rank`,
     method: 'post',
     data
   })
 }
 
-export function getMonthTicketApi(data: ChartParamsType): Promise<any> {
+export function getDayBoxOfficeApi(data: ChartParamsType): Promise<any> {
   return request({
-    url: `/orders/trend/boxOffice`,
+    url: `/orders/boxOffice/trend`,
+    method: 'post',
+    data
+  })
+}
+
+export function getStatisticsBoxOfficeApi(data: ChartParamsType): Promise<any> {
+  return request({
+    url: `/orders/boxOffice/statistics`,
     method: 'post',
     data
   })

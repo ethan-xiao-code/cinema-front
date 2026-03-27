@@ -26,7 +26,7 @@ const xData = computed(() => props.itemArr.map((i) => i.name))
 const seriesData = computed(() => props.itemArr.map((i) => i.value))
 
 const baseOption = computed(() => ({
-	title: { text: '影片票房统计' },
+	title: { text: '影片票房排行分布' },
 	series: [
 		{
 			type: 'bar',

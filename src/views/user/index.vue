@@ -12,19 +12,37 @@
         <div class="rightWrap">
           <!-- 中间菜单 -->
           <div class="menuBox">
-            <div v-for="item in menuList" :key="item.path" class="menuItem"
-              :class="{ active: route.path === item.path }" @click="router.push(item.path)">
+            <div
+              v-for="item in menuList"
+              :key="item.path"
+              class="menuItem"
+              :class="{ active: route.path === item.path }"
+              @click="router.push(item.path)"
+            >
               {{ item.name }}
             </div>
           </div>
           <div class="searchBox">
             <!-- 搜索 -->
-            <el-input clearable v-model.trim="filmTitle" placeholder="搜索电影" class="searchInput" />
-            <el-button class="searchBtn" type="primary" @click="() => toShowMovies(filmTitle)">搜索</el-button>
+            <el-input
+              clearable
+              v-model.trim="filmTitle"
+              placeholder="搜索电影"
+              class="searchInput"
+              @input="handleSearchTextChange"
+            />
+            <el-button
+              :loading="searchLoading"
+              class="searchBtn"
+              type="primary"
+              @click="handleSearch"
+              >搜索</el-button
+            >
           </div>
 
-
-          <el-button :disabled="!isAdmin" type="success" @click="goAdminPage">后台管理</el-button>
+          <el-button :disabled="!isAdmin" type="success" @click="goAdminPage"
+            >后台管理</el-button
+          >
 
           <!-- 用户 -->
           <el-dropdown @command="handleCommand">
@@ -32,7 +50,7 @@
               <img :src="user?.avatar || userDefault" />
               <div>
                 <span class="username">
-                  {{ user?.username || '未登录' }}
+                  {{ user?.username || "未登录" }}
                 </span>
                 <el-icon class="el-icon--right">
                   <ArrowDownBold />
@@ -44,21 +62,21 @@
               <el-dropdown-menu>
                 <!-- 已登录 -->
                 <template v-if="user?.username">
-                  <el-dropdown-item command="/user/me/cart">
+                  <el-dropdown-item command="/user/my-center/my-cart">
                     <el-icon>
                       <shopping-cart-full />
                     </el-icon>
                     <span>我的购物车</span>
                   </el-dropdown-item>
 
-                  <el-dropdown-item command="/user/me/order">
+                  <el-dropdown-item command="/user/my-center/my-order">
                     <el-icon>
                       <Document />
                     </el-icon>
                     <span>我的订单</span>
                   </el-dropdown-item>
 
-                  <el-dropdown-item command="/user/me/detail">
+                  <el-dropdown-item command="/user/my-center/my-detail">
                     <el-icon>
                       <User />
                     </el-icon>
@@ -92,7 +110,6 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-
         </div>
       </div>
     </div>
@@ -101,7 +118,6 @@
     <div class="mainContent">
       <router-view />
     </div>
-
   </div>
 </template>
 
@@ -124,18 +140,42 @@ import {
 } from "@element-plus/icons-vue";
 import { RoleEnum, userSystemTitle } from "@/utils/constant";
 import { eventBus } from "../../utils/eventBus";
+import { throttle } from "lodash-es";
+import { useFilmSearchStore } from "@/stores/filmSearchStore";
 
 // 路由和状态管理（原有逻辑不变）
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-
+const filmSearchStore = useFilmSearchStore();
 const url = logo;
 const menuList = ref([
   { name: "首页", path: "/user/home" },
   { name: "电影大全", path: "/user/movies" },
 ]);
 const filmTitle = ref("");
+const searchLoading = ref(false);
+const handleSearch = () => {
+  searchLoading.value = true;
+  setTimeout(() => {
+    searchLoading.value = false;
+    // 确保 store 中的值为当前输入
+    filmSearchStore.setTitle(filmTitle.value);
+    // 如果当前不在电影页，则跳转
+    if (route.path !== "/user/movies") {
+      router.push("/user/movies");
+    }
+  }, 500);
+};
+const handleSearchTextChange = (val: string) => {
+  console.log(val, "val");
+  throttledUpdateStore(val);
+};
+
+// 输入变化时，节流更新 store
+const throttledUpdateStore = throttle((val: string) => {
+  filmSearchStore.setTitle(val);
+}, 500);
 
 // 生命周期钩子
 onMounted(() => {
@@ -143,25 +183,17 @@ onMounted(() => {
 });
 const user = computed(() => userStore.userInfo);
 // (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin
-const isAdmin = computed(() => userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin)
-// 监听路由变化
-watch(
-  () => route.path,
-  (path) => {
-    document.documentElement.scrollTop = 0;
-  },
-  { immediate: true },
+const isAdmin = computed(
+  () => userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin,
 );
 
 watch(
   () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
   (newVal) => {
-    filmTitle.value = newVal?.toString() || ''
+    filmTitle.value = newVal?.toString() || "";
   },
-  { immediate: true }
+  { immediate: true },
 );
-
-
 
 // 下拉菜单处理
 const handleCommand = (command: string) => {
@@ -190,7 +222,7 @@ const toSwitchAccount = async () => {
 
 // 登录跳转
 const toLogin = () => {
-  eventBus.emit("showLoginDialog",{});
+  eventBus.emit("showLoginDialog", {});
   // router.push({
   //   path: "/login",
   //   query: { redirect: route.fullPath },
@@ -204,24 +236,15 @@ const toLogout = async () => {
   router.push("/user/home");
 };
 
-// 搜索跳转电影页
-const toShowMovies = (filmTitle: string) => {
-  router.push({
-    name: "movies",
-    query: {
-      filmTitle
-    }
-  });
-};
 
 // 打开后台页面
 const goAdminPage = () => {
   // const routeUrl = router.resolve({ path: "/admin" });
   // window.open(routeUrl.href, "_blank");
   if (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin) {
-    router.push("/admin")
+    router.push("/admin");
   } else {
-    ElMessage.warning("只有管理员才可以进入哦~")
+    ElMessage.warning("只有管理员才可以进入哦~");
   }
 };
 </script>
@@ -230,7 +253,7 @@ const goAdminPage = () => {
 #main {
   min-height: 100vh;
   background: #f6f7fb;
-  min-width: 1000PX;
+  min-width: 1000px;
   .navBar {
     position: fixed;
     top: 0;
@@ -300,10 +323,10 @@ const goAdminPage = () => {
         .searchBox {
           .searchInput {
             width: 220px;
+            height: 32px;
             margin-right: 10px;
           }
         }
-
 
         /* 用户 */
         .userBox {
@@ -312,7 +335,7 @@ const goAdminPage = () => {
           gap: 8px;
           cursor: pointer;
 
-          &>img {
+          & > img {
             width: 35px;
             height: 35px;
             border-radius: 50%;
@@ -320,7 +343,7 @@ const goAdminPage = () => {
 
           .username {
             max-width: 80px;
-            font-size: 16PX;
+            font-size: 16px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -337,6 +360,5 @@ const goAdminPage = () => {
   .mainContent {
     padding: 24px;
   }
-
 }
 </style>

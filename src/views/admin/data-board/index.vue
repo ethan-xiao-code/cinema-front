@@ -1,7 +1,7 @@
 <template>
-  <div id="home">
+  <BaseLoading :loading="loading" text="票房数据加载中..." id="home">
     <!-- 查询条件 -->
-    <el-form :inline="true" class="filter-bar" label-width="0">
+    <el-form :model="params" :inline="true" class="filter-bar" label-width="0">
       <div class="filter-bar-right">
         <!-- 影片名称 -->
         <el-form-item>
@@ -21,97 +21,208 @@
       </div>
     </el-form>
 
+    <!-- 核心指标卡片 -->
+    <div class="kpi-cards" v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length">
+      <el-card shadow="hover" class="kpi-card">
+        <div class="kpi-title">区间总票房 (元)</div>
+        <div class="kpi-value total">
+          {{ statisticObj.totalBoxOffice.toLocaleString() }}
+        </div>
+      </el-card>
+      <el-card shadow="hover" class="kpi-card">
+        <div class="kpi-title">区间总售票 (张)</div>
+        <div class="kpi-value tickets">
+          {{ statisticObj.totalTickets.toLocaleString() }}
+        </div>
+      </el-card>
+      <el-card shadow="hover" class="kpi-card">
+        <div class="kpi-title">日均票房 (元)</div>
+        <div class="kpi-value avg-box">
+          {{ statisticObj.dailyAverageBoxOffice.toLocaleString() }}
+        </div>
+      </el-card>
+      <el-card shadow="hover" class="kpi-card">
+        <div class="kpi-title">日均售票 (张)</div>
+        <div class="kpi-value avg-ticket">
+          {{ statisticObj.dailyAverageTickets.toLocaleString() }}
+        </div>
+      </el-card>
+    </div>
+
     <!-- 图表展示 -->
-    <div class="echarts" v-if="filmList.length && monthTicketList.length">
-      <HomeBarTicket :itemArr="handleFilmList" />
-      <HomeLine :itemArr="handleMonthTicketList" />
+    <div class="echarts" v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length">
+      <div class="chart-container">
+        <BoxOfficeRankBar :itemArr="handleFilmList" />
+      </div>
+      <div class="chart-container top0">
+        <BoxOfficeTrendLine :itemArr="handleMonthTicketList" />
+        <!-- 提示：若后端提供每日销售额API(如 getDailyRevenueApi )，可在此并排展示销售额趋势图 -->
+      </div>
     </div>
     <el-empty v-else :image-size="250" description="暂无数据，请更换查询条件~" />
-  </div>
+  </BaseLoading>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { getFilmBoxOfficeApi, getMonthTicketApi } from '@/api/orders'
-import HomeBarTicket from './components/HomeBarTicket.vue'
-import HomeLine from './components/HomeLine.vue'
-import { ChartParamsType } from '@/api/orders/type'
-import dayjs from 'dayjs'
-import { useRequest } from '@/utils/useRequest'
+import { ref, computed, onMounted, onActivated } from "vue";
+import { useRoute } from "vue-router";
+import {
+  getFilmBoxOfficeTrendApi,
+  getDayBoxOfficeApi,
+  getStatisticsBoxOfficeApi
+} from "@/api/orders";
+import BoxOfficeTrendLine from "./components/BoxOfficeTrendLine.vue";
+import BaseLoading from "@/components/BaseLoading.vue";
+import BoxOfficeRankBar from "./components/BoxOfficeRankBar.vue";
+import {
+  ChartParamsType,
+  FilmBoxOfficeType,
+  BoxOfficeTrendType,
+  ChartItemType,
+  StatisticsBoxOfficeType,
+} from "@/api/orders/type";
+import dayjs, { Dayjs } from "dayjs";
+import { useRequest } from "@/utils/useRequest";
 defineOptions({
-  name: 'adminDataBoard'
-})
-interface FilmBoxOfficeItem { id: number; filmName: string; boxOffice: number; type: string | number }
-interface MonthTicketItem { date: string; ticketCount: number }
-interface ChartItem { name: string; value: number }
-const dateRange = ref<[string, string]>([
-  dayjs().subtract(1, "month").format("YYYY-MM-DD"),
-  dayjs().format("YYYY-MM-DD")
-])
+  name: "adminDataBoard",
+});
+
+const route = useRoute();
+
+const initDateRange: [string, string] = [
+  dayjs().subtract(7, "day").format("YYYY-MM-DD"),
+  dayjs().subtract(1, "day").format("YYYY-MM-DD"),
+];
+const dateRange = ref<[string, string]>(initDateRange);
 const params = ref<ChartParamsType>({
-  filmName: '',
-  startTime: '',
-  endTime: ''
-})
+  filmName: "",
+  startTime: "",
+  endTime: "",
+});
 
-const filmList = ref<FilmBoxOfficeItem[]>([])
-const monthTicketList = ref<MonthTicketItem[]>([])
-const handleFilmList = computed<ChartItem[]>(() =>
-  filmList.value.map(i => ({ name: i.filmName, value: i.boxOffice }))
-)
+const statisticObj = ref<StatisticsBoxOfficeType>({
+  totalBoxOffice: 0,
+  totalTickets: 0,
+  dailyAverageBoxOffice: 0,
+  dailyAverageTickets: 0,
+});
 
-const handleMonthTicketList = computed<ChartItem[]>(() =>
-  monthTicketList.value.map(i => ({ name: i.date, value: i.ticketCount }))
-)
+const filmBoxOfficeRank = ref<FilmBoxOfficeType[]>([]); // 影片票房排行
+const dayBoxOfficeList = ref<BoxOfficeTrendType[]>([]); // 日票房
+const handleFilmList = computed<ChartItemType[]>(() =>
+  filmBoxOfficeRank.value.map((i) => ({
+    name: i.filmName,
+    value: i.boxOffice,
+  })),
+);
+
+const handleMonthTicketList = computed<ChartItemType[]>(() =>
+  dayBoxOfficeList.value.map((i) => ({ name: i.date, value: i.dayBoxOffice })),
+);
+
 
 const getFilmBoxOffice = async (params: ChartParamsType) => {
-  const res = await getFilmBoxOfficeApi({ ...params })
-  return res
-}
+  const res = await getFilmBoxOfficeTrendApi({ ...params });
+  return res;
+};
 
 const getMonthTicket = async (params: ChartParamsType) => {
-  const res = await getMonthTicketApi({ ...params })
-  return res
-}
+  const res = await getDayBoxOfficeApi({ ...params });
+  return res;
+};
+
+const getStatisticsBoxOffice = async (params: ChartParamsType) => {
+  const res = await getStatisticsBoxOfficeApi({ ...params });
+  return res;
+};
+
 
 const handleData = () => {
-  const newParams = { ...params.value }
+  const newParams = { ...params.value };
   if (dateRange.value.length === 2) {
-    newParams.startTime = dayjs(dateRange.value[0]).startOf('day').format("YYYY-MM-DD HH:mm:ss")
-    newParams.endTime = dayjs(dateRange.value[1]).endOf('day').format("YYYY-MM-DD HH:mm:ss")
+    newParams.startTime = dayjs(dateRange.value[0])
+      .startOf("day")
+      .format("YYYY-MM-DD HH:mm:ss");
+    newParams.endTime = dayjs(dateRange.value[1])
+      .endOf("day")
+      .format("YYYY-MM-DD HH:mm:ss");
   }
-  return Promise.all([getFilmBoxOffice(newParams), getMonthTicket(newParams)])
-}
+  return Promise.all([
+    getFilmBoxOffice(newParams),
+    getMonthTicket(newParams),
+    getStatisticsBoxOffice(newParams)
+  ]);
+};
 
-const { runFn: qeuryChartData, loading, startPolling } = useRequest(handleData, {
+const fillMissingDates = (
+  data: BoxOfficeTrendType[],
+  startDate: string,
+  endDate: string,
+) => {
+  const result = [];
+  const dataMap = new Map();
+
+  // 将原有数据存入Map，便于快速查找
+  data.forEach((item) => {
+    dataMap.set(item.date, item.dayBoxOffice);
+  });
+
+  // 生成日期范围内的每一天
+  let currentDate = new Date(startDate);
+  const end = new Date(endDate);
+
+  while (currentDate <= end) {
+    const dateStr = currentDate.toISOString().split("T")[0]; // 格式化为 YYYY-MM-DD
+    result.push({
+      date: dateStr,
+      dayBoxOffice: dataMap.has(dateStr) ? dataMap.get(dateStr) : 0,
+    });
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return result;
+};
+
+const {
+  runFn: qeuryChartData,
+  loading,
+  startPolling,
+} = useRequest(handleData, {
   onSuccess: (resList) => {
-    const [res1, res2] = resList
-    filmList.value = res1.map(item => {
-      const { filmName } = item
-      const newName = filmName.length > 10 ? filmName.slice(0, 10) + "..." : filmName
-      return {
-        ...item,
-        filmName: newName
-      }
-    }) || []
-    monthTicketList.value = res2 || []
+    const [res1, res2, res3] = resList;
+    statisticObj.value = res3
+    filmBoxOfficeRank.value = res1.sort((a, b) => b.boxOffice - a.boxOffice);
+    dayBoxOfficeList.value =
+      fillMissingDates(res2, dateRange.value[0], dateRange.value[1]) || [];
   },
   throttleTime: 1000,
-  intervalTime: 1000 * 60 * 5 // 每过5分钟就发一次接口请求
-})
+  intervalTime: 1000 * 60 * 5, // 每过5分钟就发一次接口请求
+});
 
-startPolling()
+startPolling(false); // 第一次不调用接口
 
 const resetFilters = () => {
-  params.value = { filmName: '', startTime: undefined, endTime: undefined }
-  dateRange.value = [
-    dayjs().subtract(1, "month").format("YYYY-MM-DD"),
-    dayjs().format("YYYY-MM-DD")
-  ]
-  qeuryChartData()
-}
+  params.value = { filmName: "", startTime: undefined, endTime: undefined };
+  dateRange.value = initDateRange;
+  qeuryChartData();
+};
 
-onMounted(() => { qeuryChartData() })
+onActivated(() => {
+  // 每次进入页面都会执行（包括缓存恢复）
+  if (route.query.startTime && route.query.endTime) {
+    dateRange.value = [
+      route.query.startTime as string,
+      route.query.endTime as string,
+    ];
+  }
+
+  if (route.query.filmName) {
+    params.value.filmName = route.query.filmName as string;
+  }
+
+  qeuryChartData();
+});
+
 </script>
 
 <style scoped lang="scss">
@@ -134,9 +245,69 @@ onMounted(() => { qeuryChartData() })
     }
   }
 
-  .echarts {
+  .kpi-cards {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
 
+    .kpi-card {
+      flex: 1;
+      text-align: center;
+      border-radius: 8px;
+
+      .kpi-title {
+        font-size: 14px;
+        color: #606266;
+        margin-bottom: 8px;
+      }
+
+      .kpi-value {
+        font-size: 24px;
+        font-weight: bold;
+
+        &.total {
+          color: #e53e3e; // 红（总票房）
+        }
+
+        &.tickets {
+          color: #3182ce; // 蓝（总票数）
+        }
+
+        &.avg-box {
+          color: #38a169; // 绿（日均票房）
+        }
+
+        &.avg-ticket {
+          color: #d69e2e; // 黄（日均票数）
+        }
+      }
+    }
+  }
+
+  .echarts {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
     padding: 16px 0;
+
+    .chart-container {
+      background: #fff;
+      padding: 30px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+
+      .chart-title {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        color: #303133;
+        border-left: 4px solid #409eff;
+        padding-left: 10px;
+      }
+    }
+
+    .top0 {
+      padding-top: 0;
+    }
   }
 }
 </style>

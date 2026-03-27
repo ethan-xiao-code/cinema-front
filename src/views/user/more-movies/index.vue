@@ -50,7 +50,9 @@ import FilmCard from "@/components/FilmCard.vue";
 import { filmRegionList, filmTypeList } from "@/utils/constant";
 import { useRequest } from "@/utils/useRequest";
 import BaseLoading from "@/components/BaseLoading.vue";
+import { useFilmSearchStore } from "@/stores/filmSearchStore";
 const route = useRoute();
+const filmSearchStore = useFilmSearchStore();
 
 // 筛选状态
 const activeType = ref(-1);
@@ -58,13 +60,13 @@ const activeRegion = ref(-1);
 
 // 电影数据列表
 const filmList = ref<any[]>([]);
+const filmName = ref<string>("");
 
-
-const queryFilmList = (title?: string) => {
+const queryFilmList = () => {
   return getFilmListApi({
     types: activeType.value < 0 ? "" : filmTypeList[activeType.value],
     regions: activeRegion.value < 0 ? "" : filmRegionList[activeRegion.value],
-    title,
+    title: filmSearchStore.title,
     status: [1, 2]
   })
 }
@@ -101,15 +103,24 @@ watch([activeRegion, activeType], (data) => {
   getAllFilmData();
 })
 
-
+// 监听 store.title 变化，同步到本地并刷新数据
 watch(
-  () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
-  (newVal) => {
-    const title = newVal?.toString();
-    getAllFilmData(title);
+  () => filmSearchStore.title,
+  (newTitle) => {
+    getAllFilmData(); // 重新获取数据
   },
-  { immediate: true }
+  { immediate: true } // 立即执行一次，确保初始化时获取数据
 );
+
+// watch(
+//   () => route.query.filmTitle, // 搜索影片标题变化时，会触发查询
+//   (newVal) => {
+//     const title = newVal?.toString();
+//     filmName.value = title || ''
+//     getAllFilmData();
+//   },
+//   { immediate: true }
+// );
 
 
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="title" :model-value="showEditDialog" @close="handleClose" modal :close-on-click-modal="false">
+  <el-dialog width="800px" :title="title" :model-value="showEditDialog" @close="handleClose" modal :close-on-click-modal="false">
     <el-form label-width="120px" :model="screenForm" :rules="rules" ref="screenFormRef">
 
       <el-form-item label="名称" prop="name" class="w80">

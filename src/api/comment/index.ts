@@ -8,13 +8,6 @@ export function addCommentApi(data: any): Promise<any> {
     data
   })
 }
-export function replyCommentApi(data: ReplyCommentType): Promise<any> {
-  return request({
-    url: `/comment/reply`,
-    method: 'post',
-    data
-  })
-}
 
 
 // /single/user-film
