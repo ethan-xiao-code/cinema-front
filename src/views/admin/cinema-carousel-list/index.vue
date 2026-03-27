@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, h, computed } from "vue";
+import { ref, reactive, onMounted, h, computed, onActivated } from "vue";
 import { ElMessage, ElMessageBox, ElButton } from "element-plus";
 import SearchTableTemplate, {
   PagerType,
@@ -122,7 +122,7 @@ const searchParamsList = ref<SearchParamType[]>([
   },
 ]);
 
-onMounted(() => {
+onActivated(() => {
   initFilmList();
 });
 

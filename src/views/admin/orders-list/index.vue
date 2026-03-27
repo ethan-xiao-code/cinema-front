@@ -198,12 +198,11 @@ const { runFn: initUserList, loading: userLoading } = useRequest(getUserListApi,
 // manual: true, 因为表格数据是由 SearchTableTemplate 组件控制加载的
 const { runFn: fetchOrders } = useRequest(pageQueryOrdersApi);
 
-onMounted(() => { // 仅在组件首次挂载时执行一次
-  initUserList()
-})
 
 onActivated(() => { // 每次组件被激活时（包括从缓存中恢复）执行
   initFilmList()
+  initUserList()
+
 })
 
 

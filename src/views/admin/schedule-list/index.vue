@@ -264,12 +264,13 @@ const searchParamsList = ref<SearchParamType[]>([
 ]);
 
 // 生命周期
-onMounted(() => {
+onActivated(() => {
   getScreenRoomListName();
   initFilmList();
 });
 
 import { ElMessageBox } from 'element-plus'
+import { onActivated } from "vue";
 
 const confirmPublish = async () => {
   await ElMessageBox.confirm(

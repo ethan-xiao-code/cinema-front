@@ -60,7 +60,7 @@
         <el-input v-model.trim="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
           show-word-limit />
         <el-button type="danger" class="add-cart-btn" @click="handleSaveCart(userStore.userId)" size="large"
-          :loading="loading">
+          :loading="saveLoading">
           加入购物车
         </el-button>
       </div>
@@ -101,8 +101,8 @@
 
           <!-- 座位表 -->
           <div class="seats-wrapper">
-            <div v-for="(row, rowIndex) in seatDatas" :key="row[0].number" class="seat-row">
-              <span v-for="(seat, seatIndex) in row" :key="seat.number" :class="getSeatClass(seat)"
+            <div v-for="(row) in seatDatas" :key="row[0].number" class="seat-row">
+              <span v-for="(seat) in row" :key="seat.number" :class="getSeatClass(seat)"
                 @click="handleChooseSeat(seat)" class="seat-item">
                 {{ seat.number }}
               </span>
@@ -280,7 +280,7 @@ const startSubscribe = async () => {
   });
 };
 
-const { loading, runFn } = useRequest(addCartApi, {
+const { loading: saveLoading, runFn } = useRequest(addCartApi, {
   onSuccess: () => {
     ElMessage.success("加入购物车成功，请在15分钟内完成支付");
     selectedSeatList.value = [];
@@ -395,6 +395,9 @@ const getSeatList = async () => {
 
 /** 选择/取消座位 */
 const handleChooseSeat = (seat: SeatType) => {
+  if(saveLoading.value){
+    return
+  }
   const { status, currentUser } = seat;
 
   if (status === SeatStatus.Selled) {
