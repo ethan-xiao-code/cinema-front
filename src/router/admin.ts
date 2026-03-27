@@ -76,7 +76,7 @@ export const adminRoutes = {
       name: 'adminDataBoard', // 配置name，用于缓存组件（注意：一定要与该组件的name一直，否则keep-alive无效）
       component: () => import('@/views/admin/data-board/index.vue'),
       meta: {
-        title: '数据大盘',
+        title: '票房统计可视化',
         icon: 'DataBoard'
       }
     },

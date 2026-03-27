@@ -1,5 +1,5 @@
 <template>
-  <div id="home">
+  <BaseLoading :loading="loading" text="票房数据加载中..." id="home">
     <!-- 查询条件 -->
     <el-form :model="params" :inline="true" class="filter-bar" label-width="0">
       <div class="filter-bar-right">
@@ -72,7 +72,7 @@
       v-if="filmBoxOfficeRank.length && dayBoxOfficeList.length"
     >
       <div class="chart-container">
-        <HomeBarTicket :itemArr="handleFilmList" />
+        <BoxOfficeRankBar :itemArr="handleFilmList" />
       </div>
       <div class="chart-container top0">
         <BoxOfficeTrendLine :itemArr="handleMonthTicketList" />
@@ -84,7 +84,7 @@
       :image-size="250"
       description="暂无数据，请更换查询条件~"
     />
-  </div>
+  </BaseLoading>
 </template>
 
 <script setup lang="ts">
@@ -95,8 +95,9 @@ import {
   getDayBoxOfficeApi,
   getStatisticsBoxOfficeApi
 } from "@/api/orders";
-import HomeBarTicket from "./components/HomeBarTicket.vue";
 import BoxOfficeTrendLine from "./components/BoxOfficeTrendLine.vue";
+import BaseLoading from "@/components/BaseLoading.vue";
+import BoxOfficeRankBar from "./components/BoxOfficeRankBar.vue";
 import {
   ChartParamsType,
   FilmBoxOfficeType,

@@ -10,9 +10,10 @@ import { eventBus } from './eventBus'
 
 // 响应数据接口
 export interface ApiResponse<T = any> {
-  code: number
-  data: T
-  message: string
+  code: number;
+  data: T;
+  message: string;
+  isShowMsg: boolean;
 }
 
 // 创建并初始化axios实例
@@ -47,14 +48,14 @@ service.interceptors.response.use(
     if (response.data instanceof Blob) {
       return response
     }
-    const { data, message, code } = response.data as ApiResponse
+    const { data, message, code,isShowMsg } = response.data as ApiResponse
 
     if (code === 1) {
       // 表示响应成功
       return data
     } else {
       // 业务逻辑错误，提示错误信息
-      message && ElMessage({
+      isShowMsg && ElMessage({
         type: 'error',
         message: message
       })

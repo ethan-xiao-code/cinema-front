@@ -2,7 +2,9 @@
   <base-loading :loading="dataLoading" text="购物车数据加载中..." id="cart">
     <div class="cart-container">
       <h2 class="cart-title">购物车</h2>
-
+      <p class="cart-tip">
+        温馨提示：请尽快完成支付，15分钟后未支付购物车将自动删除
+      </p>
       <!-- 购物车列表 -->
       <div v-if="cartList.length !== 0" class="cart-list">
         <el-checkbox-group v-model="checkedCartList" @change="handleCheckedCitiesChange">
@@ -350,6 +352,12 @@ const ordersParams = computed<OrderItem[]>(() => {
   .cart-container {
     margin: 0 auto;
 
+    .cart-tip {
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #e74c3c;
+    }
+
     .cart-title {
       font-size: 24px;
       font-weight: 700;
@@ -586,6 +594,8 @@ const ordersParams = computed<OrderItem[]>(() => {
 // 结算Modal样式
 .checkout-modal-content {
   padding: 10px 0;
+
+
 
   .modal-info {
     .info-title {

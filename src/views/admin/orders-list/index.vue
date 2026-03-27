@@ -3,7 +3,7 @@
     <SearchTableTemplate ref="searchTableTemplateRef" :table-params-list="tableParamsList"
       :search-params-list="searchParamsList" :getTableData="getTableData" :show-search-form="true">
       <template #handle>
-        <el-button type="success" @click="goToDataBoard">数据大盘分析</el-button>
+        <el-button type="success" @click="goToDataBoard">票房统计可视化分析</el-button>
       </template>
     </SearchTableTemplate>
 
@@ -203,7 +203,7 @@ const getTableData = async (
 const currentOrder = ref<any>(null);
 
 
-/** 跳转到数据大盘 */
+/** 跳转到票房统计可视化 */
 const goToDataBoard = () => {
   const query: any = {};
   if (currentSearchParams.value.payDateRange && currentSearchParams.value.payDateRange.length === 2) {
@@ -211,7 +211,7 @@ const goToDataBoard = () => {
     query.endTime = currentSearchParams.value.payDateRange[1];
   }
   if (currentSearchParams.value.filmIds && currentSearchParams.value.filmIds.length > 0) {
-    // 取第一个选择的影片名作为数据大盘的检索条件
+    // 取第一个选择的影片名作为票房统计可视化的检索条件
     query.filmName = currentSearchParams.value.filmIds[0];
   }
   router.push({ path: "/admin/data-board", query });

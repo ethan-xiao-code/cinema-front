@@ -18,15 +18,11 @@
             <div class="film-meta">
               <span class="meta-item">类型：{{ filmSchedule.filmTypes }}</span>
               <!-- <span class="meta-item">地区：{{ filmSchedule.filmRegions }}</span> -->
-              <span class="meta-item"
-                >时长：{{ filmSchedule.duration }} 分钟</span
-              >
-              <span class="meta-item"
-                >{{
-                  getLabelByValue(screenTypeOptions, filmSchedule.scheduleType)
-                }}
-                放映</span
-              >
+              <span class="meta-item">时长：{{ filmSchedule.duration }} 分钟</span>
+              <span class="meta-item">{{
+                getLabelByValue(screenTypeOptions, filmSchedule.scheduleType)
+              }}
+                放映</span>
             </div>
           </div>
         </div>
@@ -42,27 +38,17 @@
           </div>
           <div class="info-item">
             <span class="label">单座票价：</span>
-            <span class="value highlight"
-              >￥{{ filmSchedule.price.toFixed(2) }}/张</span
-            >
+            <span class="value highlight">￥{{ filmSchedule.price.toFixed(2) }}/张</span>
           </div>
         </div>
 
         <div class="selected-seats">
           <span class="title">已选座位：</span>
           <div class="tag-group">
-            <div
-              v-for="seat in selectedSeatList"
-              :key="seat.id"
-              type="success"
-              class="seat-tag"
-              size="small"
-            >
+            <div v-for="seat in selectedSeatList" :key="seat.id" type="success" class="seat-tag" size="small">
               {{ seat.number }}号
             </div>
-            <span v-if="!selectedSeatList.length" class="empty-tip"
-              >暂未选择座位</span
-            >
+            <span v-if="!selectedSeatList.length" class="empty-tip">暂未选择座位</span>
           </div>
         </div>
 
@@ -71,21 +57,10 @@
           <span class="price">￥{{ totalPrice }}</span>
         </div>
 
-        <el-input
-          v-model.trim="phone"
-          placeholder="请输入11位手机号"
-          class="phone-input"
-          clearable
-          maxlength="11"
-          show-word-limit
-        />
-        <el-button
-          type="danger"
-          class="add-cart-btn"
-          @click="handleSaveCart(userStore.userId)"
-          size="large"
-          :loading="loading"
-        >
+        <el-input v-model.trim="phone" placeholder="请输入11位手机号" class="phone-input" clearable maxlength="11"
+          show-word-limit />
+        <el-button type="danger" class="add-cart-btn" @click="handleSaveCart(userStore.userId)" size="large"
+          :loading="loading">
           加入购物车
         </el-button>
       </div>
@@ -126,18 +101,9 @@
 
           <!-- 座位表 -->
           <div class="seats-wrapper">
-            <div
-              v-for="(row, rowIndex) in seatDatas"
-              :key="row[0].number"
-              class="seat-row"
-            >
-              <span
-                v-for="(seat, seatIndex) in row"
-                :key="seat.number"
-                :class="getSeatClass(seat)"
-                @click="handleChooseSeat(seat)"
-                class="seat-item"
-              >
+            <div v-for="(row, rowIndex) in seatDatas" :key="row[0].number" class="seat-row">
+              <span v-for="(seat, seatIndex) in row" :key="seat.number" :class="getSeatClass(seat)"
+                @click="handleChooseSeat(seat)" class="seat-item">
                 {{ seat.number }}
               </span>
             </div>
@@ -216,42 +182,60 @@ const seatDatas = ref<SeatType[][]>([]); // 渲染的座位数据
 const selectedSeatList = ref<SeatType[]>([]); // 选择的座位号
 const phone = ref(userStore?.userInfo?.phone);
 
-const handleWsMessage = (msg: any) => {
-  console.log(msg, "msg");
-  if (Array.isArray(msg)) {
-    msg.forEach((item) => {
-      const seat = seatMap.value.get(item.number);
-      if (seat) {
-        // 后端状态直刷
-        seat.status = item.status;
-        seat.currentUser = item.userId === userStore.userId;
-      }
-    });
-    const numbers: number[] = [];
-    selectedSeatList.value.forEach((item) => {
-      const seat = msg.find((seat) => seat.number === item.number);
-      if (seat) {
-        item.status = seat.status;
-        seat.userId !== userStore.userId && numbers.push(item.number); // 不是当前用户时，push
-      }
+const handleWsMessage = (msg: SeatType[] | SeatType) => {
+  const updateSeats = Array.isArray(msg) ? msg : [msg];
+  const conflictedNumbers: number[] = [];
+
+  updateSeats.forEach((item) => {
+    const seat = seatMap.value.get(item.number);
+    if (!seat) return;
+
+    // 更新座位基础状态
+    seat.status = item.status;
+    seat.userId = item.userId;
+    seat.currentUser = item.userId === userStore.userId;
+
+    // 【关键】检测冲突：如果我本地选中的座位，被别人抢占（变成 Locked/Selled）
+    if (
+      selectedSeatList.value.some(s => s.number === item.number) && 
+      !seat.currentUser && 
+      item.status >= SeatStatus.Locked
+    ) {
+      conflictedNumbers.push(item.number);
+    }
+  });
+  console.log("conflictedNumbers", conflictedNumbers);
+
+  // 处理被抢占的座位
+  if (conflictedNumbers.length > 0) {
+    selectedSeatList.value = selectedSeatList.value.filter(
+      s => !conflictedNumbers.includes(s.number)
+    );
+    // 自动重置对应的 seat 对象状态
+    conflictedNumbers.forEach(num => {
+       const seat = seatMap.value.get(num);
+       if(seat) seat.status = SeatStatus.Locked; // 显示他人已锁定
     });
 
-    if (numbers.length) {
-      selectedSeatList.value = selectedSeatList.value.filter(
-        (item) => !numbers.includes(item.number),
-      );
-      ElMessage.error(
-        `很抱歉，座位号${numbers.join(",")}被其他用户选购，请重新选座`,
-      );
-    }
+    ElMessage.error({
+      message: `很抱歉，座位号 ${conflictedNumbers.join(", ")} 已被他人抢占`,
+      duration: 5000
+    });
   }
 };
 
+// 1. SSE 控制器，用于组件卸载时断开连接
+const ctrl = new AbortController();
 onMounted(() => {
   startSubscribe();
 });
+onUnmounted(() => {
+  ctrl.abort(); // 销毁组件时强制断开 SSE，防止后台持续占用连接
+});
+
 const startSubscribe = async () => {
   await fetchEventSource(`/api/seat/subscribe?scheduleId=${scheduleId.value}`, {
+    signal: ctrl.signal, // 绑定控制器
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -272,19 +256,16 @@ const startSubscribe = async () => {
       // msg.event 对应原生 addEventListener 的事件名 (init, seatUpdate)
       // msg.data 对应 event.data
 
-      try {
-        const data = JSON.parse(msg.data);
+      const data = JSON.parse(msg.data);
 
-        if (msg.event === "init") {
-          console.log("初始化 sse 成功", data);
-          handleWsMessage(data);
-        } else if (msg.event === "seatUpdate") {
-          console.log("收到座位更新", data);
-          handleWsMessage(data);
-        }
-      } catch (err) {
-        console.error("解析数据失败:", err);
+      if (msg.event === "init") {
+        console.log("初始化 sse 成功", data);
+        handleWsMessage(data);
+      } else if (msg.event === "seatUpdate") {
+        console.log("收到座位更新", data);
+        handleWsMessage(data);
       }
+
     },
 
     onclose() {
@@ -304,15 +285,6 @@ const { loading, runFn } = useRequest(addCartApi, {
     ElMessage.success("加入购物车成功，请在15分钟内完成支付");
     selectedSeatList.value = [];
   },
-  onError: () => {
-    selectedSeatList.value.forEach((item) => {
-      const seat = seatMap.value.get(item.number);
-      if (seat && seat.status === SeatStatus.Selected) {
-        seat.status = SeatStatus.None;
-      }
-    });
-    selectedSeatList.value = [];
-  },
 });
 
 /** 加入购物车 */
@@ -321,7 +293,7 @@ const handleSaveCart = async (userId: number, phoneStr?: string) => {
   if (!phone.value || phone.value.length !== 11) {
     return ElMessage.error("请输入正常的手机号");
   }
-  if(phone.value!==userStore.userInfo?.phone){
+  if (phone.value !== userStore.userInfo?.phone) {
     return ElMessage.error("该号码与注册的号码不一致");
   }
   await runFn({
