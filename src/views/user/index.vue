@@ -125,7 +125,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/stores";
-import logo from "@/assets/images/logo.png";
+import logo from "@/assets/images/logo.webp";
 import { ElMessage } from "element-plus";
 import userDefault from "@/assets/images/user-default.png";
 

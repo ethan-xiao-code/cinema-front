@@ -4,7 +4,7 @@
         >
         <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
           @click="toShowFilmDetail(item.filmId!)">
-          <el-image class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
+          <el-image lazy class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
         </el-carousel-item>
       </el-carousel>
 

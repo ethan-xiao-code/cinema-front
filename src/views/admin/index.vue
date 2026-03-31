@@ -130,7 +130,7 @@ const userAvatar = computed((): string => {
 });
 
 const logoUrl = ref<string>(
-  new URL("@/assets/images/logo.png", import.meta.url).href,
+  new URL("@/assets/images/logo.webp", import.meta.url).href,
 );
 // 监听器
 watch(
