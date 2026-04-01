@@ -19,7 +19,7 @@ export interface ApiResponse<T = any> {
 // 创建并初始化axios实例
 const service: AxiosInstance = axios.create({
   baseURL: '/api', // 基础地址
-  timeout: 1000 * 60 // 请求时间超过60s就失败
+  timeout: 1000 * 15 // 请求时间超过60s就失败
 })
 
 // 请求拦截器
