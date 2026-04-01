@@ -55,16 +55,21 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // 拆分 vendor 包
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // 将大型依赖单独打包，提高缓存效率
-            if (id.includes('echarts')) return 'echarts';
-            if (id.includes('element-plus')) return 'element-plus';
-            return 'vendor';
-          }
+        manualChunks: {
+          // 1. 把 echarts 单独打成一个包
+          'echarts-vendor': ['echarts'],
+
+          // 2. 把 Element Plus 单独打成一个包
+          'ui-vendor': ['element-plus'],
+
+          // 3. 把 Vue 全家桶打成一个包
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+
+          // 4. 把其他工具库单独打成一个包
+          'utils-vendor': ['lodash-es', 'dayjs']
         }
       }
     }
   }
+
 })

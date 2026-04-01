@@ -193,8 +193,8 @@ watchEffect(() => {
             position: absolute;
             left: 0;
             top: 0;
-            width: 40px;
-            height: 40px;
+            width: 22px;
+            height: 26px;
           }
 
           .box {
