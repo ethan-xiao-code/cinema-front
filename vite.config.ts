@@ -52,5 +52,19 @@ export default defineConfig({
       }
     }
   },
-
+  build: {
+    rollupOptions: {
+      output: {
+        // 拆分 vendor 包
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // 将大型依赖单独打包，提高缓存效率
+            if (id.includes('echarts')) return 'echarts';
+            if (id.includes('element-plus')) return 'element-plus';
+            return 'vendor';
+          }
+        }
+      }
+    }
+  }
 })

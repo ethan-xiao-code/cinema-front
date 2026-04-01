@@ -7,7 +7,6 @@
       @click="toShowFilmDetail(film.id)"
       fit="cover"
     >
-     
     </el-image>
     <div class="buyBtn" @click="toBuyFilm(film.id)">购票</div>
   </div>
