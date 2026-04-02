@@ -51,8 +51,6 @@
     </div>
 
 
-    <!-- 修改密码弹窗
-    <ChangePasswordDialog v-model="showPasswordDialog" /> -->
   </div>
 </template>
 
@@ -65,8 +63,6 @@ import {
   Fold,
   Expand,
 } from "@element-plus/icons-vue";
-import MyCenterDialog from "./components/MyCenterDialog.vue";
-// import ChangePasswordDialog from "./components/ChangePasswordDialog.vue";
 import SideBarItem from "./components/SideBarItem.vue";
 import { useUserStore } from "@/stores";
 import { adminSystemTitle } from "@/utils/constant";
@@ -116,18 +112,6 @@ const metaName = computed(() => {
   return meta?.title || "";
 });
 
-// 计算属性：用户信息
-const username = computed((): string => {
-  return userStore.userInfo?.username || "管理员";
-});
-
-
-const userAvatar = computed((): string => {
-  return (
-    userStore.userInfo?.avatar ||
-    new URL("@/assets/images/user-default.png", import.meta.url).href
-  );
-});
 
 const logoUrl = ref<string>(
   new URL("@/assets/images/logo.webp", import.meta.url).href,
@@ -150,11 +134,6 @@ const toggleCollapse = (): void => {
   isCollapse.value = !isCollapse.value;
 };
 
-const logout = async (): Promise<void> => {
-  await userStore.logoutAction(userStore.userInfo);
-  ElMessage.success("退出成功");
-  router.push("/user");
-};
 
 const toHomePage = () => {
   router.push("/user");

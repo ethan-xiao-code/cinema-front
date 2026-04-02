@@ -70,11 +70,11 @@
       class="password-dialog">
       <el-form :model="pwdForm" :rules="pwdRules" ref="pwdFormRef" class="password-form">
         <el-form-item label="原密码" prop="oldPassword">
-          <el-input placeholder="请输入原密码" v-model="pwdForm.oldPassword" />
+          <el-input type="password" show-password placeholder="请输入原密码" v-model="pwdForm.oldPassword" />
         </el-form-item>
 
         <el-form-item label="新密码" prop="newPassword">
-          <el-input placeholder="请输入新密码" v-model="pwdForm.newPassword" />
+          <el-input type="password" show-password placeholder="请输入新密码" v-model="pwdForm.newPassword" />
         </el-form-item>
       </el-form>
 

@@ -5,9 +5,10 @@ export default {
       propList: ['*'], // 需要转换的属性，*表示全部
       selectorBlackList: [
         // 忽略 UI 框架，防止 Element Plus 组件变小
-        '.el-', 
+        '.el-',
         '.ignore-',
         '.no-rem',
+        '.el-dialog' // 加上 Dialog 特定的类名前缀
       ],
       minPixelValue: 12,    // 小于12px不转换
       mediaQuery: false,    // 是否转换媒体查询中的px

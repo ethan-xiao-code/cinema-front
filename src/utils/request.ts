@@ -73,17 +73,17 @@ service.interceptors.response.use(
         roleId: store.roleId,
         userId: store.userId
       }
-
       await store.logoutAction(data)
-
       msg = '非法登录，请重新登录'
       // router.push('/login')
       eventBus.emit("showLoginDialog",{})
-    } else if (status >= 500) {
-      msg = '服务器出错啦'
+    } else if(status === 403) {
+      msg = '权限不足,请联系管理员'
     } else if (status >= 400) {
       msg = error.response?.data?.message || '客户端请求有误'
-    }
+    }else if (status >= 500) {
+      msg = '服务器出错啦'
+    } 
 
     ElMessage({
       type: 'error',
