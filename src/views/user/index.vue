@@ -236,13 +236,12 @@ const toLogout = async () => {
   router.push("/user/home");
 };
 
-
 // 打开后台页面
 const goAdminPage = () => {
-  // const routeUrl = router.resolve({ path: "/admin" });
-  // window.open(routeUrl.href, "_blank");
   if (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin) {
-    router.push("/admin");
+    // router.push("/admin");
+    const routeUrl = router.resolve({ path: "/admin" });
+    window.open(routeUrl.href, "_blank");
   } else {
     ElMessage.warning("只有管理员才可以进入哦~");
   }

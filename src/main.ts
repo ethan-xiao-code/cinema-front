@@ -10,7 +10,6 @@ import '@/utils/rem.js'
 // ---------------- Element Plus ----------------
 // import ElementPlus from 'element-plus' // 全量引入，会导致打包体积过大
 // import 'element-plus/dist/index.css'
-// import zhCn from 'element-plus/es/locale/lang/zh-cn'
 
 
 // ---------------- 创建 Vue App ----------------

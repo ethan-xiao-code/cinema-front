@@ -116,8 +116,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { ElLoading, ElMessage } from "element-plus";
+import { useRoute } from "vue-router";
+import { ElMessage } from "element-plus";
 import { useUserStore } from "@/stores";
 
 import { getFilmAndScheduleByIdApi } from "@/api/schedule";
@@ -180,7 +180,7 @@ enum SeatStatus {
 
 const seatDatas = ref<SeatType[][]>([]); // 渲染的座位数据
 const selectedSeatList = ref<SeatType[]>([]); // 选择的座位号
-const phone = ref(userStore?.userInfo?.phone);
+const phone = ref("");
 
 const handleWsMessage = (msg: SeatType[] | SeatType) => {
   const updateSeats = Array.isArray(msg) ? msg : [msg];

@@ -7,6 +7,7 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AutoImport from 'unplugin-auto-import/vite'
 import viteImagemin from 'vite-plugin-imagemin'
+import ElementPlus from 'unplugin-element-plus/vite' // 引入这个
 
 export default defineConfig({
   plugins: [
@@ -18,8 +19,11 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()], // 按需导入elementplus组件
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver({
+        importStyle: 'css', // 按需导入elementplus样式
+      })],
     }),
+    ElementPlus({ useSource: false }), // 自动处理样式
     viteImagemin({
       webp: { // 将打包后的图片统一转化成webp，减少图片体积
         quality: 75, // 压缩质量 0-100
