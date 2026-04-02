@@ -137,7 +137,7 @@ const submitForm = async () => {
   }
 
   .no-scrollbar-textarea {
-    ::v-deep textarea {
+    :deep(.el-textarea) {
       overflow-y: hidden; 
       resize: none; 
     }

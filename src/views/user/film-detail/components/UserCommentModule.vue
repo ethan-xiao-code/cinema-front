@@ -421,7 +421,7 @@ const isShowReplyInput = (comment: CommentItemType) => {
           display: flex;
           align-items: center;
           gap: 10px;
-          ::v-deep .el-avatar {
+          :deep(.el-avatar) {
             font-size: 24px;
           }
           .reply-textarea {

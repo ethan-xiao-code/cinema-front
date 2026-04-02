@@ -74,6 +74,13 @@ export default defineConfig({
         }
       }
     }
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern' // 或 'modern-compiler'（性能更好，需 Dart Sass 1.71+）
+      }
+    }
   }
 
 })
