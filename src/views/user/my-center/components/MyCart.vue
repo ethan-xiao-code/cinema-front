@@ -78,8 +78,8 @@
     </div>
 
     <!-- 结算确认 Modal -->
-    <el-dialog v-model="payModalVisible" title="订单确认" :close-on-click-modal="false" :close-on-press-escape="false">
-      <div class="checkout-modal-content">
+    <el-dialog v-model="payModalVisible" title="订单确认" width="700px" :close-on-click-modal="false" :close-on-press-escape="false">
+      <div class="no-rem-modal">
         <div class="modal-info">
           <p class="info-title">请确认以下订单信息：</p>
           <!-- 选中的商品列表 -->
@@ -592,11 +592,8 @@ const ordersParams = computed<OrderItem[]>(() => {
 }
 
 // 结算Modal样式
-.checkout-modal-content {
+.no-rem-modal {
   padding: 10px 0;
-
-
-
   .modal-info {
     .info-title {
       font-size: 16px;

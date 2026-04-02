@@ -1,47 +1,46 @@
 <template>
-    <BaseLoading class="main" :loading="loading" text="首页加载中...">
-      <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card"
-        >
-        <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
-          @click="toShowFilmDetail(item.filmId!)">
-          <el-image lazy class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
-        </el-carousel-item>
-      </el-carousel>
+  <BaseLoading class="main" :loading="loading" text="首页加载中...">
+    <el-carousel indicator-position="outside" :interval="3000" :autoplay="false" class="carouselBox" type="card">
+      <el-carousel-item v-for="(item, index) in carouselList" :key="item.id" class="carouselItem"
+        @click="toShowFilmDetail(item.filmId!)">
+        <el-image lazy class="carouselImg" :src="item.imgUrl" fit="cover"></el-image>
+      </el-carousel-item>
+    </el-carousel>
 
-      <div class="container">
-        <section class="leftBox">
-          <UserHome :filmList="hotfilmList" :status="2" />
-          <UserHome :filmList="upcomingList" :status="1" />
-        </section>
+    <div class="container">
+      <section class="leftBox">
+        <UserHome :filmList="hotfilmList" :status="2" />
+        <UserHome :filmList="upcomingList" :status="1" />
+      </section>
 
-        <section class="rightBox">
-          <div class="title">热门榜单Top{{ topNumber }}</div>
-          <div v-if="topfilmList.length" class="rankList">
-            <div class="top01" @click="toShowFilmDetail(topfilmList[0].id)">
-              <img :src="topfilmList[0].poster" />
-              <div class="box">
-                <span>{{ topfilmList[0].title }}</span>
-                <span class="score">
-                  {{ (topfilmList[0].averageScore * 2).toFixed(1) }} 分
-                </span>
-                <img class="top1-icon" :src="top1Icon" alt="Top 1" />
-              </div>
-            </div>
-            <div v-for="(film, i) in topfilmList.slice(1)" :key="film.id" class="filmTop6"
-              @click="toShowFilmDetail(film.id)">
-              <div>
-                <span class="rank">{{ i + 2 }}</span>
-                <span class="name">{{ film.title }}</span>
-              </div>
-              <span class="score" v-if="film.averageScore != null">
-                {{ (film.averageScore * 2).toFixed(1) }} 分
+      <section class="rightBox">
+        <div class="title">热门榜单Top{{ topNumber }}</div>
+        <div v-if="topfilmList.length" class="rankList">
+          <div class="top01" @click="toShowFilmDetail(topfilmList[0].id)">
+            <img :src="topfilmList[0].poster" />
+            <div class="box">
+              <span>{{ topfilmList[0].title }}</span>
+              <span class="score">
+                {{ (topfilmList[0].averageScore * 2).toFixed(1) }} 分
               </span>
-              <span v-else> 暂无评分 </span>
+              <img class="top1-icon" :src="top1Icon" alt="Top 1" />
             </div>
           </div>
-        </section>
-      </div>
-    </BaseLoading>
+          <div v-for="(film, i) in topfilmList.slice(1)" :key="film.id" class="filmTop6"
+            @click="toShowFilmDetail(film.id)">
+            <div>
+              <span class="rank">{{ i + 2 }}</span>
+              <span class="name">{{ film.title }}</span>
+            </div>
+            <span class="score" v-if="film.averageScore != null">
+              {{ (film.averageScore * 2).toFixed(1) }} 分
+            </span>
+            <span v-else> 暂无评分 </span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </BaseLoading>
 
 </template>
 
@@ -76,8 +75,8 @@ const toShowFilmDetail = (filmId: number) => {
 
 const promiseAll = () => {
   return Promise.all([
-    getFilmListApi({status: [2]}),
-    getFilmListApi({status: [1]}),
+    getFilmListApi({ status: [2] }),
+    getFilmListApi({ status: [1] }),
     getFilmListByScoreApi(topNumber.value),
     getCinemaCarouselListApi()
   ])
@@ -104,10 +103,10 @@ watchEffect(() => {
 <style lang="scss" scoped>
 .main {
   box-sizing: border-box;
+  min-width: 1000PX;
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  // gap: 20px;
   margin: auto;
 
   .carouselBox {
