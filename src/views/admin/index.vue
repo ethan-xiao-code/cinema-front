@@ -39,7 +39,7 @@
 
         <TagsView />
         <!-- 页面内容区 -->
-        <main class="page-content">
+        <main class="no-rem-page-content">
           <!-- <router-view /> -->
           <router-view v-slot="{ Component, route }">
             <keep-alive :include="cachedNames">
@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useTagsViewStore } from "@/stores/tagsStore";
@@ -67,6 +67,7 @@ import SideBarItem from "./components/SideBarItem.vue";
 import { useUserStore } from "@/stores";
 import { adminSystemTitle } from "@/utils/constant";
 import TagsView from "./components/TagsView.vue";
+import { eventBus } from "@/utils/eventBus";
 
 // 组合式 API
 const route = useRoute();
@@ -116,6 +117,24 @@ const metaName = computed(() => {
 const logoUrl = ref<string>(
   new URL("@/assets/images/logo.webp", import.meta.url).href,
 );
+// 创建 BroadcastChannel 实例
+const logoutChannel = new BroadcastChannel('logout_channel');
+onMounted(() => {
+  // 监听退出消息
+  logoutChannel.onmessage = (event) => {
+    if (event.data && event.data.type === 'logout') {
+      // 执行退出逻辑
+      router.push('/user/home');
+      useUserStore().clearData();
+    }
+  };
+
+})
+
+onBeforeUnmount(() => {
+  // 组件卸载时关闭 BroadcastChannel
+  logoutChannel.close();
+});
 // 监听器
 watch(
   () => route.path,
@@ -139,8 +158,6 @@ const toHomePage = () => {
   router.push("/user");
 
 }
-
-
 </script>
 
 <style scoped lang="scss">
@@ -320,7 +337,7 @@ $primary-color: #409eff;
 }
 
 // 页面内容区
-.page-content {
+.no-rem-page-content {
   flex: 1;
   background: $bg-color;
   padding: 24px;
@@ -371,7 +388,7 @@ $primary-color: #409eff;
     padding: 0 20px;
   }
 
-  .page-content {
+  .no-rem-page-content {
     padding: 20px;
   }
 }

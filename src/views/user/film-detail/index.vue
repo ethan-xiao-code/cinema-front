@@ -141,14 +141,12 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-$width: 900px;
 
 .filmDetailModule {
-  background-color: #fff;
 
   .mainBox {
     text-align: left;
-    width: $width;
+    width: 1200px;
     margin: 30px auto;
     display: flex;
     flex-direction: column;

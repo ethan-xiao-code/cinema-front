@@ -1,5 +1,5 @@
 <template>
-  <base-loading :loading="loadingPage" text="选座信息加载中..." id="seat">
+  <base-loading :loading="loadingPage" text="选座信息加载中..." class="seat-container">
     <!-- 步骤条 -->
     <el-steps :active="2" align-center class="steps">
       <el-step title="选择场次" description="选择电影和放映时间" />
@@ -446,11 +446,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-#seat {
-  min-height: 100vh;
-  background-color: #f7fafc;
-  padding: 24px 16px;
-  box-sizing: border-box;
+.seat-container {
 
   // 步骤条样式优化
   .steps {

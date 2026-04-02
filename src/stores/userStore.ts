@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { getUserInfoApi,  logoutApi, loginApi } from '@/api/user'
+import { getUserInfoApi, logoutApi, loginApi } from '@/api/user'
 import { UserType } from '@/api/user/type'
+import { eventBus } from '@/utils/eventBus';
 
 
 interface UserState {
@@ -47,6 +48,9 @@ export const useUserStore = defineStore('user_info', {
     async logoutAction(data: any) {
       await logoutApi(data)
       this.clearData()
+      const logoutChannel = new BroadcastChannel('logout_channel');
+      logoutChannel.postMessage({ type: 'logout' });
+
     }
   },
   // 启用 Pinia 持久化插件，直接关联配置
