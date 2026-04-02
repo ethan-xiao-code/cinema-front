@@ -62,7 +62,8 @@ const props = defineProps<{
 .film-header {
   background: rgb(99, 134, 247);
   padding: 20px;
-
+  width: 1200px;
+  margin: auto;
   .header-box {
     display: flex;
     max-width: 900px;

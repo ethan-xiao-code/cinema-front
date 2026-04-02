@@ -39,7 +39,7 @@
 
         <TagsView />
         <!-- 页面内容区 -->
-        <main class="page-content">
+        <main class="no-rem-page-content">
           <!-- <router-view /> -->
           <router-view v-slot="{ Component, route }">
             <keep-alive :include="cachedNames">
@@ -51,13 +51,11 @@
     </div>
 
 
-    <!-- 修改密码弹窗
-    <ChangePasswordDialog v-model="showPasswordDialog" /> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useTagsViewStore } from "@/stores/tagsStore";
@@ -65,12 +63,11 @@ import {
   Fold,
   Expand,
 } from "@element-plus/icons-vue";
-import MyCenterDialog from "./components/MyCenterDialog.vue";
-// import ChangePasswordDialog from "./components/ChangePasswordDialog.vue";
 import SideBarItem from "./components/SideBarItem.vue";
 import { useUserStore } from "@/stores";
 import { adminSystemTitle } from "@/utils/constant";
 import TagsView from "./components/TagsView.vue";
+import { eventBus } from "@/utils/eventBus";
 
 // 组合式 API
 const route = useRoute();
@@ -116,22 +113,28 @@ const metaName = computed(() => {
   return meta?.title || "";
 });
 
-// 计算属性：用户信息
-const username = computed((): string => {
-  return userStore.userInfo?.username || "管理员";
-});
-
-
-const userAvatar = computed((): string => {
-  return (
-    userStore.userInfo?.avatar ||
-    new URL("@/assets/images/user-default.png", import.meta.url).href
-  );
-});
 
 const logoUrl = ref<string>(
-  new URL("@/assets/images/logo.png", import.meta.url).href,
+  new URL("@/assets/images/logo.webp", import.meta.url).href,
 );
+// 创建 BroadcastChannel 实例
+const logoutChannel = new BroadcastChannel('logout_channel');
+onMounted(() => {
+  // 监听退出消息
+  logoutChannel.onmessage = (event) => {
+    if (event.data && event.data.type === 'logout') {
+      // 执行退出逻辑
+      router.push('/user/home');
+      useUserStore().clearData();
+    }
+  };
+
+})
+
+onBeforeUnmount(() => {
+  // 组件卸载时关闭 BroadcastChannel
+  logoutChannel.close();
+});
 // 监听器
 watch(
   () => route.path,
@@ -150,18 +153,11 @@ const toggleCollapse = (): void => {
   isCollapse.value = !isCollapse.value;
 };
 
-const logout = async (): Promise<void> => {
-  await userStore.logoutAction(userStore.userInfo);
-  ElMessage.success("退出成功");
-  router.push("/user");
-};
 
 const toHomePage = () => {
   router.push("/user");
 
 }
-
-
 </script>
 
 <style scoped lang="scss">
@@ -341,7 +337,7 @@ $primary-color: #409eff;
 }
 
 // 页面内容区
-.page-content {
+.no-rem-page-content {
   flex: 1;
   background: $bg-color;
   padding: 24px;
@@ -392,7 +388,7 @@ $primary-color: #409eff;
     padding: 0 20px;
   }
 
-  .page-content {
+  .no-rem-page-content {
     padding: 20px;
   }
 }

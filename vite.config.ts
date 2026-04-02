@@ -7,6 +7,7 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import AutoImport from 'unplugin-auto-import/vite'
 import viteImagemin from 'vite-plugin-imagemin'
+import ElementPlus from 'unplugin-element-plus/vite' // 引入这个
 
 export default defineConfig({
   plugins: [
@@ -18,8 +19,11 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()], // 按需导入elementplus组件
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver({
+        importStyle: 'css', // 按需导入elementplus样式
+      })],
     }),
+    ElementPlus({ useSource: false }), // 自动处理样式
     viteImagemin({
       webp: { // 将打包后的图片统一转化成webp，减少图片体积
         quality: 75, // 压缩质量 0-100
@@ -52,5 +56,24 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // 1. 把 echarts 单独打成一个包
+          'echarts-vendor': ['echarts'],
+
+          // 2. 把 Element Plus 单独打成一个包
+          'ui-vendor': ['element-plus'],
+
+          // 3. 把 Vue 全家桶打成一个包
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+
+          // 4. 把其他工具库单独打成一个包
+          'utils-vendor': ['lodash-es', 'dayjs']
+        }
+      }
+    }
+  }
 
 })

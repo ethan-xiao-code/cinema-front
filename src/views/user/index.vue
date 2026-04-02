@@ -52,7 +52,7 @@
                 <span class="username">
                   {{ user?.username || "未登录" }}
                 </span>
-                <el-icon class="el-icon--right">
+                <el-icon class="arrow-icon">
                   <ArrowDownBold />
                 </el-icon>
               </div>
@@ -113,7 +113,6 @@
         </div>
       </div>
     </div>
-
     <div class="navPlaceholder"></div>
     <div class="mainContent">
       <router-view />
@@ -125,7 +124,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/stores";
-import logo from "@/assets/images/logo.png";
+import logo from "@/assets/images/logo.webp";
 import { ElMessage } from "element-plus";
 import userDefault from "@/assets/images/user-default.png";
 
@@ -217,6 +216,7 @@ const handleCommand = (command: string) => {
 // 切换账号
 const toSwitchAccount = async () => {
   await userStore.logoutAction(userStore.userInfo);
+  router.push("/user/home");
   toLogin();
 };
 
@@ -236,13 +236,12 @@ const toLogout = async () => {
   router.push("/user/home");
 };
 
-
 // 打开后台页面
 const goAdminPage = () => {
-  // const routeUrl = router.resolve({ path: "/admin" });
-  // window.open(routeUrl.href, "_blank");
   if (userStore.userId && userStore.userInfo?.roleId === RoleEnum.Admin) {
-    router.push("/admin");
+    // router.push("/admin");
+    const routeUrl = router.resolve({ path: "/admin" });
+    window.open(routeUrl.href, "_blank");
   } else {
     ElMessage.warning("只有管理员才可以进入哦~");
   }
@@ -347,6 +346,16 @@ const goAdminPage = () => {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+          }
+
+          :deep(.arrow-icon) {
+            color: #555;
+            transition: transform 0.3s ease;
+            margin-left: 3px;
+            svg {
+              width: 16px;
+              height: 16px;
+            }
           }
         }
       }

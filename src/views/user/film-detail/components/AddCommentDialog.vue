@@ -2,13 +2,13 @@
   <el-dialog
     title="评分"
     v-model="props.dialogVisible"
-    width="30%"
+    width="500px"
     @close="handleClose"
-    class="score-dialog"
+    class="no-rem-score-dialog"
   >
     <!-- 已评论提示 -->
     <div class="already-commented">
-      注意：请慎重评论，每个用户仅可评论一次噢~
+      注意：请慎重评论，每个用户仅可评分一次噢~
     </div>
 
     <!-- 显示评分 -->
@@ -81,8 +81,6 @@ const emit = defineEmits<{
   (e: "submit", formData: { score: number; content: string }): void;
 }>();
 
-const formRef = ref<FormInstance>();
-const userStore = useUserStore();
 const textArr = ["很差", "较差", "一般", "良好", "优秀"];
 
 onMounted(() => {
@@ -115,7 +113,7 @@ const submitForm = async () => {
 </script>
 
 <style scoped lang="scss">
-.score-dialog {
+.no-rem-score-dialog {
   display: flex;
   flex-direction: column;
   align-items: center;

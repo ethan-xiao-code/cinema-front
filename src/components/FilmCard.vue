@@ -7,9 +7,6 @@
       @click="toShowFilmDetail(film.id)"
       fit="cover"
     >
-      <template #placeholder>
-        <div class="image-slot">加载中...</div>
-      </template>
     </el-image>
     <div class="buyBtn" @click="toBuyFilm(film.id)">购票</div>
   </div>

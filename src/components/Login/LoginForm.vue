@@ -8,7 +8,7 @@
       <el-input type="password" v-model.trim="userForm.password" show-password placeholder="请输入密码"></el-input>
     </el-form-item>
 
-    <el-form-item label="身份">
+    <el-form-item label="身份" prop="roleId">
       <el-radio-group v-model="userForm.roleId">
         <el-radio :label="0">用户</el-radio>
         <el-radio :label="1">管理员</el-radio>
@@ -25,22 +25,19 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/stores";
 import { ElMessage, type FormRules } from "element-plus";
 import { useRequest } from "@/utils/useRequest";
 
-const router = useRouter();
-const route = useRoute();
 const store = useUserStore();
 const emit = defineEmits(["onSuccess", "onCancel"])
 const formRef = ref();
 
 // 表单数据
 const userForm = reactive({
-  username: "xzzz",
-  password: "123",
-  roleId: 0,
+  username: "",
+  password: "",
+  roleId: "",
 });
 
 // 表单校验规则
@@ -53,17 +50,15 @@ const rules: FormRules = {
     { required: true, message: "请输入密码", trigger: "blur" },
     { min: 3, max: 10, message: "长度在 3 到 10 个字符", trigger: "blur" },
   ],
+  roleId: [
+    { required: true, message: "请选择身份" },
+  ],
 };
 
 const handleLogin = async () => {
   const valid = await formRef.value.validate();
   if (!valid) return;
   onLogin({ ...userForm })
-  // await store.loginAction({ ...userForm });
-  // ElMessage.success("登录成功");
-  // emit("onSuccess")
-  // const redirect = route.query.redirect as string;
-  // router.replace(redirect || "/user/home");
 };
 
 const { runFn: onLogin, loading } = useRequest(store.loginAction, {

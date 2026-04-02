@@ -1,5 +1,5 @@
 <template>
-  <div id="tableTemplate">
+  <div id="no-rem-table-template">
     <div class="searchArea">
       <el-form ref="searchFormRef" v-if="showSearchForm" :model="searchParamsForm" :inline="true" size="default"
         label-width="auto">
@@ -209,7 +209,7 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
-#tableTemplate {
+#no-rem-table-template {
   // display: inline-block;
   display: flex;
   flex-direction: column;

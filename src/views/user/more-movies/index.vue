@@ -129,9 +129,7 @@ watch(
 // 根容器：基础布局+背景，适配中等屏幕，避免溢出
 #movies {
   max-width: 1200px; // 最大宽度，小屏自动收缩
-  width: 95%; // 适配小屏，左右留边
-  margin: 20px auto; // 上下间距，左右居中
-  padding: 24px;
+  margin: auto; // 上下间距，左右居中
   background-color: #f4f6f8;
   border-radius: 12px; // 轻微圆角，更柔和
   box-sizing: border-box; // 内边距不撑大宽度

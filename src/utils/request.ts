@@ -19,7 +19,7 @@ export interface ApiResponse<T = any> {
 // 创建并初始化axios实例
 const service: AxiosInstance = axios.create({
   baseURL: '/api', // 基础地址
-  timeout: 1000 * 60 // 请求时间超过60s就失败
+  timeout: 1000 * 15 // 请求时间超过15s就失败
 })
 
 // 请求拦截器
@@ -27,7 +27,6 @@ service.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const store = useUserStore()
     const token = store.token
-
     // 将token放在请求头中
     if (token) {
       config.headers.Authorization = token
@@ -74,17 +73,17 @@ service.interceptors.response.use(
         roleId: store.roleId,
         userId: store.userId
       }
-
       await store.logoutAction(data)
-
       msg = '非法登录，请重新登录'
       // router.push('/login')
       eventBus.emit("showLoginDialog",{})
-    } else if (status >= 500) {
-      msg = '服务器出错啦'
+    } else if(status === 403) {
+      msg = '权限不足,请联系管理员'
     } else if (status >= 400) {
       msg = error.response?.data?.message || '客户端请求有误'
-    }
+    }else if (status >= 500) {
+      msg = '服务器出错啦'
+    } 
 
     ElMessage({
       type: 'error',

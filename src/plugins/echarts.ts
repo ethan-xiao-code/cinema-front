@@ -1,7 +1,7 @@
 // echarts 模块按需注册
-import { use } from 'echarts/core';
+import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { LineChart, BarChart, PieChart } from 'echarts/charts';
+import { LineChart, BarChart } from 'echarts/charts';
 import {
   TitleComponent,
   TooltipComponent,
@@ -10,15 +10,16 @@ import {
   DataZoomComponent
 } from 'echarts/components';
 
-use([
-  CanvasRenderer,
-  LineChart,
-  BarChart,
-  PieChart,
+// 注册必须的组件
+echarts.use([
   TitleComponent,
   TooltipComponent,
-  LegendComponent,
   GridComponent,
-  DataZoomComponent
-]);
-export {};
+  DataZoomComponent,
+  BarChart,
+  LineChart,
+  LegendComponent,
+  CanvasRenderer
+])
+// 导出给全项目使用
+export default echarts;
