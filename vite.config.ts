@@ -57,23 +57,8 @@ export default defineConfig({
     }
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // 1. 把 echarts 单独打成一个包
-          'echarts-vendor': ['echarts'],
-
-          // 2. 把 Element Plus 单独打成一个包
-          'ui-vendor': ['element-plus'],
-
-          // 3. 把 Vue 全家桶打成一个包
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-
-          // 4. 把其他工具库单独打成一个包
-          'utils-vendor': ['lodash-es', 'dayjs']
-        }
-      }
-    }
+    sourcemap: false, // 生成sourcemap文件，便于调试
+  
   },
   css: {
     preprocessorOptions: {

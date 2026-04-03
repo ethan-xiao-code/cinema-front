@@ -67,7 +67,6 @@ import SideBarItem from "./components/SideBarItem.vue";
 import { useUserStore } from "@/stores";
 import { adminSystemTitle } from "@/utils/constant";
 import TagsView from "./components/TagsView.vue";
-import { eventBus } from "@/utils/eventBus";
 
 // 组合式 API
 const route = useRoute();
@@ -161,6 +160,8 @@ const toHomePage = () => {
 </script>
 
 <style scoped lang="scss">
+@use "sass:color";
+
 // 变量定义
 $sidebar-width: 240px;
 $sidebar-collapsed-width: 64px;
@@ -221,7 +222,7 @@ $primary-color: #409eff;
     z-index: 1;
 
     &:hover {
-      background: lighten($primary-color, 10%);
+      background: color.adjust($primary-color, $lightness: 10%);
       transform: scale(1.1);
     }
 

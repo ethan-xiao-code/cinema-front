@@ -3,7 +3,6 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig
 } from 'axios'
-import router from '@/router'
 import { useUserStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { eventBus } from './eventBus'
@@ -74,7 +73,6 @@ service.interceptors.response.use(
       }
       await store.logoutAction(data)
       msg = '非法登录，请重新登录'
-      // router.push('/login')
       eventBus.emit("showLoginDialog",{})
     } else if(status === 403) {
       msg = '权限不足,请联系管理员'
