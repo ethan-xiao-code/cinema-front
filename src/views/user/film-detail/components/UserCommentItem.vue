@@ -115,7 +115,7 @@ const toggleReply = (commentId: number) => {
   .avatar-section {
     flex-shrink: 0;
 
-    ::v-deep .el-avatar {
+    :deep(.el-avatar) {
       font-size: 20px;
     }
   }

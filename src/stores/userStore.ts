@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { getUserInfoApi, logoutApi, loginApi } from '@/api/user'
 import { UserType } from '@/api/user/type'
-import { eventBus } from '@/utils/eventBus';
 
 
 interface UserState {
