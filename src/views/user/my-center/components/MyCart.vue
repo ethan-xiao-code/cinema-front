@@ -128,7 +128,7 @@ import { useRequest } from "@/utils/useRequest";
 import BaseLoading from "@/components/BaseLoading.vue";
 
 // ========== 类型定义 ==========
-interface CartItem {
+interface CartItemType {
   id: number;
   filmName: string;
   poster: string;
@@ -143,21 +143,18 @@ interface CartItem {
   filmDuration: number;
 }
 
-interface OrderItem {
+interface OrderParamsType {
   cartId: number;
-  filmName: string;
-  poster: string;
   scheduleId: number;
   seatNumbers: string;
   amount: string;
-  startTime: string;
 }
 
 // ========== 响应式变量 ==========
 const checkAll = ref(false);
-const checkedCartList = ref<CartItem[]>([]);
+const checkedCartList = ref<CartItemType[]>([]);
 const isIndeterminate = ref(false);
-const cartList = ref<CartItem[]>([]);
+const cartList = ref<CartItemType[]>([]);
 const oldCartCount = ref<number>(-1)
 // 新增：结算Modal的显示状态
 const payModalVisible = ref(false);
@@ -282,7 +279,7 @@ const handleCheckAllChange = (val: boolean) => {
 };
 
 /** 单个复选框变更 */
-const handleCheckedCitiesChange = (value: CartItem[]) => {
+const handleCheckedCitiesChange = (value: CartItemType[]) => {
   const checkedCount = value.length;
   checkAll.value = checkedCount === cartList.value.length;
   isIndeterminate.value =
@@ -333,12 +330,13 @@ const { runFn: confirmPay, loading: payLoading } = useRequest(addOrders, {
 
 
 /** 转换购物车数据为订单数据 */
-const ordersParams = computed<OrderItem[]>(() => {
+const ordersParams = computed<OrderParamsType[]>(() => {
   return checkedCartList.value.map((item) => {
     return {
-      ...item,
       cartId: item.id,
-      amount: item.price.toFixed(2)
+      amount: item.price.toFixed(2),
+      scheduleId: item.scheduleId,
+      seatNumbers: item.seatNumbers
     }
   });
 });
