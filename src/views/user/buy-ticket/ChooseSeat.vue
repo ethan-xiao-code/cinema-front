@@ -299,13 +299,8 @@ const handleSaveCart = async (userId: number, phoneStr?: string) => {
   await runFn({
     userId,
     scheduleId: scheduleId.value,
-    filmName: filmSchedule.title,
-    poster: filmSchedule.poster,
     price: totalPrice.value,
     seatNumbers: selectedSeatList.value.map((seat) => seat.number),
-    phone: phoneStr || phone.value,
-    startTime: filmSchedule.startTime,
-    filmDuration: filmSchedule.duration,
   });
 };
 /** 初始化座位表 */

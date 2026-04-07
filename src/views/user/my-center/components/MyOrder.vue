@@ -40,7 +40,7 @@
               @click="cancelOrders(order)">
               取消订单
             </el-button>
-            <el-button v-if="order.status === 2" type="primary" size="small" @click="goToRate(order)">
+            <el-button :disabled="order.status !== 2" type="primary" size="small" @click="goToRate(order)">
               去评价
             </el-button>
           </div>
@@ -229,7 +229,7 @@ const cancelOrders = async (order: OrderItem) => {
         flex-direction: column;
         align-items: flex-end;
         justify-content: center;
-        gap: 8px;
+        gap: 16px;
         margin-right: 40px;
         .price {
           font-size: 20px;
@@ -245,7 +245,7 @@ const cancelOrders = async (order: OrderItem) => {
       .button-box {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 16px;
         justify-content: center;
       }
 
