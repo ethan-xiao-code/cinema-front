@@ -9,7 +9,8 @@
           <div class="average-score">
             <template v-if="film.averageScore">
               <el-rate v-model="film.averageScore" disabled text-color="#ff9900" score-template="{value}"></el-rate>
-              <span class="score">{{ film.averageScore * 2 }}</span>
+              <span class="score">{{ (film.averageScore * 2).toFixed(1) }}</span>
+              <span class="score-unit">分</span>
             </template>
             <template v-else>
               <span class="empty-text">暂无评分</span>
@@ -106,6 +107,11 @@ const props = defineProps<{
 
           .score {
             color: rgb(238, 188, 74);
+          }
+
+          .score-unit {
+            color: rgb(238, 188, 74);
+            font-size: 14px;
           }
         }
 

@@ -72,6 +72,15 @@ export const adminRoutes = {
       }
     },
     {
+      path: 'comment-list',
+      name: 'adminCommentList',
+      component: () => import('@/views/admin/comment-list/index.vue'),
+      meta: {
+        title: '评论审核',
+        icon: 'ChatDotRound'
+      }
+    },
+    {
       path: 'data-board',
       name: 'adminDataBoard', // 配置name，用于缓存组件（注意：一定要与该组件的name一直，否则keep-alive无效）
       component: () => import('@/views/admin/data-board/index.vue'),

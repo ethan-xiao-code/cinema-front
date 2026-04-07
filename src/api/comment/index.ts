@@ -52,3 +52,34 @@ export function handleCommentReactionApi(data: CommentReactionType): Promise<any
   })
 }
 
+export function pageQueryCommentApi(params: {
+  page: number
+  pageSize: number
+  filmId?: number
+  content?: string
+}): Promise<any> {
+  return request({
+    url: '/comment/page',
+    method: 'get',
+    params
+  })
+}
+
+// 查询某条评论的所有回复（懒加载）
+export function getRepliesByParentIdApi(parentId: number): Promise<any> {
+  return request({
+    url: `/comment/replies/${parentId}`,
+    method: 'get',
+  })
+}
+
+// 管理员删除评论
+export function adminDeleteCommentApi(id: number): Promise<any> {
+  return request({
+    url: '/comment/delete',
+    method: 'post',
+    data: { id }
+  })
+}
+
+

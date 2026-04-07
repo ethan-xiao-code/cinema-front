@@ -40,7 +40,11 @@
       </div>
     </div>
     <BaseLoading :loading="loading" text="数据加载中...">
-      <el-table v-bind="tableProps" :max-height="700" :data="resultTableList">
+      <el-table
+        v-bind="tableProps"
+        :max-height="700"
+        :data="resultTableList"
+      >
         <template v-for="item in tableParamsList" :key="item.prop">
           <el-table-column :fixed="item?.fixed" :width="item.width" :min-width="item.minWidth"  :label="item?.label" :prop="item?.prop"
             :type="item?.type" v-bind="item?.attrs">
@@ -53,7 +57,6 @@
                 <!-- 渲染DOM元素 -->
                 <component :is="item.render!(scope.row[item.prop], scope.row)" />
               </div>
-              
             </template>
           </el-table-column>
         </template>
@@ -78,7 +81,6 @@ import {
 import { debounce } from "lodash-es";
 import Pager from "@/components/Pager.vue";
 import type { FormInstance } from "element-plus";
-import type { TableProps } from "element-plus";
 import { useRequest } from "@/utils/useRequest";
 import BaseLoading from "./BaseLoading.vue";
 
@@ -132,7 +134,7 @@ interface TableRow {
 // Props（更精确的泛型）
 const props = defineProps<{
   tableParamsList: TableParamType[];
-  tableProps?: TableProps<TableRow>;
+  tableProps?: any;
   extraParams?: Record<string, any>;
   searchParamsList: SearchParamType[];
   showSearchForm?: boolean;

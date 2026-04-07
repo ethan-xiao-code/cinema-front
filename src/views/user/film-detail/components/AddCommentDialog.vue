@@ -58,9 +58,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { ElMessage, type FormInstance } from "element-plus";
-
-import { useUserStore } from "@/stores";
+import { ElMessage } from "element-plus";
 import { CommentFormType } from "@/api/comment/type";
 
 // 父组件传递的控制弹窗显示的 props
@@ -89,8 +87,8 @@ onMounted(() => {
   }
 });
 
-// 父组件传来的已经评论标志
-const hasCommented = computed(() => !!props.commentValue);
+// 已评论则不可再提交
+const hasCommented = computed(() => !!props.commentValue)
 
 // 关闭弹窗
 const handleClose = () => {

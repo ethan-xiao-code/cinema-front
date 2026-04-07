@@ -9,40 +9,42 @@
       <div v-if="ordersList.length > 0" class="order-list">
         <div class="order-item" v-for="order in ordersList" :key="order.id">
           <!-- 订单海报 -->
-          <div class="order-poster">
-            <img :src="order.poster" alt="电影海报" class="poster-img" loading="lazy">
+          <div class="poster-col">
+            <img :src="order.poster" alt="电影海报" class="film-poster" loading="lazy">
           </div>
 
           <!-- 订单主要信息 -->
-          <div class="order-main">
-            <h3 class="film-name">{{ order.filmName }}</h3>
+          <div class="info-col">
+            <p class="film-title">{{ order.filmName }}</p>
             <div class="info-box">
-              <span class="info-item">放映厅：{{ order.screenRoomName }}</span>
-              <span class="info-item">座位：{{ order.seatNumberStr }} 号</span>
+              <div class="info-item">放映厅：{{ order.screenRoomName }}</div>
+              <div class="info-item">座位：{{ order.seatNumberStr }} 号</div>
               <div>
                 <span class="info-item">开场时间：</span>
                 <span class="info-item highlight">{{ order.startTime }}</span>
               </div>
-              <span class="info-item">时长：{{ order.filmDuration }} 分钟</span>
-              <div>
-                <span class="info-item">支付时间：</span>
-                <span class="info-item">{{ order.payTime }}</span>
-              </div>
+              <div class="info-item">时长：{{ order.filmDuration }} 分钟</div>
+              <div class="info-item">支付时间：{{ order.payTime }}</div>
             </div>
-
           </div>
-
-          <!-- 订单操作区域 -->
-          <div class="order-actions">
-            <div class="order-amount">¥{{ order.amount.toFixed(2) }}</div>
+          <div class="price-status-box">
+            <span class="price">¥{{ order.amount.toFixed(2) }}</span>
             <el-tag :type="getTypeByValue(payStatusOptions, order.status)" class="status-tag">
               {{ getLabelByValue(payStatusOptions, order.status) }}
             </el-tag>
-            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger"
-              class="cancel-btn" @click="cancelOrders(order)">
+          </div>
+
+          <!-- 订单操作区域 -->
+          <div class="button-box">
+            <el-button :disabled="order.status !== 1 || isOrderExpired(order.startTime)" type="danger" size="small"
+              @click="cancelOrders(order)">
               取消订单
             </el-button>
+            <el-button v-if="order.status === 2" type="primary" size="small" @click="goToRate(order)">
+              去评价
+            </el-button>
           </div>
+
         </div>
       </div>
 
@@ -58,7 +60,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElEmpty } from 'element-plus'
 import { getOrdersListApi, cancelOrdersApi } from "@/api/orders";
 import { getLabelByValue, getTypeByValue, payStatusOptions } from '@/utils/constant';
@@ -67,6 +70,7 @@ import BaseLoading from '@/components/BaseLoading.vue';
 
 interface OrderItem {
   id: number;
+  filmId: number;
   filmName: string;
   poster: string;
   screenRoomName: string;
@@ -82,12 +86,19 @@ interface OrderItem {
 
 const ordersList = ref<OrderItem[]>([])
 
-const { loading} = useRequest(getOrdersListApi, {
+const router = useRouter()
+
+const { loading } = useRequest(getOrdersListApi, {
   onSuccess: (res) => {
     ordersList.value = res || []
   },
   immediate: true
 })
+
+/** 跳转到电影详情页评价 */
+const goToRate = (order: OrderItem) => {
+  router.push(`/user/film-detail/${order.filmId}`)
+}
 
 /** 判断订单是否过期（开场时间已过） */
 const isOrderExpired = (startTime: string) => {
@@ -130,7 +141,6 @@ const cancelOrders = async (order: OrderItem) => {
       font-weight: 600;
       color: #212529;
       padding-bottom: 12px;
-
     }
 
     .order-tip {
@@ -138,7 +148,6 @@ const cancelOrders = async (order: OrderItem) => {
       font-size: 14px;
       color: #e74c3c;
     }
-
 
     // 订单列表
     .order-list {
@@ -151,95 +160,97 @@ const cancelOrders = async (order: OrderItem) => {
     // 单个订单项
     .order-item {
       display: flex;
-      align-items: center;
+      align-items: stretch;
       width: 100%;
-      height: 140px;
+      min-height: 160px;
       background-color: #fff;
       border: 1px solid #e9ecef;
       border-radius: 12px;
-      padding: 0 20px;
       box-sizing: border-box;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: box-shadow 0.2s ease;
       padding: 20px;
+      gap: 20px;
 
       &:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       }
 
-      // 订单海报
-      .order-poster {
-        height: 100%;
-        border-radius: 8px;
+      // 海报列
+      .poster-col {
         flex-shrink: 0;
+        width: 90px;
+        height: 120px;
+        border-radius: 8px;
+        overflow: hidden;
 
-        .poster-img {
+        .film-poster {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          vertical-align: middle;
         }
       }
 
-      // 订单主要信息
-      .order-main {
+      // 信息列
+      .info-col {
         flex: 1;
-        margin-left: 24px;
-        height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        gap: 8px;
 
-        .film-name {
+        .film-title {
           font-size: 18px;
           font-weight: 600;
           color: #212529;
+          margin: 0;
         }
 
         .info-box {
           display: grid;
-          grid-template-columns: 2fr 1fr;
-          margin-top: 6px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
 
           .info-item {
             font-size: 14px;
             color: #495057;
-            // margin-right: 24px;
-            line-height: 25px;
+            line-height: 1.6;
 
             &.highlight {
               color: #e74c3c;
               font-weight: 500;
             }
           }
-
         }
-
-
       }
 
-      // 订单操作区域
-      .order-actions {
-        width: 300px;
+      .price-status-box {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-shrink: 0;
-
-        .order-amount {
-          font-size: 18px;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 8px;
+        margin-right: 40px;
+        .price {
+          font-size: 20px;
           font-weight: 700;
           color: #e74c3c;
         }
 
         .status-tag {
-          font-size: 14px;
-          padding: 6px 12px;
-          border-radius: 6px;
+          font-size: 13px;
         }
-
-        .cancel-btn {}
       }
+
+      .button-box {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+      }
+
+
+
     }
 
     // 空订单状态
